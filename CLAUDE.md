@@ -1,11 +1,52 @@
 # CLAUDE.md
 
-> 给 Claude Code 读取的项目上下文。
+> **给 Claude Code / Claude 协作者读取的项目上下文**
 >
 > **项目名**：MetaPlatform-Ontology（v6.0 重启）
 > **本地路径**：`D:\Hermes\Workspace\10_Projects\MetaPlatform-Ontology`
+> **GitHub**：https://github.com/Bert0000000000/MetaPlatform-Ontology
 > **状态**：Sprint 0 启动期（4 个 P0 Batch 待执行）
-> **最近更新**：2026-08-19（v6.0 重启第一天）
+> **最近更新**：2026-08-20
+
+---
+
+## 0. 项目目标与背景（Why & Context）
+
+### 0.1 项目目标（What）
+
+构建一个**可长期演进、可大规模应用、稳定可观测**的企业级 AI 平台，作为承载 19 个内部应用（mp-frontend / mp-runtime / mp-platform / mp-ai / mp-ontology / mp-workflow / mp-data-* / mp-monitoring 等）的统一底座。
+
+最终交付：
+- 一个能"开箱即用"AI 编排 + 知识库 + 工作流能力的 AI 中台
+- 一套统一的工程规范（CI gate / RLS / evidence / Conventional Commits）
+- 一套可以接力给团队 / 后续 AI 协作者的开发方法（loop 自动化）
+
+### 0.2 项目背景（Why v6.0 must restart）
+
+#### 业务背景
+
+- 公司需要在 6–9 个月内替换掉超过 8 个分散的 AI 应用平台
+- 数字员工产品线（mp-agent-team + mp-hitl-hub + mp-skill-marketplace）急需统一编排底座
+- 业务方希望"低代码 AI 编排 + 知识库 + 工作流"开箱即用
+
+#### 技术背景
+
+- 团队对 TypeScript / Node.js 生态熟悉度高
+- 已积累 PostgreSQL 运维经验
+- K8s 是公司基础设施的标配
+- DeepSeek 模型作为主推理供应商（成本/性能平衡）
+
+#### 治理背景（v3.0 失败的根本原因）
+
+| v3.0 痛点 | v6.0 应对 |
+|---|---|
+| 13 条硬规则写得"过死"，团队绕开做事 | 规则**自动化**而不是靠人自觉 |
+| Python FastAPI / Kafka / Redis / MinIO / Keycloak / Flowable 治理债高 | 切到 4 大支柱（Supabase + dsh + Temporal + OTel） |
+| 上一代 AI 编排（自研 SuperAI + LangChain）扩展性差 | 切到 **DeepSeek Harness (dsh)** — Cordis 插件框架 |
+| 上一代工作流（Flowable BPMN）能力上限明显 | 切到 **Temporal.io**，复用 Supabase PG |
+| 文档与代码脱节、决策没人看 | **ADR + 8 项 CI Gate + evidence 强制** |
+
+> v3.0 已 archive（见 [`docs/active/runbooks/archive-v3-repository.md`](docs/active/runbooks/archive-v3-repository.md) 与 [ADR-0060](docs/active/decisions/ADR-0060-discard-v3-data-migration.md)），**唯一沿用**：基础数据 ETL（4 类：用户 / 租户 / 核心业务数据 / 审计日志）。
 
 ---
 
@@ -149,4 +190,24 @@ PR 标题必须包含 Batch ID：`feat(foundation): MP-V6-FOUNDATION-01 #N descr
 
 ---
 
-*CLAUDE.md v6.0 完毕。*
+## 11. 环境与工具
+
+| 项 | 状态 |
+|---|---|
+| gh CLI | ✅ 已认证（用户 `Bert0000000000`，HTTPS 协议）|
+| git | ✅ |
+| node 22.23.2 | ✅（要求 ≥22.19）|
+| pnpm 11.22.0 | ✅（沙箱内 `$HOME/.npm-global/bin/`）|
+| kubectl v1.31.0 | ✅（沙箱内 `$HOME/bin/`，无 kubeconfig）|
+| helm v3.21.4 | ✅（沙箱内 `$HOME/bin/`）|
+| docker 27.4.0 | ⚠️ CLI 可用，daemon 在沙箱里跑不起来（需宿主机执行）|
+| 沙箱限制 | sudo 不可用，PATH 跨调用不保留，no_new_privs |
+
+沙箱内 PATH 引导：
+```bash
+export PATH="$HOME/bin:$HOME/.npm-global/bin:$PATH"
+```
+
+---
+
+*CLAUDE.md v6.1 — 加入 §0 项目目标/背景、§11 环境与工具*
