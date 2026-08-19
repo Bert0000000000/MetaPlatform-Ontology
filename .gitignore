@@ -1,0 +1,36 @@
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 临时
+*.bak
+*.tmp
+.tmp/
+
+# 日志
+*.log
+
+# 依赖
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 构建产物
+dist/
+build/
+target/
+
+# 本体工具常见产物
+*.owl.bak
+*.rdf.bak
+*.ttl.bak
