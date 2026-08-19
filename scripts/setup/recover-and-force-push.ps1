@@ -110,10 +110,18 @@ $confirm = Read-Host ("About to FORCE-PUSH to $RemoteUrl ($Branch). Remote curre
 if ($confirm -ne 'yes') { Warn 'aborted by user'; exit 1 }
 
 # --- 6. Force push -------------------------------------------------------
-Step 6 ('git push --force-with-lease origin {0}' -f $Branch)
+Step 6 ('git push --force origin {0}' -f $Branch)
+
+# Fetch first so origin/main is populated (helps --force-with-lease behave
+# correctly if we ever use it; harmless otherwise).
 $prev = $ErrorActionPreference
 $ErrorActionPreference = 'SilentlyContinue'
-git push --force-with-lease origin $Branch
+git fetch origin $Branch 2>&1 | Out-Null
+$ErrorActionPreference = $prev
+
+$prev = $ErrorActionPreference
+$ErrorActionPreference = 'SilentlyContinue'
+git push --force origin $Branch
 $pushCode = $LASTEXITCODE
 $ErrorActionPreference = $prev
 if ($pushCode -ne 0) {
