@@ -1,0 +1,23 @@
+# helm/mp-umbrella/charts/external-secrets/values.yaml
+# Vault backend (per PRD: docs/active/prd/foundation-k8s-clusters.md §3.2)
+
+webhook:
+  replicaCount: 2
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+# SecretStore 定义 (Vault)
+secretStore:
+  enabled: true
+  name: vault-backend
+  kind: ClusterSecretStore
+  vault:
+    server: https://vault.mp-platform.local:8200
+    path: secret
+    authMethod: kubernetes
+    mountPath: kubernetes
+    role: mp-platform-readonly
+
+# Refresh interval for synced secrets
+refreshInterval: 60s

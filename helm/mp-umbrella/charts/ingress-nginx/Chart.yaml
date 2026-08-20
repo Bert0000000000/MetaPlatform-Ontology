@@ -1,0 +1,8 @@
+# helm/mp-umbrella/charts/ingress-nginx/Chart.yaml
+apiVersion: v2
+name: ingress-nginx
+description: ingress-nginx for K8s Ingress resources
+type: application
+version: 4.11.2
+appVersion: "1.11.2"
+home: https://kubernetes.github.io/ingress-nginx

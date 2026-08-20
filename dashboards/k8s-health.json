@@ -1,0 +1,73 @@
+{
+  "title": "MP K8s Cluster Health",
+  "uid": "mp-k8s-health",
+  "tags": ["mp", "v6.0", "k8s", "infrastructure"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Node CPU/Memory Utilization",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "100 - (avg by (node) (rate(node_cpu_seconds_total{mode=\"idle\",platform.mp=\"v6.0\"}[5m])) * 100)",
+          "legendFormat": "{{node}} CPU"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100, "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 }] } } }
+    },
+    {
+      "id": 2,
+      "title": "Pod Status (Running/Pending/Failed)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum by (phase) (kube_pod_status_phase{platform.mp=\"v6.0\"})", "legendFormat": "{{phase}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Deployment Replicas (desired vs ready)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum by (deployment) (kube_deployment_spec_replicas{platform.mp=\"v6.0\"})", "legendFormat": "{{deployment}} desired" },
+        { "expr": "sum by (deployment) (kube_deployment_status_replicas_ready{platform.mp=\"v6.0\"})", "legendFormat": "{{deployment}} ready" }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Namespace ResourceQuota Usage (%)",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (namespace) (kube_resourcequota{type=\"hard\",resource=\"requests.cpu\",platform.mp=\"v6.0\"}) / sum by (namespace) (kube_resourcequota{type=\"hard\",resource=\"limits.cpu\",platform.mp=\"v6.0\"}) * 100",
+          "legendFormat": "{{namespace}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100 } }
+    },
+    {
+      "id": 5,
+      "title": "NetworkPolicy violations (dropped packets)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, direction) (cilium_drop_count_total{platform.mp=\"v6.0\"})",
+          "legendFormat": "{{namespace}} {{direction}}"
+        }
+      ]
+    }
+  ]
+}

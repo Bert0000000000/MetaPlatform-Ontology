@@ -1,0 +1,29 @@
+# helm/mp-umbrella/charts/ingress-nginx/values.yaml
+controller:
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+  ingressClassResource:
+    name: nginx
+    default: true
+  config:
+    use-forward-headers: "true"
+    enable-real-ip: "true"
+    ssl-protocols: "TLSv1.2 TLSv1.3"
+    ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+    hsts: "true"
+    hsts-max-age: "31536000"
+  resources:
+    requests: { cpu: 500m, memory: 512Mi }
+    limits:   { cpu: 2,    memory: 2Gi   }
+  replicaCount: 2
+  metrics:
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "10254"
+
+defaultBackend:
+  enabled: true

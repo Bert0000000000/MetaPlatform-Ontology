@@ -1,0 +1,77 @@
+{
+  "title": "MP Supabase PG Health",
+  "uid": "mp-supabase-pg",
+  "tags": ["mp", "v6.0", "supabase", "postgres"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Active Connections / max",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "pg_stat_activity_count{platform.mp=\"v6.0\"}", "legendFormat": "active" },
+        { "expr": "pg_settings_max_connections{platform.mp=\"v6.0\"}", "legendFormat": "max" }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Transactions Per Second (commit + rollback)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "rate(pg_stat_database_xact_commit{platform.mp=\"v6.0\"}[5m])", "legendFormat": "commit/s" },
+        { "expr": "rate(pg_stat_database_xact_rollback{platform.mp=\"v6.0\"}[5m])", "legendFormat": "rollback/s" }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Replication Lag (bytes)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "pg_replication_lag_bytes{platform.mp=\"v6.0\"}", "legendFormat": "{{instance}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 4,
+      "title": "Longest Transaction (seconds)",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "max(pg_stat_activity_max_tx_duration{platform.mp=\"v6.0\"})" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 30 }, { "color": "red", "value": 300 }] } } }
+    },
+    {
+      "id": 5,
+      "title": "Database Size (bytes) by tenant schema",
+      "type": "bargauge",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "pg_database_size_bytes{platform.mp=\"v6.0\"}", "legendFormat": "{{datname}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 6,
+      "title": "WAL Archival Lag (seconds)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "mp_pg_wal_archive_lag_seconds", "legendFormat": "WAL lag" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 60 }, { "color": "red", "value": 300 }] } } }
+    }
+  ]
+}
