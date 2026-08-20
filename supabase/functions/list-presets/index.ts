@@ -61,8 +61,8 @@ serve(async (req) => {
       .schema('mp_preset_registry')
       .from('presets')
       .select(`
-        id, slug, name, description, category, tenant_id, latest_version,
-        install_count, created_at, updated_at
+        id, slug, name, description, category, tenant_id, current_version,
+        downloads_count, created_at, updated_at
       `, { count: 'exact' });
 
     if (params.category) {
