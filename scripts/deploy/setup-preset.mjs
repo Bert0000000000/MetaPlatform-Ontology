@@ -37,8 +37,28 @@ await c.query('GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon, authenticate
 await c.query('GRANT EXECUTE ON FUNCTION public.install_preset TO anon, authenticated, service_role');
 await c.query('GRANT USAGE ON FUNCTION public.install_preset TO anon, authenticated, service_role');
 
-// 5) Notify PostgREST
-await c.query("NOTIFY pgrst, 'reload config'");
+// 5) Re-apply Phase 2 video_embeddings migration (idempotent: CREATE IF NOT EXISTS + CREATE OR REPLACE).
+//    On Supabase restart, custom migrations under supabase/migrations/ are NOT re-applied automatically;
+//    this step ensures video_embeddings + insert_video_embedding RPC persist across restarts.
+try {
+  const videoSql = fs.readFileSync('supabase/migrations/20260820400000_create_video_embeddings.sql', 'utf8');
+  await c.query(videoSql);
+  console.log('OK video_embeddings migration re-applied');
+} catch (e) {
+  console.log('video_embeddings apply:', e.message.slice(0, 100));
+}
+// Re-grant the RPC in case the CREATE OR REPLACE above wiped grants on Supabase restart
+try {
+  await c.query("GRANT EXECUTE ON FUNCTION public.insert_video_embedding(uuid, text, text, numeric, int, uuid, int, numeric, vector, jsonb) TO anon, authenticated, service_role");
+  await c.query("GRANT EXECUTE ON FUNCTION public.search_video_frames(vector, uuid, int) TO anon, authenticated, service_role");
+  await c.query("GRANT EXECUTE ON FUNCTION public.video_url_hash(text) TO anon, authenticated, service_role");
+} catch (e) {
+  console.log('video RPC grant:', e.message.slice(0, 100));
+}
 
-console.log('✅ mp_preset_registry fully configured');
+// 6) Notify PostgREST
+await c.query("NOTIFY pgrst, 'reload config'");
+await c.query("NOTIFY pgrst, 'reload schema'");
+
+console.log('OK mp_preset_registry + video_embeddings fully configured');
 await c.end();
