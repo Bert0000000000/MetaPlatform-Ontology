@@ -76,36 +76,45 @@ test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (
     expect(context.pages().length).toBe(before);
   });
 
-  test('3. click 应用中心 → new tab opened (tab-switch UX, dsh kept open)', async ({ page, context }) => {
+  test('3. click 应用中心 → full-bleed iframe overlay (in-page tab switch, dsh kept mounted)', async ({ page, context }) => {
     await page.goto(DSH_BASE);
     await page.waitForFunction(
       () => document.body.getAttribute('data-mp-v6-topbar-mounted') === '1',
       { timeout: 10_000 },
     );
 
-    const beforePages = context.pages().length;
-    const beforeUrl = page.url();
+    // Baseline: dsh's #root is visible, no iframe overlay.
+    const rootVisibleBefore = await page.locator('#root').isVisible();
+    const wrapBefore = await page.locator('#mp-v6-tab-wrap').count();
+    expect(rootVisibleBefore).toBe(true);
+    expect(wrapBefore).toBe(0);
 
     await page.locator('#mp-v6-topbar a[data-menu-id="mp-app-center"]').click();
 
-    // Tab-switch UX: a new page opens in the context, dsh stays untouched.
-    await page.waitForFunction(
-      (n) => window.parent && window.parent !== window ? false : true && false && true, // noop
-      beforePages,
-      { timeout: 1_000 },
-    ).catch(() => {});
-    // Wait for popup detection
-    await page.waitForTimeout(1_000);
-    const newPageCount = context.pages().length;
-    expect(newPageCount).toBe(beforePages + 1);
+    // Tab switch: dsh stays mounted (hidden), iframe overlay opens.
+    await page.waitForSelector('#mp-v6-tab-wrap', { timeout: 3_000 });
+    expect(await page.locator('#mp-v6-tab-wrap').isVisible()).toBe(true);
+    expect(await page.locator('#mp-v6-tab-iframe').count()).toBe(1);
 
-    // dsh must still be the active page (not navigated away).
-    expect(page.url()).toBe(beforeUrl);
+    // dsh's #root is hidden but still in the DOM (state preserved).
+    const rootEl = await page.locator('#root').elementHandle();
+    const rootDisplay = await rootEl?.evaluate((el) => (el as HTMLElement).style.display);
+    expect(rootDisplay).toBe('none');
 
-    // Visual: clicking the new tab's link sets [data-active="1"] on mp-app-center.
-    // We can verify the *intent* by re-running the test on the new tab — but
-    // for this PoC we just confirm the link element exists with the right id.
-    await expect(page.locator('#mp-v6-topbar a[data-menu-id="mp-app-center"]')).toHaveCount(1);
+    // NO new browser tab opened (this is the key behaviour change).
+    expect(context.pages().length).toBe(1);
+
+    // Active state: the clicked menu item is marked.
+    await page.waitForSelector(
+      '#mp-v6-topbar a[data-menu-id="mp-app-center"][data-active="1"]',
+      { timeout: 2_000 },
+    );
+
+    // Close button restores dsh (revert #root display, remove wrap).
+    await page.locator('#mp-v6-tab-wrap button').click();
+    await page.waitForSelector('#mp-v6-tab-wrap', { state: 'detached', timeout: 2_000 });
+    const rootAfter = await page.locator('#root').isVisible();
+    expect(rootAfter).toBe(true);
   });
 
   test('4. active state follows current path (one per path)', async ({ page }) => {
@@ -130,28 +139,33 @@ test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (
     }
   });
 
-  test('5. active state clears when navigating to a non-menu path (simulated popstate)', async ({ page }) => {
+  test('5. active state stays in sync with tab close (overlay removed → dsh still on /)', async ({ page }) => {
     await page.goto(DSH_BASE);
     await page.waitForFunction(
       () => document.body.getAttribute('data-mp-v6-topbar-mounted') === '1',
       { timeout: 10_000 },
     );
-    // Initially AI 助手 active.
+    // Initially AI 助手 active (matchPath='/').
     await page.waitForSelector(
       '#mp-v6-topbar a[data-menu-id="mp-ai-assistant"][data-active="1"]',
       { timeout: 3_000 },
     );
 
-    // Simulate a dsh SPA-internal route change to a path that no menu matches
-    // (e.g. a session view). The plugin must clear [data-active] everywhere.
-    await page.evaluate(() => {
-      window.history.pushState({}, '', '/some/dsh/session/abc123');
-      window.dispatchEvent(new PopStateEvent('popstate', { state: {} }));
-    });
-    await page.waitForTimeout(100);
+    // Open a tab and close it (simulates full round-trip).
+    await page.locator('#mp-v6-topbar a[data-menu-id="mp-app-center"]').click();
+    await page.waitForSelector('#mp-v6-tab-wrap', { timeout: 3_000 });
+    await page.locator('#mp-v6-tab-wrap button').click();
+    await page.waitForSelector('#mp-v6-tab-wrap', { state: 'detached', timeout: 3_000 });
 
-    const activeCount = await page.locator('#mp-v6-topbar a[data-active="1"]').count();
-    expect(activeCount).toBe(0);
+    // After closing, the active state should be reset based on the
+    // current dsh path ('/'), so AI 助手 becomes active again.
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector('#mp-v6-topbar a[data-menu-id="mp-ai-assistant"]') as HTMLElement | null;
+        return el ? el.getAttribute('data-active') === '1' : false;
+      },
+      { timeout: 3_000 },
+    );
   });
 
   test('6. click AI 助手 → dsh:open-chat CustomEvent fires (no nav)', async ({ page, context }) => {
