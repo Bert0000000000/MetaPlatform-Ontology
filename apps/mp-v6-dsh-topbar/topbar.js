@@ -137,30 +137,102 @@
   ]
 
   /**
-   * SPA internal navigation for a 'link' item.
-   * - Same-origin href  → history.pushState + dispatch popstate (no page reload,
-   *                        dsh's React Router / window.location listener can pick it up).
-   * - Cross-origin href → target=_blank (new tab). The user keeps dsh open in
-   *                        the current tab and gets a new tab for the mp-marketplace
-   *                        / admin console. This is the "tab switch" UX the user
-   *                        requested: each topbar item opens a new tab, and the
-   *                        topbar stays present on dsh so navigation remains one
-   *                        click away.
-   * - Any parse failure → window.open(href, '_blank') fallback.
+   * Tab-switching: render the cross-origin mp-* page as a full-bleed iframe
+   * inside dsh (replacing the dsh main content visually), with a close
+   * button to swap back. The dsh URL itself doesn't change; the user
+   * stays in the same tab. This is the "切换" (switch) UX the user asked
+   * for instead of opening a new tab.
+   *
+   * Same-origin href still uses pushState/popstate so dsh's own router
+   * can render the new view natively.
    */
-  function navigateAsInternal(href) {
+  function navigateAsTab(href) {
     try {
       var target = new URL(href, window.location.href)
       if (target.origin === window.location.origin) {
         var path = target.pathname + target.search + target.hash
         window.history.pushState({}, '', path)
         window.dispatchEvent(new PopStateEvent('popstate', { state: {} }))
-      } else {
-        window.open(href, '_blank', 'noopener')
+        return
       }
     } catch (err) {
-      try { window.open(href, '_blank', 'noopener') } catch (e2) { /* ignore */ }
+      try { window.location.assign(href); return } catch (e2) { /* ignore */ }
     }
+    mountAsIframe(href)
+  }
+
+  function mountAsIframe(href) {
+    // Tear down a previous tab (if any) before mounting a new one.
+    unmountIframe()
+
+    var url
+    try { url = new URL(href, window.location.href).toString() } catch (e) { url = href }
+
+    var root = document.getElementById('root') || document.body
+    if (!root) return
+
+    // The wrapper is a full-bleed flex container that pushes dsh's main
+    // content off-screen. We keep the topbar (which lives in <body>, not
+    // #root) visible so navigation back is one click away.
+    var wrap = document.createElement('div')
+    wrap.id = 'mp-v6-tab-wrap'
+    wrap.dataset.menuHref = href
+    wrap.style.cssText =
+      'position: fixed; left: 0; right: 0; top: 44px; bottom: 0;' +
+      'background: #0b0d12; z-index: 2147483599;' +
+      'display: flex; flex-direction: column;'
+
+    // Close button bar (36px tall) — looks like a dsh sub-toolbar.
+    var bar = document.createElement('div')
+    bar.style.cssText =
+      'display: flex; align-items: center; gap: 8px;' +
+      'padding: 0 12px; height: 36px; flex: 0 0 36px;' +
+      'background: rgba(20, 22, 28, 0.94);' +
+      'border-bottom: 1px solid rgba(255, 255, 255, 0.08);' +
+      'color: rgba(235, 238, 245, 0.85); font: 12px/1 -apple-system, sans-serif;'
+
+    var label = document.createElement('span')
+    label.style.cssText = 'flex: 1 1 auto;'
+    label.textContent = '↪ ' + href.replace(/^https?:\/\/[^/]+/, '')
+
+    var close = document.createElement('button')
+    close.type = 'button'
+    close.textContent = '返回 dsh ↩'
+    close.setAttribute('aria-label', '返回 dsh 主界面')
+    close.style.cssText =
+      'background: rgba(120, 165, 255, 0.18); color: #fff; border: none;' +
+      'border-radius: 4px; padding: 4px 12px; cursor: pointer; font: inherit;'
+    close.addEventListener('click', function () { unmountIframe() })
+
+    bar.appendChild(label)
+    bar.appendChild(close)
+
+    // The iframe fills the rest of the wrap.
+    var iframe = document.createElement('iframe')
+    iframe.id = 'mp-v6-tab-iframe'
+    iframe.src = href
+    iframe.allow = 'clipboard-write; clipboard-read'
+    iframe.style.cssText = 'flex: 1 1 auto; width: 100%; height: 100%; border: 0; background: #fff;'
+
+    wrap.appendChild(bar)
+    wrap.appendChild(iframe)
+
+    // Insert before #root so dsh's React tree remains mounted underneath
+    // (we just hide it visually). This way pressing the back button
+    // restores dsh exactly as it was.
+    if (root.parentNode) {
+      root.parentNode.insertBefore(wrap, root)
+      root.style.display = 'none'
+    } else {
+      document.body.appendChild(wrap)
+    }
+  }
+
+  function unmountIframe() {
+    var wrap = document.getElementById('mp-v6-tab-wrap')
+    if (wrap) wrap.parentNode.removeChild(wrap)
+    var root = document.getElementById('root')
+    if (root) root.style.display = ''
   }
 
   /**
@@ -242,7 +314,7 @@
       if (item.kind === 'chat') {
         openChat(item)
       } else {
-        navigateAsInternal(item.href)
+        navigateAsTab(item.href)
       }
       // After any path change, recompute the active state so the underline
       // tracks the new URL even when dsh's own router handles the popstate.
