@@ -323,9 +323,10 @@
       } else {
         navigateAsTab(item.href)
       }
-      // After any path change, recompute the active state so the underline
-      // tracks the new URL even when dsh's own router handles the popstate.
-      setActiveByPath(window.location.pathname)
+      // NB: no trailing setActiveByPath here.
+      //   - Same-origin: history.pushState is patched → triggers syncOnNav → setActiveByPath.
+      //   - Cross-origin: showMpTab already calls setActiveByPath with the target path.
+      // Re-calling with window.location.pathname (still '/') would wipe the cross-origin activation.
     })
 
     return a
