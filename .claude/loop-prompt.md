@@ -2,7 +2,30 @@
 
 > **用法**：`claude --loop .claude/loop-prompt.md --batch MP-V6-FOUNDATION-01`
 >
+> **CronCreate 调度（推荐）**：每 30 分钟触发一次（详见 §15）
+>
 > **作用**：让 Claude Code 在 loop 模式下，依次完成 4 个 P0 Batch（FOUNDATION → TEMPORAL → OBSERVABILITY → DSH-DOCKER），每个完成后自动开下一个。
+
+---
+
+## 0.x CronCreate 自动调度（v6.0 推荐模式）
+
+如果你在 Claude Code 桌面应用里，可以用 `mcp__scheduled-tasks__create_scheduled_task` 创建一个**每 30 分钟**自动调度的任务，把 loop 自动化跑起来：
+
+```
+cron:        7-57/30 * * * *      # 每 30 分钟, 避开 :00 和 :30 高峰
+description: mp-v6-loop           # 自定义 ID
+prompt:      <见 §15 模板>
+notify:      true                 # 本会话接收每次完成通知
+```
+
+调度器会自动：
+1. 检测下一个未完成 batch（`bash scripts/loop/next-batch.sh`）
+2. 输出任务清单（`bash scripts/loop/run-once.sh`）
+3. AI 协作者按 PRD 写代码、跑 static checks、commit、push
+4. evidence 文件齐全 → 进入下一 batch
+
+任务自动 7 天后过期（系统默认），需要续期手动重建。
 
 ---
 
@@ -595,3 +618,39 @@ cat docs/active/batch/$ACTIVE_BATCH.md
 *MetaPlatform v6.0 - Claude Code Loop Prompt 完毕。*
 
 *启动命令*：`claude --loop .claude/loop-prompt.md --batch MP-V6-FOUNDATION-01`
+
+---
+
+## 15. CronCreate 调度模板
+
+把这个 prompt 喂给 `mcp__scheduled-tasks__create_scheduled_task` 即可启用每 30 分钟自动 loop：
+
+```text
+你是 MetaPlatform v6.0 loop 协作者。每次被唤起, 执行以下动作:
+
+1. 读 scripts/loop/progress.md 看当前进度
+2. 跑 bash scripts/loop/run-once.sh 探测下一个未完成 batch
+3. 如果有 batch:
+   a. 读 docs/active/batch/<batch>.md 任务清单
+   b. 读对应 PRD docs/active/prd/<batch>-*.md
+   c. 创建分支 feat/<batch-lower>
+   d. 按 PRD §4 写代码, 跑 pnpm run validate:all
+   e. 写 evidence/<batch>-ACCEPTANCE.md (AC 全勾)
+   f. commit + push + 创建 PR (gh pr create)
+   g. 等 8 项 CI gate 通过 + squash merge
+4. 如果所有 batch 完成: 输出总结, 提议启动 Sprint 1
+
+约束:
+- 不修改 v3.0 仓库 (已 archived)
+- 不 push Secret
+- 不 merge 自己的 PR (除非 auto-merge 配置)
+- 不写 Python 业务代码
+- 不简化任务清单, 不跳过 AC
+
+如果中途遇到阻塞 (缺凭证 / 集群没准备 / etc), 暂停并向用户报告:
+- 具体卡在哪一步
+- 已查过什么
+- 需要什么信息
+
+不要凭直觉决策. 先查 spec.
+```

@@ -1,0 +1,90 @@
+# k8s/observability/otel-collector-config.yaml
+# PRD: docs/active/prd/otel-collector-config.md §4
+# ConfigMap: OTel Collector 完整配置 (3 pipelines: traces/metrics/logs)
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: mp-monitoring
+  labels:
+    platform.mp/version: "v6.0"
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc: { endpoint: 0.0.0.0:4317 }
+          http: { endpoint: 0.0.0.0:4318 }
+
+    processors:
+      # 自动注入 K8  metadata (pod, namespace, node)
+      k8sattributes:
+        auth_type: serviceAccount
+        passthrough: false
+        filter:
+          node_from_env_var: KUBE_NODE_NAME
+
+      # 注入 platform.mp=v6.0 标签 (用于多版本 trace 区分)
+      transform:
+        trace_statements:
+          - context: resource
+            statements:
+              - set(attributes["platform.mp"], "v6.0")
+              - set(attributes["platform.mp/tier"], "observability")
+
+      # 采样: errors + slow + 10% 默认
+      tail_sampling:
+        decision_wait: 10s
+        num_traces: 100000
+        expected_new_traces_per_sec: 1000
+        policies:
+          - name: errors
+            type: status_code
+            status_code: { status_codes: [ERROR] }
+          - name: slow-traces
+            type: latency
+            latency: { threshold_ms: 3000 }
+          - name: default-10pct
+            type: probabilistic
+            probabilistic: { sampling_percentage: 10 }
+
+      # 内存限制 (防止 OOM)
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 20
+
+      # 批量发送 (减少网络)
+      batch:
+        send_batch_size: 1024
+        timeout: 5s
+
+    exporters:
+      otlp:
+        endpoint: tempo.monitoring.svc:4317
+        tls: { insecure: true }
+
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        resource_to_telemetry_conversion: { enabled: true }
+
+      loki:
+        endpoint: http://loki.monitoring.svc:3100/loki/api/v1/push
+
+    service:
+      telemetry:
+        metrics: { address: 0.0.0.0:8888 }
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [k8sattributes, transform, tail_sampling, memory_limiter, batch]
+          exporters: [otlp]
+        metrics:
+          receivers: [otlp]
+          processors: [k8sattributes, transform, memory_limiter, batch]
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          processors: [k8sattributes, transform, memory_limiter, batch]
+          exporters: [loki]

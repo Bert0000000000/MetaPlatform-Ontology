@@ -1,0 +1,94 @@
+# .github/workflows/dsh-build.yml
+# PRD: docs/active/prd/dsh-image-spec.md §6
+# dsh Docker 镜像 CI: tag 触发 → build → trivy scan → cosign sign → push Harbor
+
+name: dsh-build
+
+on:
+  push:
+    tags:
+      - 'v*'              # e.g. v6.0.0-abc1234
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: mp/dsh-web
+  HARHER_REGISTRY: harbor.mp-platform.local
+  HARHER_PROJECT: mp
+
+jobs:
+  build:
+    name: Build dsh image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.HARHER_REGISTRY }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="v6.0.0-${GITHUB_SHA::7}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build + push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/dsh/Dockerfile
+          push: true
+          tags: |
+            ${{ env.HARHER_REGISTRY }}/${{ env.HARHER_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+            ${{ env.HARHER_REGISTRY }}/${{ env.HARHER_PROJECT }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ env.HARHER_REGISTRY }}/${{ env.HARHER_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+          exit-code: 1
+        continue-on-error: false
+
+      - name: Upload Trivy scan results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+      - name: Cosign sign
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        run: |
+          cosign sign --yes \
+            ${{ env.HARHER_REGISTRY }}/${{ env.HARHER_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+
+      - name: Image size check
+        run: |
+          SIZE=$(docker image inspect ${{ env.HARHER_REGISTRY }}/${{ env.HARHER_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} --format='{{.Size}}')
+          SIZE_MB=$((SIZE / 1024 / 1024))
+          echo "Image size: ${SIZE_MB}MB"
+          if [ $SIZE_MB -gt 500 ]; then
+            echo "::error::Image size ${SIZE_MB}MB exceeds 500MB limit"
+            exit 1
+          fi

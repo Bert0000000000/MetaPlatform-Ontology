@@ -1,0 +1,69 @@
+# docker/dsh/.dockerignore
+# 排除不需要打进镜像的文件 (减小 .docker build context, 加速 build)
+
+# 文档 / 元数据 (不进镜像)
+docs/
+evidence/
+CLAUDE.md
+README.md
+START.md
+CONTRIBUTING.md
+.github/
+.claude/
+
+# 测试
+tests/
+**/*.test.ts
+**/*.spec.ts
+coverage/
+.nyc_output/
+
+# 构建产物
+**/dist/
+**/build/
+**/.turbo/
+**/.next/
+**/.cache/
+
+# 编辑器
+.idea/
+.vscode/
+*.swp
+*.swo
+*~*
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# 日志
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# 环境
+.env
+.env.*
+!.env.example
+
+# Helm / K8s (不进 dsh 镜像)
+k8s/
+helm/
+terraform/
+runbooks/
+
+# supabase migrations
+supabase/migrations/
+supabase/policies/
+
+# Prometheus rules / dashboards
+prometheus/
+dashboards/
+
+# CI scripts
+scripts/ci/
+scripts/backup/
+scripts/setup/
+scripts/loop/run-once.sh
