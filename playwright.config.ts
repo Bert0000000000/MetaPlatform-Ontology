@@ -35,7 +35,7 @@ export default defineConfig({
     },
     {
       name: 'dsh-web-ui',
-      testMatch: /e2e\/dsh-web\.spec\.ts/,
+      testMatch: /e2e\/(dsh-web|dsh-topbar-mp)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5173' },
     },
   ],

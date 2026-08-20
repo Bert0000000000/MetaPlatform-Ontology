@@ -32,6 +32,17 @@ fi
 
 cd "$DSH_DIR"
 
+# MP-V6 dsh-web topbar overlay: prepends 2 menu items (市场 + 后台管理) into
+# the served dsh-web page. Path is relative to vendor/deepseek-harness (cwd
+# after `cd "$DSH_DIR"` above). See apps/mp-v6-dsh-topbar/ for the plugin.
+MP_V6_TOPBAR_PATCH="$DSH_DIR/../../apps/mp-v6-dsh-topbar/cordis.patch.yml"
+MP_V6_TOPBAR_ARGS=()
+if [[ -f "$MP_V6_TOPBAR_PATCH" ]]; then
+  MP_V6_TOPBAR_ARGS=(--patch "$MP_V6_TOPBAR_PATCH")
+else
+  echo "⚠️  mp-v6-topbar patch 不存在: $MP_V6_TOPBAR_PATCH (顶栏不加载, 但 dsh 照常起)" >&2
+fi
+
 # -------- 必填项 --------
 : "${DSH_DEEPSEEK_API_KEY:?Need DSH_DEEPSEEK_API_KEY in env. Get one at https://platform.deepseek.com → API Keys}"
 
@@ -103,4 +114,4 @@ echo "   home: $DSH_HOME"
 echo "   supabase: $DSH_SUPABASE_URL"
 echo "   llm:    $DSH_LLM_PROVIDER ($DSH_DEEPSEEK_MODEL)"
 echo
-exec node "$DSH_BIN" web --port 5173 "$@"
+exec node "$DSH_BIN" web "${MP_V6_TOPBAR_ARGS[@]}" --port 5173 "$@"

@@ -1,0 +1,17 @@
+# MP-V6 dsh-web topbar patch — applied via `dsh web --patch <this-file>`.
+#
+# Inserts one Cordis plugin row: `mp-v6-topbar`, hosted at apps/mp-v6-dsh-topbar/host.mjs
+# (relative path resolved from the loader config directory —
+# vendor/deepseek-harness/.dsh-data/profiles/web/ — so the script can be checked
+# into the repo and survive fresh clones).
+#
+# The host plugin uses webServer.register + tapIndex to inject a <script> tag into
+# the served index.html. The script prepends a fixed-position <nav> with 2 menu
+# items: 市场 (mp-marketplace) and 后台管理 (mp-platform admin).
+#
+# No dsh source code is modified — pure overlay.
+
+- insert:
+    - id: mp-v6-topbar
+      name: ../../../../../apps/mp-v6-dsh-topbar/host.mjs
+      inject: [webServer]
