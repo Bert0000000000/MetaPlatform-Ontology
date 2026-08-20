@@ -1,0 +1,62 @@
+# prometheus/rules/hitl-alerts.yaml
+# PRD: docs/active/prd/long-task-5-mechanisms.md §7
+# Batch: MP-V6-LONG-TASK-01
+# HITL 长任务告警规则
+
+groups:
+  - name: mp-hitl-critical
+    interval: 30s
+    rules:
+      # Critical: pending HITL 堆积 (> 100 超过 1h)
+      - alert: HITLPendingBacklog
+        expr: sum(mp_hitl_pending_count{platform.mp="v6.0"}) > 100
+        for: 1h
+        labels:
+          severity: critical
+          platform.mp/tier: long-task
+        annotations:
+          summary: "HITL pending 堆积 {{ $value }} 件"
+          description: "审批堆积超过 100 件且持续 1 小时, 检查审批人或系统."
+
+      # Critical: 单个 HITL 审批超过 96 小时
+      - alert: HITLSingleOverdue
+        expr: mp_hitl_oldest_pending_seconds{platform.mp="v6.0"} > 345600  # 96h
+        for: 5m
+        labels:
+          severity: critical
+          platform.mp/tier: long-task
+        annotations:
+          summary: "HITL 超过 96h 仍未决 (id={{ $labels.hitl_id }})"
+          description: "最长审批超 4 天, 自动 expire 流程应已触发."
+
+      # Warning: 平均审批时长 > 48h
+      - alert: HITLAverageDurationHigh
+        expr: avg(mp_hitl_decision_duration_seconds{platform.mp="v6.0"}) > 172800  # 48h
+        for: 1h
+        labels:
+          severity: warning
+          platform.mp/tier: long-task
+        annotations:
+          summary: "HITL 平均审批时长 {{ $value | humanizeDuration }}"
+
+      # Warning: SaaS webhook 失败率高 (> 10%)
+      - alert: HITLWebhookFailureRateHigh
+        expr: |
+          sum(rate(mp_hitl_webhook_failed_total{platform.mp="v6.0"}[10m]))
+          / sum(rate(mp_hitl_webhook_received_total{platform.mp="v6.0"}[10m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          platform.mp/tier: long-task
+        annotations:
+          summary: "HITL webhook 失败率 {{ $value | humanizePercentage }}"
+
+      # Info: 当日升级事件 > 20 (说明审批堆积)
+      - alert: HITLEscalationSpike
+        expr: increase(mp_hitl_escalation_events_total{platform.mp="v6.0"}[24h]) > 20
+        for: 1h
+        labels:
+          severity: info
+          platform.mp/tier: long-task
+        annotations:
+          summary: "当日 HITL 升级 {{ $value }} 次, 检查审批人配置"

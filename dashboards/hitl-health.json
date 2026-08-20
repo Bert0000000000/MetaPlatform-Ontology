@@ -1,0 +1,84 @@
+{
+  "title": "MP HITL Health",
+  "uid": "mp-hitl-health",
+  "tags": ["mp", "v6.0", "hitl", "long-task"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Pending HITL by type + escalation level",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (type, escalation_level) (mp_hitl_pending_count{platform.mp=\"v6.0\"})",
+          "legendFormat": "{{type}} level {{escalation_level}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "HITL Average Approval Duration (hours)",
+      "type": "gauge",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "avg(mp_hitl_decision_duration_seconds{platform.mp=\"v6.0\"}) / 3600"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "h", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 24 }, { "color": "red", "value": 72 }] } } }
+    },
+    {
+      "id": 3,
+      "title": "Escalation Events (24h)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (from_level, to_level) (increase(mp_hitl_escalation_events_total{platform.mp=\"v6.0\"}[24h]))",
+          "legendFormat": "{{from_level}}→{{to_level}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Expired HITL (cumulative)",
+      "type": "stat",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "sum(mp_hitl_expired_total{platform.mp=\"v6.0\"})" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Reminder Sent (daily)",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (channel) (increase(mp_hitl_reminder_sent_total{platform.mp=\"v6.0\"}[24h]))",
+          "legendFormat": "{{channel}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "WebHook vs Polling reconciliation",
+      "type": "timeseries",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        { "expr": "rate(mp_hitl_webhook_delivered_total[5m])", "legendFormat": "webhook" },
+        { "expr": "rate(mp_hitl_poll_reconciled_total[5m])", "legendFormat": "polling" }
+      ]
+    }
+  ]
+}
