@@ -107,7 +107,7 @@ test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (
     // Active state: the clicked menu item is marked.
     await page.waitForSelector(
       '#mp-v6-topbar a[data-menu-id="mp-app-center"][data-active="1"]',
-      { timeout: 2_000 },
+      { state: 'attached', timeout: 2_000 },
     );
 
     // Close button restores dsh (revert #root display, remove wrap).
