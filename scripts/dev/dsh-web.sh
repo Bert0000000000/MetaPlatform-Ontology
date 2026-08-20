@@ -65,7 +65,7 @@ export DSH_SANDBOX_TYPE="${DSH_SANDBOX_TYPE:-}"
 
 # Digital employee presets
 export DSH_PRESET_DEFAULT="${DSH_PRESET_DEFAULT:-knowledge-curator}"
-export DSH_PRESETS_PATH="${DSH_PRESETS_PATH:-$DSH_DIR/apps/dsh-presets}"
+export DSH_PRESETS_PATH="${DSH_PRESETS_PATH:-$ROOT_DIR/apps/dsh-presets}"
 
 # Observability (本机 collector 没起, endpoint 注掉; 启 OTel 时 export DSH_OTEL_ENDPOINT 即可)
 # export DSH_OTEL_ENDPOINT="http://localhost:4318"

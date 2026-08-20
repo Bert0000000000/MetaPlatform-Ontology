@@ -32,8 +32,10 @@ await c.query('GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA mp_p
 await c.query('GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA mp_preset_registry TO anon, authenticated, service_role');
 await c.query('ALTER DEFAULT PRIVILEGES IN SCHEMA mp_preset_registry GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated, service_role');
 await c.query('GRANT EXECUTE ON FUNCTION mp_preset_registry.install_preset TO anon, authenticated, service_role');
-await c.query('GRANT USAGE ON SCHEMA public TO supabase_auth_admin');
-await c.query('GRANT SELECT ON ALL TABLES IN SCHEMA public TO supabase_auth_admin');
+await c.query('GRANT USAGE ON SCHEMA public TO anon, authenticated, supabase_auth_admin');
+await c.query('GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon, authenticated, supabase_auth_admin');
+await c.query('GRANT EXECUTE ON FUNCTION public.install_preset TO anon, authenticated, service_role');
+await c.query('GRANT USAGE ON FUNCTION public.install_preset TO anon, authenticated, service_role');
 
 // 5) Notify PostgREST
 await c.query("NOTIFY pgrst, 'reload config'");
