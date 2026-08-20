@@ -1,9 +1,11 @@
 /**
-// *   MP-V6 顶栏 plugin — host half
+// *   MetaPlatform 顶栏 plugin — host half
 // *
-// *   把 2 个菜单注入到 dsh-web 顶栏:
-// *     - 市场   (mp-marketplace)
-// *     - 后台管理 (mp-platform admin)
+// *   把 4 个菜单注入到 dsh-web 顶栏 (SPA-internal nav, 同 tab, 不开新窗口):
+// *     - 云市场            (mp-marketplace)      → :8080/marketplace
+// *     - 应用中心          (mp-app-center)       → :8080/marketplace
+// *     - Ontology 本体平台 (mp-platform-admin)   → :8080/admin
+// *     - AI 助手           (mp-ai-assistant)     → 触发 'dsh:open-chat' CustomEvent
 // *
 // *   集成方式:
 // *     1. 注册静态路由 /__mp_v6_topbar__/topbar.js, 服务 client.js

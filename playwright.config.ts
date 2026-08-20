@@ -1,5 +1,5 @@
 // playwright.config.ts
-// MP-V6 E2E Test Configuration
+// MetaPlatform E2E Test Configuration
 // - Test supabase (Auth, Edge Functions, RLS) — runs against localhost:54321
 // - Test dsh-web (UI) — runs against localhost:5173 (when dsh-web is up)
 //
@@ -35,7 +35,7 @@ export default defineConfig({
     },
     {
       name: 'dsh-web-ui',
-      testMatch: /e2e\/(dsh-web|dsh-topbar-mp)\.spec\.ts/,
+      testMatch: /e2e\/(dsh-web|dsh-topbar-mp|dsh-topbar-mp-internal)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5173' },
     },
   ],

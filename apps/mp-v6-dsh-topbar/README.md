@@ -1,11 +1,13 @@
-# MP-V6 dsh Topbar Plugin
+# MetaPlatform dsh Topbar Plugin
 
-dsh-web (port 5173) 顶栏注入 2 个菜单:
+dsh-web (port 5173) 顶栏注入 4 个菜单:
 
 | 菜单 | 跳转 |
 |---|---|
-| 市场 | `http://localhost:8080/marketplace` |
-| 后台管理 | `http://localhost:8080/admin` |
+| 云市场 | `http://localhost:8080/marketplace` (SPA-internal nav, 同 tab) |
+| 应用中心 | `http://localhost:8080/marketplace` (SPA-internal nav, 同 tab) |
+| Ontology 本体平台 | `http://localhost:8080/admin` (SPA-internal nav, 同 tab) |
+| AI 助手 | 触发 `dsh:open-chat` CustomEvent + best-effort 点击 dsh chat 按钮 |
 
 ## 集成方式
 
@@ -13,7 +15,7 @@ dsh-web (port 5173) 顶栏注入 2 个菜单:
 1. 在 `vendor/deepseek-harness/.dsh-data/profiles/web/cordis.patch.yml` 增加 1 行 `insert`
 2. 相对路径指向本目录的 `host.mjs`
 3. `host.mjs` 注册静态路由 + tap index.html, 注入 `<script defer src="/__mp_v6_topbar__/topbar.js">`
-4. `topbar.js` 用 vanilla DOM prepend 一个 44px 高的 `<nav>`, 含 2 个 `<a target="_blank">`
+4. `topbar.js` 用 vanilla DOM prepend 一个 44px 高的 `<nav>`, 含 4 个 `<a>` (3 个 SPA-internal nav + 1 个 dsh:open-chat CustomEvent)
 
 ## 文件
 
@@ -36,10 +38,10 @@ dsh-web (port 5173) 顶栏注入 2 个菜单:
 DSH_DEEPSEEK_API_KEY=sk-xxx ./scripts/dev/dsh-web.sh
 
 # 2. 浏览器打开 http://127.0.0.1:5173, 顶部出现:
-#    [MP-V6]  市场   后台管理
+#    [MetaPlatform]  云市场   应用中心   Ontology 本体平台   AI 助手
 
-# 3. Playwright
-DSH_BASE_URL=http://127.0.0.1:5173 npx playwright test --project=dsh-web-ui -g "topbar"
+# 3. Playwright (4-menu 版本)
+DSH_BASE_URL=http://127.0.0.1:5173 npx playwright test --project=dsh-web-ui -g "internal"
 ```
 
 ## 重启
