@@ -73,6 +73,7 @@ const server = http.createServer(async (req, res) => {
           <li><a href="/admin/installs">Installs</a></li>
           <li><a href="/admin/presets">Presets</a></li>
           <li><a href="/admin/cron">Cron Jobs</a></li>
+          <li><a href="/admin/sandbox">🛡️ mp-sandbox 执行</a></li>
         </ul>
       </div>`;
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -97,6 +98,37 @@ const server = http.createServer(async (req, res) => {
     const r = await c.query("SELECT jobname, schedule, active FROM cron.job ORDER BY jobname");
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html(card('pg_cron Jobs', renderTable(r.rows, ['jobname', 'schedule', 'active']))));
+  } else if (req.url === '/admin/sandbox') {
+    // Issue #15 Loop 2/3: mp-sandbox executions UI (per-tenant stats + recent 50)
+    const [stats, recent] = await Promise.all([
+      c.query(`
+        SELECT date_trunc('hour', created_at) AS hour,
+               count(*) FILTER (WHERE action = 'SANDBOX_EXECUTE')::int AS execute_count,
+               count(*) FILTER (WHERE action = 'SANDBOX_DENIED')::int AS denied_count,
+               count(*) FILTER (WHERE action = 'SANDBOX_TIMEOUT')::int AS timeout_count,
+               avg(duration_ms) FILTER (WHERE action = 'SANDBOX_EXECUTE')::int AS avg_duration_ms
+        FROM mp_sandbox.executions
+        WHERE created_at > now() - interval '24 hours'
+        GROUP BY date_trunc('hour', created_at)
+        ORDER BY hour DESC
+        LIMIT 24`),
+      c.query(`
+        SELECT id, tenant_id, action, language, code_bytes, network, mode,
+               duration_ms, exit_code, created_at
+        FROM mp_sandbox.executions
+        ORDER BY created_at DESC LIMIT 50`),
+    ]);
+    const recentCols = ['created_at', 'action', 'language', 'mode', 'code_bytes', 'network', 'duration_ms', 'exit_code'];
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(html(
+      '<div class="card"><h2>🛡️ mp-sandbox 执行统计 (近 24h, 按小时聚合)</h2>' +
+      renderTable(stats.rows, ['hour', 'execute_count', 'denied_count', 'timeout_count', 'avg_duration_ms']) +
+      '</div>' +
+      '<div class="card"><h2>最近 50 次执行</h2>' + renderTable(recent.rows, recentCols) + '</div>' +
+      '<div class="card"><h2>说明</h2>' +
+      '<p>数据来源: <code>mp_sandbox.executions</code> 表 (Issue #15 Loop 1/3 创建). audit_log 由 tg_audit 触发器自动写入 (Loop 2/3 删 RPC).</p>' +
+      '<ul><li><a href="/admin">← 返回 Dashboard</a></li></ul></div>'
+    ));
   } else if (req.url === '/app-center') {
     // App Center: list of all published presets (public + private), grouped by category.
     // Reuses the public.mp_preset_registry tables seeded by 20260820300000 migration.
