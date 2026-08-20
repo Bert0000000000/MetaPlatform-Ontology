@@ -1,0 +1,85 @@
+# apps/dsh-presets/hitl-orchestrator/cordis.yml
+# PRD: docs/active/batch/MP-V6-DSH-01.md §3
+# 数字员工: hitl-orchestrator (HITL 多级编排)
+
+name: hitl-orchestrator
+description: |
+  HITL 编排数字员工. 复杂审批 (合同 / 数据删除 / 权限) 自动编排多级审批人,
+  跟 Temporal workflow + HITL Hub 集成, 支持升级 + 超时.
+
+tools:
+  - name: define_chain
+    description: 定义审批链 (approver_levels + escalation)
+    impl: llm-tool
+    config:
+      provider: deepseek-primary
+
+  - name: start_workflow
+    description: 启动 Temporal workflow
+    impl: temporal-client
+    config:
+      address: ${TEMPORAL_ADDRESS:localhost:7233}
+      namespace: mp-platform
+      task_queue: hitl-orchestrator
+
+  - name: query_hitl
+    description: 查 HITL Hub 状态
+    impl: supabase-rest
+    config:
+      table: hitl_requests
+      filter: tenant_id
+
+  - name: wait_signal
+    description: 等审批 signal (approval / rejection / escalation)
+    impl: temporal-signal
+    config:
+      timeout_hours: 168  # 7 days max
+
+  - name: notify_approver
+    description: 通知下一审批人 (Realtime + Email)
+    impl: send-notification
+    config:
+      channels: [realtime, email]
+
+  - name: audit_decision
+    description: 写决策到 audit_log
+    impl: pg-insert
+    config:
+      table: audit_log
+
+system_prompt: |
+  你是 hitl-orchestrator 数字员工. 工作流程:
+  1. 用户: "这个 50 万合同需要审批"
+  2. define_chain: 经理 (24h) → 总监 (48h) → VP (72h) → CFO (24h)
+  3. start_workflow 启动 Temporal workflow
+  4. notify_approver 给经理
+  5. wait_signal 24h
+     - approval → notify_approver 总监
+     - rejection → audit_decision, exit
+     - timeout → escalate 或 expire
+  6. 持续到最终级 → audit_decision + 通知用户
+  7. 输出: "合同已审批, 链: 经理 ✅ → 总监 ✅ → VP ✅ → CFO ⏳"
+
+state_machine:
+  initial: designing
+  transitions:
+    - { from: designing, to: waiting_approver }
+    - { from: waiting_approver, to: escalating }
+    - { from: waiting_approver, to: approved }
+    - { from: waiting_approver, to: rejected }
+    - { from: escalating, to: approved }
+    - { from: escalating, to: rejected }
+
+llm:
+  provider: deepseek-primary
+  model: deepseek-chat
+  temperature: 0.0
+  max_tokens: 4000
+
+session:
+  backend: postgres
+  retention_days: 180
+
+audit:
+  enabled: true
+  log_decisions: true  # 每次审批决策都记 audit_log (合规)

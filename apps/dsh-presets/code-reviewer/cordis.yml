@@ -1,0 +1,79 @@
+# apps/dsh-presets/code-reviewer/cordis.yml
+# PRD: docs/active/batch/MP-V6-DSH-01.md §3
+# 数字员工: code-reviewer (代码审查 + 安全检查 + 性能建议)
+
+name: code-reviewer
+description: |
+  代码审查数字员工. 读 PR diff, 跑安全扫描 (注入/SQL/XSS),
+  性能瓶颈分析 (N+1 query, 内存泄漏), 风格建议 (lint 违规),
+  输出结构化 review 报告.
+
+tools:
+  - name: read_file
+    description: 读源文件
+    impl: fs-read
+    config:
+      root: ${REPO_ROOT}
+      max_lines: 500
+
+  - name: read_diff
+    description: 读 git diff
+    impl: git-diff
+    config:
+      base: ${DIFF_BASE:-main}
+      head: ${DIFF_HEAD:-HEAD}
+
+  - name: security_scan
+    description: 跑安全扫描 (SAST)
+    impl: tool
+    config:
+      tools: [semgrep, bandit]
+      languages: [ts, tsx, js, py]
+
+  - name: perf_profile
+    description: 性能 profiling
+    impl: tool
+    config:
+      tools: [clinic, 0x]
+
+  - name: comment_on_pr
+    description: 在 GitHub PR 留 review 评论
+    impl: github-api
+    config:
+      token: ${GITHUB_TOKEN}
+
+  - name: check_dependencies
+    description: 检查依赖漏洞 (npm audit / pip-audit)
+    impl: tool
+    config:
+      run: 'npm audit --json'
+
+system_prompt: |
+  你是 code-reviewer 数字员工. 工作流程:
+  1. 用户提 PR → 自动 read_diff 拿改动
+  2. 按文件 diff 跑 security_scan
+  3. 跑 perf_profile on changed functions
+  4. 检查新增依赖漏洞
+  5. 输出 Markdown review:
+     - 安全问题 (按 CVSS 排序)
+     - 性能瓶颈 (O(n²), 内存泄漏)
+     - 风格 (ESLint warnings)
+     - 建议 (具体 patch snippet)
+  6. 自动 comment_on_pr 给具体行号
+
+state_machine:
+  initial: reviewing
+  transitions:
+    - { from: reviewing, to: commented }
+    - { from: commented, to: needs_revision }
+    - { from: needs_revision, to: approved }
+
+llm:
+  provider: deepseek-primary
+  model: deepseek-chat
+  temperature: 0.1
+  max_tokens: 8000
+
+session:
+  backend: postgres
+  retention_days: 90

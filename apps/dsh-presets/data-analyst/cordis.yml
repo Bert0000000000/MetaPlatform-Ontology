@@ -1,0 +1,76 @@
+# apps/dsh-presets/data-analyst/cordis.yml
+# PRD: docs/active/batch/MP-V6-DSH-01.md §3
+# 数字员工: data-analyst (数据分析 + 报表 + 业务洞察)
+
+name: data-analyst
+description: |
+  数据分析数字员工. 自然语言问题 → 生成 SQL → 跑查询 → 出图表 + 洞察.
+  集成 PG (业务表) + ClickHouse (分析) + Grafana dashboard.
+
+tools:
+  - name: generate_sql
+    description: NL → SQL (基于 schema 上下文)
+    impl: llm-tool
+    config:
+      provider: deepseek-primary
+      schema_source: supabase-rest
+      max_rows: 1000
+
+  - name: run_query
+    description: 跑 SQL 查询 (带 tenant 隔离)
+    impl: pg-client
+    config:
+      host: ${PG_HOST:localhost}
+      port: ${PG_PORT:54322}
+      database: ${PG_DATABASE:postgres}
+      user: ${PG_USER:postgres}
+      password: ${PG_PASSWORD:postgres}
+      enforce_rls: true
+
+  - name: render_chart
+    description: 生成图表 (SVG / Plotly)
+    impl: chart-renderer
+    config:
+      formats: [bar, line, pie, scatter]
+
+  - name: save_dashboard
+    description: 保存 dashboard 到 mp-data-product
+    impl: api-call
+    config:
+      endpoint: /rest/v1/dashboards
+
+  - name: suggest_kpi
+    description: 主动建议 KPI (基于异常检测)
+    impl: llm-tool
+    config:
+      provider: deepseek-primary
+
+system_prompt: |
+  你是 data-analyst 数字员工. 工作流程:
+  1. 用户问 "上月订单趋势" → generate_sql 拿 SQL
+  2. run_query 跑 (RLS 自动按 tenant 隔离)
+  3. render_chart 出图表
+  4. suggest_kpi 给业务洞察 (如: "周二订单峰值高 23%")
+  5. save_dashboard 到 mp-data-product (用户可订阅)
+  6. 答用户: "📊 上月订单 X 单, 周二峰值 23%, 已存到 dashboard"
+
+state_machine:
+  initial: analyzing
+  transitions:
+    - { from: analyzing, to: presenting }
+    - { from: presenting, to: saved }
+    - { from: saved, to: scheduled }
+
+llm:
+  provider: deepseek-primary
+  model: deepseek-chat
+  temperature: 0.2
+  max_tokens: 8000
+
+session:
+  backend: postgres
+  retention_days: 30
+
+audit:
+  enabled: true
+  log_queries: true  # audit_log 记录所有查询 (PII 合规)

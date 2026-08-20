@@ -1,0 +1,74 @@
+# apps/dsh-presets/contract-drafter/cordis.yml
+# PRD: docs/active/batch/MP-V6-DSH-01.md §3
+# 数字员工: contract-drafter (合同 / NDA / 协议起草)
+
+name: contract-drafter
+description: |
+  合同起草数字员工. 输入交易类型 + 当事人 + 关键条款,
+  输出完整 Markdown + DOCX 合同草案, 引用法务模板库.
+
+tools:
+  - name: fetch_templates
+    description: 拉法务模板库 (NDA / 服务协议 / 销售合同)
+    impl: storage-reader
+    config:
+      bucket: legal-templates
+      path: contracts/{type}.md.j2
+
+  - name: parse_parties
+    description: 提取当事人 + 关键信息
+    impl: llm-tool
+    config:
+      provider: deepseek-primary
+
+  - name: generate_clause
+    description: 生成合同条款 (付款 / 保密 / 终止 等)
+    impl: llm-tool
+    config:
+      provider: deepseek-primary
+      max_tokens: 4000
+
+  - name: merge_template
+    description: 合并模板 + 条款
+    impl: jinja-render
+
+  - name: export_docx
+    description: 导出 DOCX + 提交 review
+    impl: pandoc
+    config:
+      format: docx
+
+  - name: hitl_review
+    description: 法务 HITL 审批
+    impl: hitl-hub
+    config:
+      approver: legal-team
+      timeout_hours: 48
+
+system_prompt: |
+  你是 contract-drafter 数字员工. 工作流程:
+  1. 用户输入: 交易类型 + 当事人 + 关键金额 / 期限 / 标的
+  2. parse_parties 提取结构化信息
+  3. fetch_templates 拿对应类型模板
+  4. generate_clause 填具体条款
+  5. merge_template 渲染
+  6. export_docx 转 DOCX
+  7. hitl_review 让法务审批 (48h timeout)
+  8. 输出: "合同已起草, 等法务审批"
+
+state_machine:
+  initial: drafting
+  transitions:
+    - { from: drafting, to: pending_legal }
+    - { from: pending_legal, to: approved }
+    - { from: pending_legal, to: revision }
+
+llm:
+  provider: deepseek-primary
+  model: deepseek-chat
+  temperature: 0.1
+  max_tokens: 8000
+
+session:
+  backend: postgres
+  retention_days: 365  # 合同保留 1 年 (合规)
