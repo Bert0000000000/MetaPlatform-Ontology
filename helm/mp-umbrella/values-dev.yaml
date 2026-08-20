@@ -1,0 +1,24 @@
+# helm/mp-umbrella/values-dev.yaml
+# PRD: docs/active/prd/deploy-gitops.md §3
+# Batch: MP-V6-DEPLOY-01
+# Dev 环境配置 (最小规模, 内部 dogfooding)
+
+cert-manager:
+  clusterIssuer:
+    staging: true
+
+ingress-nginx:
+  controller:
+    replicaCount: 1
+    resources:
+      requests: { cpu: 100m, memory: 128Mi }
+      limits:   { cpu: 500m, memory: 512Mi }
+
+velero:
+  enabled: false   # dev 不备份
+
+temporal:
+  enabled: true
+
+observability:
+  enabled: true

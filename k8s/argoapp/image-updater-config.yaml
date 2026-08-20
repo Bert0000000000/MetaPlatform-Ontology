@@ -1,0 +1,63 @@
+# k8s/argoapp/image-updater-config.yaml
+# PRD: docs/active/prd/deploy-gitops.md §4.3
+# Batch: MP-V6-DEPLOY-01
+# ArgoCD Image Updater 配置: 自动滚动 mp/* 镜像
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-image-updater-config
+  namespace: mp-infra
+  labels:
+    argocd-image-updater.argoproj.io/config: "true"
+data:
+  registries: |
+    - name: Harbor
+      api_url: https://harbor.mp-platform.local
+      insecure: true
+      credentials: secret:argocd-image-updater/harbor-creds
+
+  policies: |
+    - name: mp-platform-latest
+      imagepatterns:
+        - harbor.mp-platform.local/mp/*:v6.0.0-*
+      update: latest
+
+    - name: mp-platform-major
+      imagepatterns:
+        - harbor.mp-platform.local/mp/*:v6.*
+      update: latest
+
+  applications: |
+    - name: mp-dev
+      namespace: argocd
+      label: mp.update-policy=mp-platform-major
+      sources:
+        - repoURL: https://github.com/Bert0000000000/MetaPlatform-Ontology
+        - chart: mp-umbrella
+          imagepatterns:
+            - harbor.mp-platform.local/mp/*:v6.0.0-*
+    - name: mp-staging
+      namespace: argocd
+      label: mp.update-policy=mp-platform-major
+      sources:
+        - repoURL: https://github.com/Bert0000000000/MetaPlatform-Ontology
+        - chart: mp-umbrella
+          imagepatterns:
+            - harbor.mp-platform.local/mp/*:v6.0.0-*
+    - name: mp-prod
+      namespace: argocd
+      label: mp.update-policy=mp-platform-latest
+      sources:
+        - repoURL: https://github.com/Bert0000000000/MetaPlatform-Ontology
+        - chart: mp-umbrella
+          imagepatterns:
+            - harbor.mp-platform.local/mp/*:v6.0.0-*
+
+  # dryRun: false (生产集群实际更新)
+  # 镜像更新间隔 (GitOps 自动 PR)
+  write_back_resolve_manifests: false
+  # 触发 GitOps PR (via bot token)
+  github:
+    token: secret:argocd-image-updater/github-token
+    api_url: https://api.github.com/

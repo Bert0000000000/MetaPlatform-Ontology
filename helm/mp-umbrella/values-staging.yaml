@@ -1,0 +1,38 @@
+# helm/mp-umbrella/values-staging.yaml
+# PRD: docs/active/prd/deploy-gitops.md §3
+# Batch: MP-V6-DEPLOY-01
+# Staging 环境配置 (中等规模, 用于集成测试)
+
+cert-manager:
+  clusterIssuer:
+    staging: true   # staging 用 Let's Encrypt staging issuer
+
+ingress-nginx:
+  controller:
+    replicaCount: 2
+    resources:
+      requests: { cpu: 200m, memory: 256Mi }
+      limits:   { cpu: 1,    memory: 1Gi   }
+
+external-secrets:
+  webhook:
+    replicaCount: 2
+
+velero:
+  configuration:
+    backupStorageLocations:
+      - name: default
+        bucket: mp-velero-backup-staging
+        config:
+          region: cn-north-1
+  schedules:
+    daily-full:
+      schedule: "0 4 * * *"
+      template:
+        ttl: "168h"  # 7d (staging 保留时间短)
+
+temporal:
+  enabled: true
+
+observability:
+  enabled: true
