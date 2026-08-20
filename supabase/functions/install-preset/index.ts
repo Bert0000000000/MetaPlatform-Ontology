@@ -100,7 +100,9 @@ serve(async (req) => {
     }
 
     // Bump downloads
-    await supabase.rpc('bump_preset_downloads', { p_preset_id: presetId }).catch(() => {});
+    supabase.rpc('bump_preset_downloads', { p_preset_id: presetId })
+      .then(() => {})
+      .catch(() => {});
 
     return new Response(JSON.stringify({
       install_id: (ins as { id: string }).id,
