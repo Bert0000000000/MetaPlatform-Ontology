@@ -1,8 +1,7 @@
-// supabase/functions/dsp-webhook/index.ts
-// PRD: docs/active/specs/2026-08-19-mp-v6-architecture.md §6.4 (Database Webhook)
-// Database Webhook receiver: Postgres trigger → Supabase Edge Function → 业务处理
-//
-// 用法: Supabase Dashboard 配置 Database Webhook → POST to this function on INSERT to events table
+// supabase/functions/dsp-webhook/index.ts (扩展)
+// PRD: docs/active/prd/events-db-webhook.md §4.1
+// Batch: MP-V6-EVENTS-01
+// 完整路由: 10+ 表 Database Webhook 接收 + event_queue 写入 + Realtime 广播
 
 // @ts-nocheck — Deno runtime
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -16,6 +15,21 @@ interface WebhookEvent {
   old_record?: Record<string, unknown>;
 }
 
+const ROUTER: Record<string, (payload: WebhookEvent) => Promise<Response>> = {
+  'public.orders': handleOrder,
+  'public.contracts': handleContract,
+  'public.hitl_requests': handleHitl,
+  'public.tickets': handleTicket,
+  'public.invoices': handleInvoice,
+  'public.dsh_session_headers': handleDshSession,
+  'public.ontology_object_types': handleOntology,
+  'public.pending_object_changes': handlePendingChange,
+  'public.notifications': handleNotification,
+  'public.employees': handleEmployee,
+  'public.departments': handleDepartment,
+  'public.documents': handleDocument,
+};
+
 serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
@@ -23,20 +37,15 @@ serve(async (req) => {
 
   try {
     const payload = await req.json() as WebhookEvent;
+    const key = `${payload.schema}.${payload.table}`;
+    const handler = ROUTER[key];
 
-    // 路由: 按 table 派发
-    switch (`${payload.schema}.${payload.table}`) {
-      case 'public.hitl_requests':
-        return await handleHitlRequest(payload);
-      case 'public.tickets':
-        return await handleTicketCreated(payload);
-      case 'public.contracts':
-        return await handleContractCreated(payload);
-      default:
-        // 未识别的 table: log + 200 (避免重试)
-        console.info(`[dsp-webhook] unhandled ${payload.schema}.${payload.table}, skipping`);
-        return new Response(JSON.stringify({ status: "skipped" }), { status: 200 });
+    if (!handler) {
+      console.info(`[dsp-webhook] unhandled ${key}, skipping`);
+      return new Response(JSON.stringify({ status: "skipped" }), { status: 200 });
     }
+
+    return await handler(payload);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error(`[dsp-webhook] error: ${message}`);
@@ -44,69 +53,155 @@ serve(async (req) => {
   }
 });
 
-async function handleHitlRequest(payload: WebhookEvent): Promise<Response> {
-  if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
-
-  const supabase = createClient(
+function getSupabase() {
+  return createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+}
 
-  const record = payload.record;
-  console.info(`[dsp-webhook] hitl INSERT ${record['id']} type=${record['type']}`);
+async function enqueueEvent(payload: WebhookEvent, eventType: string, target: string, tenantId: string): Promise<Response> {
+  const supabase = getSupabase();
+  await supabase.from('event_queue').insert({
+    tenant_id: tenantId,
+    event_type: eventType,
+    payload: payload.record,
+    target_endpoint: target,
+    next_retry_at: new Date().toISOString(),
+  });
+  return new Response(JSON.stringify({ status: "queued", event_type: eventType }), { status: 200 });
+}
 
-  // Realtime 推送 (前端 HITL 面板)
-  await supabase.channel(`hitl:${record['tenant_id']}`).send({
-    type: 'broadcast',
-    event: 'hitl_request_created',
-    payload: { id: record['id'], type: record['type'], title: record['title'] },
+async function broadcastRealtime(tenantId: string, event: string, payload: Record<string, unknown>): Promise<void> {
+  const supabase = getSupabase();
+  await supabase.channel(`realtime:${tenantId}`).send({ type: 'broadcast', event, payload });
+}
+
+// ============================================================
+// Handlers (10+ 表)
+// ============================================================
+
+async function handleOrder(payload: WebhookEvent): Promise<Response> {
+  if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+
+  // amount > 10k → Temporal orderApprovalWorkflow
+  if (Number(r['amount']) > 10000 && r['status'] === 'pending_approval') {
+    return enqueueEvent(payload, 'order.pending_approval', 'temporal:orderApprovalWorkflow', r['tenant_id'] as string);
+  }
+
+  // 普通订单 → Realtime broadcast
+  await broadcastRealtime(r['tenant_id'] as string, 'order_created', { id: r['id'], order_number: r['order_number'] });
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
+}
+
+async function handleContract(payload: WebhookEvent): Promise<Response> {
+  if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+  const total = Number(r['total_amount']);
+
+  if (total > 100000 && r['status'] === 'pending_approval') {
+    return enqueueEvent(payload, 'contract.pending_approval', 'temporal:contractApprovalWorkflow', r['tenant_id'] as string);
+  }
+
+  await broadcastRealtime(r['tenant_id'] as string, 'contract_created', { id: r['id'], title: r['title'] });
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
+}
+
+async function handleHitl(payload: WebhookEvent): Promise<Response> {
+  if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+  await broadcastRealtime(r['tenant_id'] as string, 'hitl_request_created', {
+    id: r['id'], type: r['type'], title: r['title'], timeout_at: r['timeout_at'],
+  });
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
+}
+
+async function handleTicket(payload: WebhookEvent): Promise<Response> {
+  if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+
+  if (r['priority'] === 'urgent' || r['priority'] === 'high') {
+    return enqueueEvent(payload, 'ticket.urgent', 'ticket-triage', r['tenant_id'] as string);
+  }
+
+  await broadcastRealtime(r['tenant_id'] as string, 'ticket_created', { id: r['id'], ticket_number: r['ticket_number'] });
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
+}
+
+async function handleInvoice(payload: WebhookEvent): Promise<Response> {
+  if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+
+  if (r['status'] === 'issued') {
+    return enqueueEvent(payload, 'invoice.issued', 'temporal:processInvoiceWorkflow', r['tenant_id'] as string);
+  }
+
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
+}
+
+async function handleDshSession(payload: WebhookEvent): Promise<Response> {
+  if (payload.type !== 'UPDATE') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+
+  if (r['status'] === 'completed') {
+    await broadcastRealtime(r['tenant_id'] as string, 'dsh_session_completed', { id: r['id'], title: r['title'] });
+  }
+
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
+}
+
+async function handleOntology(payload: WebhookEvent): Promise<Response> {
+  if (payload.type === 'DELETE') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+
+  await broadcastRealtime(r['tenant_id'] as string, 'ontology_changed', {
+    rid: r['rid'], version: r['version'], type: payload.type,
   });
 
   return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
 }
 
-async function handleTicketCreated(payload: WebhookEvent): Promise<Response> {
-  if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
+async function handlePendingChange(payload: WebhookEvent): Promise<Response> {
+  if (payload.type !== 'UPDATE') return new Response("ignored", { status: 200 });
+  const r = payload.record;
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
-
-  const record = payload.record;
-  console.info(`[dsp-webhook] ticket INSERT ${record['id']} priority=${record['priority']}`);
-
-  // 高优先级工单自动触发 dsh 数字员工预分类
-  if (record['priority'] === 'urgent' || record['priority'] === 'high') {
-    // TODO: 调 dsh preset "support-triage" 处理
-    console.info(`[dsp-webhook] would dispatch to dsh support-triage preset`);
+  if (r['status'] === 'applied') {
+    await broadcastRealtime(r['tenant_id'] as string, 'ontology_applied', { change_id: r['id'] });
   }
 
-  return new Response(JSON.stringify({ status: "ok" }), { status: 200 });
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
 }
 
-async function handleContractCreated(payload: WebhookEvent): Promise<Response> {
+async function handleNotification(payload: WebhookEvent): Promise<Response> {
   if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
+  const r = payload.record;
 
-  const record = payload.record;
-  console.info(`[dsp-webhook] contract INSERT ${record['id']} status=${record['status']}`);
+  await broadcastRealtime(r['tenant_id'] as string, 'notification_new', {
+    id: r['id'], title: r['title'], priority: r['priority'],
+  });
 
-  // 大额合同自动走 HITL Hub 审批流 (action_confirm)
-  const totalAmount = Number(record['total_amount'] ?? 0);
-  if (totalAmount > 100000 && record['status'] === 'pending_approval') {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
-    await supabase.from('hitl_requests').insert({
-      tenant_id: record['tenant_id'],
-      type: 'workflow_saas',
-      status: 'pending',
-      title: `审批合同: ${record['title']}`,
-      context: { contract_id: record['id'], total_amount: totalAmount },
-      timeout_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),  // 7 天
-    });
-  }
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
+}
 
-  return new Response(JSON.stringify({ status: "ok" }), { status: 200 });
+async function handleEmployee(payload: WebhookEvent): Promise<Response> {
+  if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+  await broadcastRealtime(r['tenant_id'] as string, 'employee_created', { id: r['id'], name: r['full_name'] });
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
+}
+
+async function handleDepartment(payload: WebhookEvent): Promise<Response> {
+  if (payload.type === 'DELETE') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+  await broadcastRealtime(r['tenant_id'] as string, 'department_changed', { id: r['id'], name: r['name'] });
+  return new Response(JSON.stringify({ status: "broadcast" }), { status: 200 });
+}
+
+async function handleDocument(payload: WebhookEvent): Promise<Response> {
+  if (payload.type !== 'INSERT') return new Response("ignored", { status: 200 });
+  const r = payload.record;
+
+  // documents 表 INSERT → 异步触发 RAG 抽取
+  return enqueueEvent(payload, 'document.created', 'rag:extract', r['tenant_id'] as string);
 }
