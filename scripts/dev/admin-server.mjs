@@ -54,7 +54,7 @@ const server = http.createServer(async (req, res) => {
     const [tenants, users, audits, installs, presets, cron] = await Promise.all([
       c.query('SELECT count(*)::int AS n FROM public.tenants'),
       c.query('SELECT count(*)::int AS n FROM auth.users'),
-      c.query("SELECT count(*)::int AS n FROM public.audit_log WHERE created_at > now() - interval '24 hours'"),
+      c.query("SELECT count(*)::int AS n FROM public.audit_log WHERE occurred_at > now() - interval '24 hours'"),
       c.query("SELECT count(*)::int AS n FROM mp_preset_registry.installs WHERE status = 'active'"),
       c.query('SELECT count(*)::int AS n FROM mp_preset_registry.presets'),
       c.query('SELECT count(*)::int AS n FROM cron.job WHERE active = true'),
