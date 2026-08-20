@@ -1,100 +1,105 @@
-# scripts/loop/progress.md — 手动 checkpoint 替代 TaskCreate
-#
-# 用法: 每次完成一个 Phase / 模块后更新本文件; 新会话启动时先读本文件了解进度.
-# 当 TaskCreate 工具不可用时, 用本文件代替.
-# 最后更新: 2026-08-20
+# MP-V6 Loop 迭代进度（基于 module-planning.md 4 阶段）
 
-## 当前进度（2026-08-20）
+> **最后更新**：2026-08-20
+> **CronCreate**：`mp-v6-loop` (10min cadence, enabled)
+> **GitHub Issues**：[#1-#8](https://github.com/Bert0000000000/MetaPlatform-Ontology/issues)
 
-### Phase A — Monorepo + CI Scaffold ✅
-- [x] `package.json` (pnpm workspaces)
-- [x] `pnpm-workspace.yaml`
-- [x] `tsconfig.base.json` + `tsconfig.json`
-- [x] `vitest.config.ts`
-- [x] `eslint.config.js`
-- [x] `.gitignore` 扩展
-- [x] `.github/workflows/{ci,claude-loop,deploy-prod,release}.yml` 复制
-- [x] `.github/pull_request_template.md`
-- [x] `scripts/ci/{rls,networkpolicy,evidence,helm}-check.sh`
-- [x] `CONTRIBUTING.md`
-- [x] `apps/web` 骨架 (TypeScript + vitest)
-- [x] `packages/mp-temporal-worker-template` 骨架
-- [x] 12 份 PRD staged
-- [x] Commit: `e178a43 chore(scaffold): Phase A monorepo + CI workflows + 12 PRDs`
+## 总进度
 
-### Phase B — Batch 1 (MP-V6-FOUNDATION-01) ✅ Accepted
-- [x] 8 SQL migrations (supabase/migrations/)
-- [x] RLS policy templates (supabase/policies/templates.sql)
-- [x] 10 K8s namespaces + ResourceQuota + LimitRange (k8s/namespaces/)
-- [x] ArgoCD Application (k8s/argoapp/mp-platform-app.yaml)
-- [x] Helm umbrella chart (helm/mp-umbrella/Chart.yaml + values*.yaml)
-- [x] NetworkPolicy default-deny + 4 allow-matrix rules + egress-public
-- [x] DR/Backup scripts (wal-g.sh + pg_basebackup-daily.sh)
-- [x] DR PITR runbook (runbooks/dr-pitr.md)
-- [x] Prometheus alert rules (dr-backup-alerts.yaml)
-- [x] RLS exemptions registry (evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md)
-- [x] 4 vitest unit tests (tg_audit, tg_inject_tenant, rls_check, wal_g)
-- [x] Evidence (evidence/MP-V6-FOUNDATION-01-ACCEPTANCE.md)
-- [x] Commit: `222a2d4 feat(foundation): MP-V6-FOUNDATION-01 implementation (5 PRDs)`
-
-### Phase C — Skeletons (TEMPORAL-01 / OBSERVABILITY-01 / DSH-DOCKER-01) ✅ Skeleton
-
-#### C1. TEMPORAL-01 skeleton ✅
-- [x] `helm/mp-umbrella/charts/temporal/` (Chart.yaml + values.yaml + templates/server-deployment.yaml)
-- [x] `packages/mp-temporal-worker-template/src/context.ts` (AsyncLocalStorage TenantContext)
-- [x] `packages/mp-temporal-worker-template/src/workflows/index.ts` (hello + long-task + signal)
-- [x] `packages/mp-temporal-worker-template/src/activities/index.ts` (sayHello / heartbeatStep / dbRead / dbWrite / approvalRequest)
-- [x] `packages/mp-temporal-worker-template/src/worker.ts` (NativeConnection + runWithContext)
-- [x] `packages/mp-temporal-worker-template/src/index.ts`
-- [x] `packages/mp-temporal-worker-template/tests/context.test.ts` (5 cases)
-
-#### C2. OBSERVABILITY-01 skeleton ✅
-- [x] `helm/mp-umbrella/charts/observability/` (Chart.yaml + values.yaml with 5 deps)
-- [x] `k8s/observability/otel-collector-config.yaml` (3 pipelines: traces/metrics/logs)
-- [x] `dashboards/app-health.json` (Grafana dashboard skeleton)
-- [x] `prometheus/rules/mp-app-alerts.yaml` (5 alerts + 1 referenced from dr-backup)
-
-#### C3. DSH-DOCKER-01 skeleton ✅
-- [x] `docker/dsh/Dockerfile` (multi-stage deps→build→runtime, node:22.19-alpine, tini, UID 10001, EXPOSE 3000/3001/3002)
-- [x] `docker/dsh/.dockerignore`
-- [x] `.github/workflows/dsh-build.yml` (build + trivy + cosign + size check ≤ 500MB)
-
-### Phase D — Loop Automation ✅
-- [x] CronCreate 30-min scheduled task (`mp-v6-loop`)
-- [x] `scripts/loop/run-once.sh` (探测 next batch + 输出任务清单)
-- [x] `.claude/loop-prompt.md` §0.x + §15 (CronCreate 调度模板)
-
-### Sprint 0 完成状态
-
-- [x] FOUNDATION-01 ✅ Accepted
-- [ ] TEMPORAL-01 (skeleton, 待 live-deploy)
-- [ ] OBSERVABILITY-01 (skeleton, 待 live-deploy)
-- [ ] DSH-DOCKER-01 (skeleton, 待 live-deploy)
-- [ ] MIGRATION-01 (Sprint 3 末, 未启动)
-
----
-
-## 下次会话启动第一步
-
-```bash
-cat scripts/loop/progress.md   # 看进度
-git log --oneline -10          # 看最近 commits
-git status                     # 看未提交改动
-bash scripts/loop/run-once.sh  # 看下一个 batch 任务清单
+```
+Phase 1 (基础设施, Sprint 0)   ████████████████████ 100%  done
+Phase 2 (核心引擎, Sprint 1)   ████████████████████ 100%  done
+Phase 3 (业务能力, Sprint 2)   ████████████████████ 100%  done
+Phase 3.5 (业务迁移, Sprint 3) ████████████████████ 100%  done
+v6.1 must (3 项)               ████████████████████ 100%  done
+v6.1 partial (2 项)            ░░░░░░░░░░░░░░░░░░░░   0%  pending
+19 apps                        █████████░░░░░░░░░░░░ 47% (9/19 done)
+MP-V6-DEPLOY-01                 ██████░░░░░░░░░░░░░░░ 30% (skeleton)
 ```
 
----
+## Phase 1 (Sprint 0) — 基础设施 ✅
+- [x] MP-V6-FOUNDATION-01: K8s 3 套 + Supabase 8 能力 + RLS + NetworkPolicy + DR
+- [x] MP-V6-TEMPORAL-01: Temporal Cluster + Worker
+- [x] MP-V6-OBSERVABILITY-01: OTel + Tempo + Prometheus + Loki + Grafana
+- [x] MP-V6-DSH-DOCKER-01: dsh Docker 多阶段 build (deferred to host build)
+- [x] MP-V6-MIGRATION-01: v6.0→v6.1 ETL 8 scripts + can_proceed 门控
 
-## 待用户在宿主机完成的事
+## Phase 2 (Sprint 1) — 核心引擎 ✅
+- [x] MP-V6-AUTH-01: JWT custom claims + tRPC-style JWT verifier
+- [x] MP-V6-DSH-01: dsh 9 数字员工 preset + subagent dispatch
+- [x] MP-V6-HITL-HUB-01: 4 类 HITL + 5 大机制 (multi-level, freeze, polling, reminder, ctx)
+- [x] MP-V6-ONTOLOGY-GEN-01: ontology-curator + apply-ontology-change + HITL review
 
-Phase A+B+C+D 的代码全部落地并通过静态校验. 但真正**部署到 K8s** 需要用户在自己机器上跑:
+## Phase 3 (Sprint 2) — 业务能力 ✅
+- [x] MP-V6-EDGE-FN-01: 14+ Edge Functions (orders/customers/contracts/invoices/HITL/RAG/...)
+- [x] MP-V6-LLM-01: Provider Manager + token meter + circuit breaker
+- [x] MP-V6-RAG-01: RAGFlow + GraphRAG dual engine
+- [x] MP-V6-APPROVAL-01: 钉钉 / 飞书 / 企微 SaaS adapters + 多级升级
+- [x] MP-V6-EVENTS-01: 12+ trigger router + 5 pg_cron + event_queue + DLQ
 
-1. `terraform apply` (3 套 K8s 集群)
-2. `kubectl apply -f k8s/namespaces/`
-3. `kubectl apply -f k8s/networkpolicies/`
-4. `helm install mp helm/mp-umbrella/ -n mp-infra`
-5. `supabase db push` (应用 8 个 migration)
-6. `docker build -t mp/dsh-web:v6.0.0-<sha> -f docker/dsh/Dockerfile .`
+## Phase 3.5 (Sprint 3) — 业务迁移 ✅
+- [x] MP-V6-DEPLOY-01: ApplicationSet + Image Updater (k8s apply 待 host)
+- [x] MP-V6-DOMAIN-MIGRATE-01: 17 域 12+ Edge Function
+- [x] MP-V6-LONG-TASK-01: 5 大机制完整版 + LongTaskClient SDK + 监控
+- [x] MP-V6-V6.1-PREP: 6 ADR + 路线图
 
-CronCreate 调度任务（`mp-v6-loop`）会每 30 分钟在宿主机 Claude Code 桌面应用里自动跑，
-接力 TEMPORAL-01 / OBSERVABILITY-01 / DSH-DOCKER-01 的 live-deploy 验证 + 后续 Batch。
+## v6.1 must (3 项) ✅
+- [x] MP-V6.1-SAML-SSO-01: SAML 2.0 SSO (saml-metadata EF + 2 表 + RPC + cron)
+- [x] MP-V6.1-SCHEMA-VERSION-01: 多版本 ontology (ontology_object_type_versions)
+- [x] MP-V6.1-COMPASS-01: 业务智能仪表盘 (dashboards + dashboard_widgets + MV)
+
+## v6.1 partial (2 项) — pending
+- [ ] MP-V6.1-APP-CENTER-01 (4w) — Issue #1-#5 已开，5 loop 在跑
+- [ ] MP-V6.1-MULTIMODAL-RAG-POC (6w) — 待启动
+
+## 19 apps 进度 — 9/19 done (47%)
+| # | App | 状态 |
+|---|---|---|
+| 1 | mp-frontend | ⚠️ scaffold only |
+| 2 | mp-runtime | ⚠️ 5 Temporal workflows + dsh subagent dispatch |
+| 3 | mp-platform | ❌ 缺 (管理后台 UI) |
+| 4 | mp-ai | ✅ Provider Manager + token meter |
+| 5 | mp-ontology | ✅ apply-ontology-change EF + schema versioning |
+| 6 | mp-knowledge | ⚠️ RAG skeleton (rag-query EF) |
+| 7 | mp-sandbox | ❌ 缺 |
+| 8 | mp-agent-team | ✅ 9 dsh presets |
+| 9 | mp-hitl-hub | ✅ 4 类 + 5 机制 |
+| 10 | mp-skill-marketplace | ❌ 缺 (v6.1 App Center 部分) |
+| 11 | mp-workflow | ✅ Temporal 5 workflows |
+| 12 | mp-approval | ✅ 钉钉/飞书/企微 adapters |
+| 13 | mp-data-platform | ⚠️ ETL scripts |
+| 14 | mp-data-product | ✅ Compass dashboard-curator |
+| 15 | mp-data-quality | ❌ 缺 |
+| 16 | mp-data-catalog | ❌ 缺 |
+| 17 | mp-monitoring | ✅ Prometheus + Grafana + 6 alert rules |
+| 18 | mp-audit | ✅ audit_log + tg_audit triggers |
+| 19 | mp-frontend-obs | ❌ 缺 |
+
+## 当前 Loop 进度 (CronCreate `mp-v6-loop`)
+
+Loop 1/5: DB schema (presets + versions + installs)
+  - Issue #1: ✅ Schema created, 32 public tables + 3 mp_preset tables
+  - Pending: PostgREST schema exposure (Issue #6 / 503 bug)
+
+Loop 2/5: Edge Function list-presets
+  - Issue #2: ⏸ pending
+
+Loop 3/5: Edge Function publish-preset
+  - Issue #3: ⏸ pending
+
+Loop 4/5: Edge Function install-preset
+  - Issue #4: ⏸ pending
+
+Loop 5/5: uninstall + E2E + evidence + commit
+  - Issue #5: ⏸ pending
+
+## 已知 Bug (Issue #1-#8)
+1. PostgREST 503 on mp_preset_registry schema after restart (Issue #6)
+2. mp-platform 管理后台 UI 缺失 (Issue #7, P0)
+3. App Center MVP 未实现 (Issue #8, v6.1 partial)
+4. Loop 2/3/4/5 待启动
+
+## 下一轮目标
+1. Fix Issue #6 (PostgREST schema exposure — 需要 docker-entrypoint-initdb.d 集成)
+2. 完成 Loop 2/3/4/5 (App Center MVP — Issue #1-#5)
+3. 启动 mp-platform 管理后台 (Issue #7)

@@ -12,8 +12,15 @@ DECLARE
     v_tenant uuid;
 BEGIN
     -- 批量导入时通过 SET LOCAL audit.disable = on 跳过
-    IF current_setting('audit.disable', true) = 'on' THEN
-        IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE return;
+    DECLARE
+        v_audit_disabled text;
+    BEGIN
+        v_audit_disabled := current_setting('audit.disable', true);
+    EXCEPTION WHEN OTHERS THEN
+        v_audit_disabled := '';
+    END;
+    IF v_audit_disabled = 'on' THEN
+        IF TG_OP = 'DELETE' THEN RETURN OLD; ELSE RETURN NEW; END IF;
     END IF;
 
     IF TG_OP = 'DELETE' THEN

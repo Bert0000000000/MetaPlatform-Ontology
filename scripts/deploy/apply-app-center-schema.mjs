@@ -1,0 +1,11 @@
+import pg from 'pg';
+const { Client } = pg;
+const c = new Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
+await c.connect();
+const sql = await (await import('node:fs/promises')).readFile('supabase/migrations/20260820300000_create_mp_preset_registry.sql', 'utf8');
+await c.query(sql);
+const r1 = await c.query("SELECT count(*)::int AS n FROM mp_preset_registry.presets");
+const r2 = await c.query("SELECT count(*)::int AS n FROM mp_preset_registry.versions");
+const r3 = await c.query("SELECT count(*)::int AS n FROM cron.job WHERE jobname = 'app-center-cleanup'");
+console.log(`presets: ${r1.rows[0].n}, versions: ${r2.rows[0].n}, cron job: ${r3.rows[0].n}`);
+await c.end();
