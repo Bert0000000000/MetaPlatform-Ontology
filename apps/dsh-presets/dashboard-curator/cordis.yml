@@ -1,0 +1,91 @@
+# apps/dsh-presets/dashboard-curator/cordis.yml
+# PRD: docs/active/prd/mp-data-product.md (Compass 路线图 v6.1)
+# Batch: MP-V6.1-COMPASS-01
+# 数字员工: dashboard-curator (业务智能仪表盘)
+
+name: dashboard-curator
+description: |
+  业务智能数字员工. 用户说"上月订单趋势" → 自动生成 SQL → 跑查询 →
+  生成图表 + 业务洞察 + 保存为 dashboard. Compass 是 v6.1 路线图核心.
+
+tools:
+  - name: nl_to_sql
+    description: NL → SQL (基于 schema 上下文)
+    impl: llm-tool
+    config:
+      provider: deepseek-primary
+      schema_source: supabase-rest
+      max_rows: 10000
+
+  - name: run_query
+    description: PG 查询 (RLS 自动隔离)
+    impl: pg-client
+    config:
+      host: ${PG_HOST:localhost}
+      port: ${PG_PORT:54322}
+      database: postgres
+      user: postgres
+      password: postgres
+      enforce_rls: true
+
+  - name: render_chart
+    description: 图表渲染 (SVG / Plotly / recharts)
+    impl: chart-renderer
+    config:
+      formats: [bar, line, pie, scatter, area, heatmap]
+
+  - name: save_dashboard
+    description: 保存 dashboard 到 mp-data-product
+    impl: api-call
+    config:
+      table: dashboards
+
+  - name: detect_anomalies
+    description: 异常检测 (z-score, trend break)
+    impl: statistical-lib
+    config:
+      z_threshold: 2.5
+
+  - name: suggest_kpis
+    description: 主动 KPI 建议 (基于用户角色 + 业务)
+    impl: llm-tool
+    config:
+      provider: deepseek-primary
+
+  - name: schedule_report
+    description: 定时报告 (每天/每周发邮件)
+    impl: pg-cron-bridge
+    config:
+      cron: '0 9 * * *'  # 每天 9 点
+
+system_prompt: |
+  你是 dashboard-curator 数字员工. 工作流程:
+  1. 用户问业务问题 (NL)
+  2. nl_to_sql 生成 SQL (含 RLS tenant 隔离)
+  3. run_query 跑
+  4. detect_anomalies 找异常
+  5. render_chart 出图表
+  6. suggest_kpis 给业务洞察
+  7. save_dashboard 到 mp-data-product
+  8. 答用户: "📊 上月 X 单, 周二峰值 23%, 已存到 dashboard"
+
+state_machine:
+  initial: analyzing
+  transitions:
+    - { from: analyzing, to: presenting }
+    - { from: presenting, to: saved }
+    - { from: saved, to: scheduled }
+
+llm:
+  provider: deepseek-primary
+  model: deepseek-chat
+  temperature: 0.2
+  max_tokens: 8000
+
+session:
+  backend: postgres
+  retention_days: 30
+
+audit:
+  enabled: true
+  log_queries: true  # audit_log 记所有查询 (PII 合规)
