@@ -4,7 +4,8 @@
 import { test, expect } from '@playwright/test';
 
 const API = process.env.SUPABASE_API ?? 'http://localhost:54321';
-const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJ...ANON_PLACEHOLDER';
+// Supabase local dev defaults (per `supabase status`). Override with SUPABASE_ANON_KEY env var.
+const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 
 async function callList(query: string) {
   return await fetch(`${API}/functions/v1/list-presets${query}`, {
