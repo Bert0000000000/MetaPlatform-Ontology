@@ -34,7 +34,8 @@ serve(async (req) => {
 
     const { data: hashData } = await supabase.rpc('image_url_hash', { p_url: body.image_url });
     const vector = new Array(512).fill(0);
-    const vectorLiteral = '{' + vector.join(',') + '}';
+    // pgvector requires square-bracket array literal (not curly)
+    const vectorLiteral = '[' + vector.join(',') + ']';
 
     // Use raw SQL via .from() RPC for vector literal (PostgREST vector)
     const { data, error } = await supabase
