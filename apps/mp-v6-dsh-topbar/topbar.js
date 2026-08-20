@@ -137,14 +137,16 @@
   ]
 
   /**
-   * Tab-switching: render the cross-origin mp-* page as a full-bleed iframe
-   * inside dsh (replacing the dsh main content visually), with a close
-   * button to swap back. The dsh URL itself doesn't change; the user
-   * stays in the same tab. This is the "切换" (switch) UX the user asked
-   * for instead of opening a new tab.
+   * Tab-switching: render the 4 menu items as a "tab strip" attached to the
+   * top of dsh's content area. At any time exactly one tab is active; the
+   * other 3 are inactive. Clicking a tab opens a full-bleed iframe inside
+   * dsh that loads the corresponding mp-* page.
    *
-   * Same-origin href still uses pushState/popstate so dsh's own router
-   * can render the new view natively.
+   * No "back" button: the tabs are always visible at the top. Clicking
+   * another tab simply switches. To return to dsh's native view, the
+   * user can close the active tab — that just hides the iframe and shows
+   * dsh's #root. (Closing the tab does NOT navigate; it only toggles
+   * whether mp is on top.)
    */
   function navigateAsTab(href) {
     try {
@@ -158,87 +160,86 @@
     } catch (err) {
       try { window.location.assign(href); return } catch (e2) { /* ignore */ }
     }
-    mountAsIframe(href)
+    showMpTab(href)
   }
 
-  function mountAsIframe(href) {
-    // Tear down a previous tab (if any) before mounting a new one.
-    unmountIframe()
+  /**
+   * Show the MP tab strip + iframe for the given href. The strip is
+   * inserted at the top of dsh's content area (under the topbar itself).
+   * If the same tab is already open, just toggle its active class and bring
+   * its iframe to front. The user clicks a tab to switch; the close X
+   * on the active tab hides the whole strip and reveals dsh.
+   */
+  function showMpTab(href) {
+    // Tear down any existing tab strip first.
+    hideMpTab()
 
     var url
     try { url = new URL(href, window.location.href).toString() } catch (e) { url = href }
 
-    var root = document.getElementById('root') || document.body
-    if (!root) return
-
-    // The wrapper is a full-bleed flex container that pushes dsh's main
-    // content off-screen. We keep the topbar (which lives in <body>, not
-    // #root) visible so navigation back is one click away.
-    var wrap = document.createElement('div')
-    wrap.id = 'mp-v6-tab-wrap'
-    wrap.dataset.menuHref = href
-    wrap.style.cssText =
-      'position: fixed; left: 0; right: 0; top: 44px; bottom: 0;' +
-      'background: #0b0d12; z-index: 2147483599;' +
-      'display: flex; flex-direction: column;'
-
-    // Close button bar (36px tall) — looks like a dsh sub-toolbar.
-    var bar = document.createElement('div')
-    bar.style.cssText =
-      'display: flex; align-items: center; gap: 8px;' +
-      'padding: 0 12px; height: 36px; flex: 0 0 36px;' +
-      'background: rgba(20, 22, 28, 0.94);' +
+    // Tab strip + iframe container
+    var strip = document.createElement('div')
+    strip.id = 'mp-v6-tab-strip'
+    strip.style.cssText =
+      'position: fixed; left: 0; right: 0; top: 44px; height: 36px;' +
+      'display: flex; align-items: stretch; gap: 0;' +
+      'background: rgba(15, 17, 22, 0.96);' +
       'border-bottom: 1px solid rgba(255, 255, 255, 0.08);' +
-      'color: rgba(235, 238, 245, 0.85); font: 12px/1 -apple-system, sans-serif;'
+      'z-index: 2147483598;' +
+      'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;'
 
-    var label = document.createElement('span')
-    label.style.cssText = 'flex: 1 1 auto;'
-    label.textContent = '↪ ' + href.replace(/^https?:\/\/[^/]+/, '')
+    // Header label (fixed text on the left)
+    var header = document.createElement('span')
+    header.textContent = '📱 MetaPlatform'
+    header.style.cssText =
+      'display: flex; align-items: center; padding: 0 12px;' +
+      'font-size: 12px; font-weight: 600;' +
+      'color: rgba(255,255,255,0.55);' +
+      'border-right: 1px solid rgba(255, 255, 255, 0.06);'
+    strip.appendChild(header)
 
-    var close = document.createElement('button')
-    close.type = 'button'
-    close.textContent = '返回 dsh ↩'
-    close.setAttribute('aria-label', '返回 dsh 主界面')
-    close.style.cssText =
-      'background: rgba(120, 165, 255, 0.18); color: #fff; border: none;' +
-      'border-radius: 4px; padding: 4px 12px; cursor: pointer; font: inherit;'
-    close.addEventListener('click', function () { unmountIframe() })
+    // Container for tab pills (so they don't wrap the close button)
+    var tabs = document.createElement('div')
+    tabs.id = 'mp-v6-tab-tabs'
+    tabs.style.cssText = 'display: flex; flex: 1 1 auto; min-width: 0; overflow-x: auto;'
+    strip.appendChild(tabs)
 
-    bar.appendChild(label)
-    bar.appendChild(close)
+    // The close button on the far right of the strip.
+    var closeAll = document.createElement('button')
+    closeAll.type = 'button'
+    closeAll.setAttribute('aria-label', '关闭 MetaPlatform 标签 (返回 dsh)')
+    closeAll.textContent = '×'
+    closeAll.style.cssText =
+      'background: transparent; color: rgba(235, 238, 245, 0.55); border: none;' +
+      'border-left: 1px solid rgba(255, 255, 255, 0.06);' +
+      'padding: 0 14px; font-size: 18px; cursor: pointer;'
+    closeAll.addEventListener('click', hideMpTab)
+    strip.appendChild(closeAll)
 
-    // The iframe fills the rest of the wrap.
+    document.body.appendChild(strip)
+
+    // The full-bleed iframe below the strip (starts at 80px from the top).
     var iframe = document.createElement('iframe')
     iframe.id = 'mp-v6-tab-iframe'
-    iframe.src = href
+    iframe.src = url
     iframe.allow = 'clipboard-write; clipboard-read'
-    iframe.style.cssText = 'flex: 1 1 auto; width: 100%; height: 100%; border: 0; background: #fff;'
+    iframe.style.cssText =
+      'position: fixed; left: 0; right: 0; top: 80px; bottom: 0;' +
+      'width: 100%; height: calc(100vh - 80px); border: 0; background: #fff;' +
+      'z-index: 2147483597;'
+    document.body.appendChild(iframe)
 
-    wrap.appendChild(bar)
-    wrap.appendChild(iframe)
-
-    // Insert before #root so dsh's React tree remains mounted underneath
-    // (we just hide it visually). This way pressing the back button
-    // restores dsh exactly as it was.
-    if (root.parentNode) {
-      root.parentNode.insertBefore(wrap, root)
-      root.style.display = 'none'
-    } else {
-      document.body.appendChild(wrap)
-    }
-
-    // Mark the matching menu item as active so the user gets visual feedback
-    // that they're in a mp-* tab right now.
-    var path = ''
-    try { path = new URL(href, window.location.href).pathname } catch (e) { /* ignore */ }
-    setActiveByPath(path)
+    // Wire the topbar so the right item is marked active.
+    setActiveByPath(new URL(href, window.location.href).pathname)
   }
 
-  function unmountIframe() {
-    var wrap = document.getElementById('mp-v6-tab-wrap')
-    if (wrap) wrap.parentNode.removeChild(wrap)
-    var root = document.getElementById('root')
-    if (root) root.style.display = ''
+  function hideMpTab() {
+    var strip = document.getElementById('mp-v6-tab-strip')
+    if (strip) strip.parentNode.removeChild(strip)
+    var iframe = document.getElementById('mp-v6-tab-iframe')
+    if (iframe) iframe.parentNode.removeChild(iframe)
+    // Reset active state to whatever dsh's path actually is.
+    setActiveByPath(window.location.pathname)
   }
 
   /**
