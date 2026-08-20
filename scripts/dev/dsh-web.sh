@@ -82,10 +82,25 @@ export DSH_LOG_LEVEL="${DSH_LOG_LEVEL:-info}"
 export DSH_LOG_FORMAT="${DSH_LOG_FORMAT:-json}"
 export NODE_ENV="${NODE_ENV:-development}"
 
-echo "▶  dsh web --port 5173"
+# Vendor 必须先 build:lib:host,apps/cli/lib/bin.js 才会存在 (pnpm dsh 才会指到 vendor 本体而非全局).
+DSH_BIN="$DSH_DIR/apps/cli/lib/bin.js"
+if [[ ! -f "$DSH_BIN" ]]; then
+  echo "⚠️  vendor not built (missing $DSH_BIN). Running pnpm build:lib:host (1-3 min)..."
+  (cd "$DSH_DIR" && pnpm build:lib:host) || {
+    echo "❌ pnpm build:lib:host failed" >&2
+    exit 1
+  }
+fi
+if [[ ! -f "$DSH_BIN" ]]; then
+  echo "❌ still missing $DSH_BIN after build" >&2
+  exit 1
+fi
+
+echo "▶  vendor dsh (RC8) on port 5173"
 echo "   cwd:  $DSH_DIR"
+echo "   bin:  $DSH_BIN"
 echo "   home: $DSH_HOME"
 echo "   supabase: $DSH_SUPABASE_URL"
 echo "   llm:    $DSH_LLM_PROVIDER ($DSH_DEEPSEEK_MODEL)"
 echo
-exec pnpm dsh web --port 5173 "$@"
+exec node "$DSH_BIN" web --port 5173 "$@"

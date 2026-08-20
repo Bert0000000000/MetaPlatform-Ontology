@@ -75,7 +75,7 @@ serve(async (req) => {
     // Sort
     if (params.sort === 'name') query = query.order('name', { ascending: true });
     else if (params.sort === 'recent') query = query.order('updated_at', { ascending: false });
-    else query = query.order('install_count', { ascending: false });
+    else query = query.order('downloads_count', { ascending: false });
 
     // Pagination
     const from = (params.page - 1) * params.perPage;
