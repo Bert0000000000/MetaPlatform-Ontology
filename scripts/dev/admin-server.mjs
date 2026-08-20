@@ -82,9 +82,9 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html(card('Tenants', renderTable(r.rows, ['id', 'slug', 'name', 'status', 'created_at']))));
   } else if (req.url === '/admin/audit') {
-    const r = await c.query("SELECT id, tenant_id, actor_id, action, schema_name, table_name, created_at FROM public.audit_log ORDER BY created_at DESC LIMIT 100");
+    const r = await c.query("SELECT id, tenant_id, actor_id, action, schema_name, table_name, occurred_at FROM public.audit_log ORDER BY occurred_at DESC LIMIT 100");
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(html(card('Audit Log (latest 100)', renderTable(r.rows, ['id', 'tenant_id', 'actor_id', 'action', 'schema_name', 'table_name', 'created_at']))));
+    res.end(html(card('Audit Log (latest 100)', renderTable(r.rows, ['id', 'tenant_id', 'actor_id', 'action', 'schema_name', 'table_name', 'occurred_at']))));
   } else if (req.url === '/admin/installs') {
     const r = await c.query("SELECT i.id, p.slug AS preset, i.workspace_id, i.status, i.installed_at FROM mp_preset_registry.installs i LEFT JOIN mp_preset_registry.presets p ON p.id = i.preset_id ORDER BY i.installed_at DESC LIMIT 50");
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
