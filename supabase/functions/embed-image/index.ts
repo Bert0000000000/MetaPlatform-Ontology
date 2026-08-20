@@ -35,13 +35,16 @@ serve(async (req) => {
     const { data: hashData } = await supabase.rpc('image_url_hash', { p_url: body.image_url });
     const vector = new Array(512).fill(0);
 
+    // Pass vector as PostgreSQL array literal '{0,0,...}'
+    const vectorLiteral = '{' + vector.join(',') + '}';
+
     const { data, error } = await supabase
       .from('image_embeddings')
       .upsert({
         tenant_id: auth.tenantId,
         image_url: body.image_url,
         image_hash: hashData,
-        embedding: JSON.stringify(vector),
+        embedding: vectorLiteral,
         metadata: body.metadata ?? {},
       }, { onConflict: 'tenant_id,image_hash' })
       .select()
