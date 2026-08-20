@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS public.ontology_relation_types (
     from_type       text NOT NULL,                              -- source ObjectType rid
     to_type         text NOT NULL,                              -- target ObjectType rid
     cardinality     text NOT NULL DEFAULT 'one_to_many'
-                    CHECK (cardinality IN ('one_to_one', 'one_to_many', 'many_to_many')),
+                    CHECK (cardinality IN ('one_to_one', 'one_to_many', 'many_to_one', 'many_to_many')),
     properties      jsonb NOT NULL DEFAULT '{}'::jsonb,         -- 关系上的属性 (e.g. amount, created_at)
     status          text NOT NULL DEFAULT 'draft'
                     CHECK (status IN ('draft', 'active', 'deprecated')),
