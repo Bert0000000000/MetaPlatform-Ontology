@@ -15,7 +15,7 @@ interface InstallRequest {
 }
 
 serve(async (req) => {
-  if (req.method !== 'POST") {
+  if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
   try {
