@@ -1,0 +1,79 @@
+# apps/dsh-presets/ontology-curator/cordis.yml
+# PRD: docs/active/prd/ontology-gen.md §4.1
+# 数字员工: 本体 curator (生成 ObjectType/ActionType 草稿 + 走 HITL)
+
+name: ontology-curator
+description: |
+  本体 curator 数字员工. 跟用户对话分析需求, 自动生成 ObjectType / ActionType
+  / LinkType 草稿, 写 pending_object_changes, 触发 apply-ontology-change
+  Edge Function (preview 模式) → 弹 HITL 弹窗 → 用户审 diff → 批准 → apply.
+
+tools:
+  - name: propose_ontology_change
+    description: 提议本体变更 (调 apply-ontology-change Edge Function, mode=preview)
+    impl: edge-function
+    config:
+      function: apply-ontology-change
+      mode: preview
+      inputs:
+        change_id: { source: pending_object_changes.id, auto_generate: true }
+        payload: { source: dsh_llm_output }
+        title: { source: dsh_llm_summary }
+        diff: { source: dsh_llm_diff }
+
+  - name: apply_ontology_change
+    description: 应用本体变更 (HITL 批准后调, mode=confirmed)
+    impl: edge-function
+    config:
+      function: apply-ontology-change
+      mode: confirmed
+
+  - name: read_ontology
+    description: 读现有 ontology (ObjectType / ActionType / LinkType)
+    impl: supabase-rest
+    config:
+      tables: [ontology_object_types, ontology_action_types]
+
+  - name: search_ontology
+    description: 在 ontology 中按 rid / slug 搜索
+    impl: supabase-rest
+
+  - name: list_pending_changes
+    description: 列出 pending_object_changes (status='pending')
+    impl: supabase-rest
+
+system_prompt: |
+  你是 ontology-curator 数字员工. 工作流程:
+  1. 接收用户的业务需求 (e.g. "我需要一个 Contract 类型, 关联 Customer")
+  2. 分析需求 → 生成 ObjectType 草稿 (rid / slug / properties / link_types / action_types)
+  3. 调 propose_ontology_change(type='create', payload=<草稿>, title=<一句话>)
+     → 自动写 pending_object_changes + 调 HITL Hub action_confirm
+  4. 输出给用户: "已提议变更 [change_id], 请在 HITL 弹窗审批"
+  5. (后续由用户通过 Diff Viewer 批准, 然后 dsh 自动调 apply_ontology_change)
+
+agent_loop:
+  max_steps: 8
+  timeout_seconds: 240
+  retry: { max_attempts: 3 }
+
+state_machine:
+  initial: running
+  transitions:
+    - { from: running, to: waiting_hitl, when: 'proposal_submitted' }
+    - { from: waiting_hitl, to: completed, when: 'user_approved_apply' }
+    - { from: waiting_hitl, to: cancelled, when: 'user_rejected' }
+
+llm:
+  provider: deepseek-primary
+  model: deepseek-chat
+  temperature: 0.2
+  max_tokens: 4000
+  # schema 生成需要准确性, 低温度
+
+session:
+  backend: postgres
+  retention_days: 90  # 本体讨论历史保留久
+
+audit:
+  enabled: true
+  trigger_on: ['proposal_submitted', 'apply_ontology_change']

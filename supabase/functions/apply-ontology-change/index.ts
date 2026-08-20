@@ -1,6 +1,7 @@
 // supabase/functions/apply-ontology-change/index.ts
-// PRD: docs/active/specs/2026-08-19-mp-v6-architecture.md §7.15 (12 Ontology Kernel)
-// Edge Function: ActionType.apply(mode='preview' | 'confirmed') → 触发 Temporal workflow
+// PRD: docs/active/prd/ontology-gen.md §4.2
+// Batch: MP-V6-ONTOLOGY-GEN-01 (full implementation)
+// Edge Function: ontology 变更入口, mode=preview|confirmed → Temporal workflow
 
 // @ts-nocheck — Deno runtime
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
@@ -8,8 +9,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.0";
 import { Client as TemporalClient } from "https://esm.sh/@temporalio/client@1.11.0";
 
 interface ApplyRequest {
-  change_id: string;             // pending_object_changes.id
+  change_id: string;
   mode: 'preview' | 'confirmed';
+  payload?: Record<string, unknown>;       // mode='preview' 时可由 dsh 自动生成
+  title?: string;
+  description?: string;
+  object_type_rid?: string;
+  change_type?: 'create' | 'update' | 'delete' | 'rename';
 }
 
 serve(async (req) => {
@@ -32,52 +38,58 @@ serve(async (req) => {
     if (!tenantId) throw new Error("JWT missing tenant_id");
 
     const body = await req.json() as ApplyRequest;
-    if (!body.change_id || !body.mode) throw new Error("Missing change_id or mode");
+    if (!body.mode) throw new Error("Missing mode");
 
-    // 1. 读 pending_object_changes
-    const { data: change, error: chErr } = await supabase
-      .from("pending_object_changes")
-      .select("*")
-      .eq("id", body.change_id)
-      .eq("tenant_id", tenantId)
-      .single();
-
-    if (chErr || !change) throw new Error(`Change not found: ${body.change_id}`);
-
-    // 2. 启动 Temporal workflow (根据 mode 选不同 task queue)
     const temporal = new TemporalClient({
       address: Deno.env.get("TEMPORAL_ADDRESS") ?? "temporal.mp-orchestration.svc:7233",
     });
 
-    const workflowId = `apply-ontology-${body.change_id}`;
+    let changeId = body.change_id;
+
+    // mode='preview' 且 dsh 直接传 payload: 先 INSERT pending_object_changes
+    if (body.mode === 'preview' && !changeId) {
+      if (!body.object_type_rid || !body.change_type || !body.payload) {
+        throw new Error("preview mode requires object_type_rid, change_type, payload");
+      }
+
+      const { data: created, error: createErr } = await supabase
+        .from("pending_object_changes")
+        .insert({
+          tenant_id: tenantId,
+          object_type_rid: body.object_type_rid,
+          change_type: body.change_type,
+          payload: body.payload,
+          title: body.title ?? null,
+          description: body.description ?? null,
+          status: 'pending',
+          approver_user_ids: [user.id],
+        })
+        .select()
+        .single();
+
+      if (createErr || !created) throw new Error(`pending_object_changes insert failed: ${createErr?.message}`);
+      changeId = created.id;
+    }
+
+    if (!changeId) throw new Error("change_id required");
+
+    // 启动 Temporal workflow
+    const workflowId = `ontology-${body.mode}-${changeId}`;
     const handle = await temporal.workflow.start(
-      body.mode === "preview" ? "previewOntologyChangeWorkflow" : "applyOntologyChangeWorkflow",
+      body.mode === 'preview' ? 'previewOntologyChangeWorkflow' : 'applyOntologyChangeWorkflow',
       {
-        args: [{ change_id: body.change_id, tenant_id: tenantId, actor_id: user.id }],
-        taskQueue: "ontology-apply",
+        args: [{ change_id: changeId, tenant_id: tenantId, actor_id: user.id }],
+        taskQueue: 'ontology-apply',
         workflowId,
       },
     );
 
-    // 3. 写 hitl_requests (mode='preview' 时)
-    if (body.mode === "preview") {
-      await supabase.from("hitl_requests").insert({
-        tenant_id: tenantId,
-        workflow_id: handle.workflowId,
-        type: "action_confirm",
-        status: "pending",
-        title: `预览本体变更: ${change.title ?? body.change_id}`,
-        description: change.description ?? null,
-        context: { change_id: body.change_id, change_diff: change.diff ?? null },
-        approver_user_ids: change.approver_user_ids ?? [user.id],
-        timeout_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      });
-    }
-
     return new Response(JSON.stringify({
+      change_id: changeId,
       workflow_id: handle.workflowId,
       run_id: handle.firstExecutionRunId,
-      status: "started",
+      mode: body.mode,
+      status: 'started',
     }), {
       status: 202,
       headers: { "Content-Type": "application/json" },
