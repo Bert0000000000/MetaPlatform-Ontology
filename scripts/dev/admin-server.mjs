@@ -97,6 +97,39 @@ const server = http.createServer(async (req, res) => {
     const r = await c.query("SELECT jobname, schedule, active FROM cron.job ORDER BY jobname");
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(html(card('pg_cron Jobs', renderTable(r.rows, ['jobname', 'schedule', 'active']))));
+  } else if (req.url === '/app-center') {
+    // App Center: list of all published presets (public + private), grouped by category.
+    // Reuses the public.mp_preset_registry tables seeded by 20260820300000 migration.
+    const r = await c.query(
+      "SELECT id, slug, name, category, visibility, current_version, downloads_count, maintainer_id FROM mp_preset_registry.presets ORDER BY category, downloads_count DESC"
+    );
+    const grouped = {};
+    for (const row of r.rows) {
+      const cat = row.category || 'uncategorized';
+      (grouped[cat] = grouped[cat] || []).push(row);
+    }
+    const sections = Object.keys(grouped).sort().map(cat => {
+      const rows = grouped[cat].map(row => `
+        <tr>
+          <td><code>${row.slug}</code></td>
+          <td>${row.name}</td>
+          <td>${row.current_version ?? '—'}</td>
+          <td>${row.downloads_count}</td>
+          <td><span class="badge ${row.visibility === 'public' ? 'badge-green' : 'badge-blue'}">${row.visibility}</span></td>
+          <td>${row.maintainer_id ?? '—'}</td>
+        </tr>`).join('');
+      return card('📦 ' + cat + ' (' + grouped[cat].length + ')',
+        renderTable(grouped[cat], ['slug', 'name', 'current_version', 'downloads_count', 'visibility', 'maintainer_id'])
+          .replace(/<tr>/, '<tr>')
+          .replace(/<th>N<\/th>/, '<th>v</th>')
+      );
+    }).join('');
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(html(
+      '<div class="card"><h2>📱 MetaPlatform 应用中心</h2>' +
+      '<p>共 ' + r.rows.length + ' 个 dsh 数字员工 preset. 点击 <code>slug</code> 可在未来版本跳到 install / config 流程.</p></div>' +
+      sections
+    ));
   } else {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not found');

@@ -123,9 +123,9 @@
     {
       id: 'mp-app-center',
       label: '应用中心',
-      href: 'http://localhost:8080/marketplace',
+      href: 'http://localhost:8080/app-center',
       kind: 'link',
-      matchPath: '/marketplace',
+      matchPath: '/app-center',
     },
     {
       id: 'mp-platform-admin',
