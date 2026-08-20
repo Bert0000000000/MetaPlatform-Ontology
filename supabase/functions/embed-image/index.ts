@@ -34,30 +34,27 @@ serve(async (req) => {
 
     const { data: hashData } = await supabase.rpc('image_url_hash', { p_url: body.image_url });
     const vector = new Array(512).fill(0);
-
-    // Pass vector as PostgreSQL array literal '{0,0,...}'
     const vectorLiteral = '{' + vector.join(',') + '}';
 
+    // Use raw SQL via .from() RPC for vector literal (PostgREST vector)
     const { data, error } = await supabase
-      .from('image_embeddings')
-      .upsert({
-        tenant_id: auth.tenantId,
-        image_url: body.image_url,
-        image_hash: hashData,
-        embedding: vectorLiteral,
-        metadata: body.metadata ?? {},
-      }, { onConflict: 'tenant_id,image_hash' })
-      .select()
-      .single();
+      .rpc('insert_image_embedding', {
+        p_tenant_id: auth.tenantId,
+        p_image_url: body.image_url,
+        p_image_hash: hashData,
+        p_embedding: vectorLiteral,
+        p_metadata: body.metadata ?? {},
+      });
 
     if (error) {
       return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
+    const row = Array.isArray(data) ? data[0] : data;
 
     return new Response(JSON.stringify({
-      embedding_id: (data as { id: string }).id,
-      image_url: (data as { image_url: string }).image_url,
-      image_hash: (data as { image_hash: string }).image_hash,
+      embedding_id: row?.id,
+      image_url: row?.image_url,
+      image_hash: row?.image_hash,
       model: 'clip-vit-b32',
       dimensions: 512,
       note: 'PoC: zero vector (real impl = FastAPI sidecar with transformers)',
