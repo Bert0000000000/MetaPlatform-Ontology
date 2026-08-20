@@ -64,8 +64,13 @@ test.describe('Supabase Auth + RLS', () => {
     const { Client } = pg.default ?? pg;
     const pgClient = new Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
     await pgClient.connect();
-    await pgClient.query('DELETE FROM public.audit_log WHERE tenant_id IN ($1, $2) ', [tenantA, tenantB]);
+    // create-customer 真正写入后, customers 会 FK-引用 tenants, 必须先删子表.
+    // audit_log 必须最后删: 删子表本身会经 tg_audit 触发器再写入 audit_log 行.
+    for (const t of ['customers', 'hitl_requests', 'notifications', 'tickets', 'orders']) {
+      try { await pgClient.query(`DELETE FROM public.${t} WHERE tenant_id IN ($1, $2)`, [tenantA, tenantB]); } catch { /* table optional */ }
+    }
     await pgClient.query('DELETE FROM public.profiles WHERE tenant_id IN ($1, $2) ', [tenantA, tenantB]);
+    await pgClient.query('DELETE FROM public.audit_log WHERE tenant_id IN ($1, $2) ', [tenantA, tenantB]);
     await pgClient.query('DELETE FROM public.tenants WHERE id IN ($1, $2) ', [tenantA, tenantB]);
     await pgClient.end();
   });
@@ -124,7 +129,7 @@ test.describe('Supabase Auth + RLS', () => {
         contact_email: `c-a-${Date.now()}@x.com`,
       }),
     });
-    expect(createR.status()).toBe(201);
+    expect(createR.status).toBe(201);
     const customer = await createR.json();
     expect(customer.customer.tenant_id).toBe(tenantA);
 
