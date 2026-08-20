@@ -1,0 +1,52 @@
+# helm/mp-umbrella/charts/temporal/values.yaml
+# PRD: temporal-cluster.md §4.4-4.5
+
+server:
+  replicas:
+    frontend: 2
+    history: 4
+    matching: 4
+  config:
+    dynamicConfig:
+      history.persistence.namespace.divisor: 4
+      matching.persistence.namespace.divisor: 4
+  persistence:
+    defaultStore:
+      sql:
+        # 由 values-<env>.yaml 覆盖 host/user/passwordSecret/schema
+        host: supabase-postgres.mp-data.svc.cluster.local
+        port: 5432
+        database: postgres
+        user: temporal_user
+        passwordSecret: temporal-db-password
+        schema: temporal
+  metrics:
+    enabled: true
+    prometheus:
+      enabled: true
+      port: 9090
+  web:
+    enabled: true
+    service:
+      port: 8233
+  resources:
+    frontend:
+      requests: { cpu: 500m, memory: 512Mi }
+      limits:   { cpu: 1,    memory: 1Gi   }
+    history:
+      requests: { cpu: 1,    memory: 1Gi   }
+      limits:   { cpu: 2,    memory: 2Gi   }
+    matching:
+      requests: { cpu: 500m, memory: 512Mi }
+      limits:   { cpu: 1,    memory: 1Gi   }
+    web:
+      requests: { cpu: 100m, memory: 128Mi }
+      limits:   { cpu: 200m, memory: 256Mi }
+
+# Worker 由各业务 Batch 自管 (packages/mp-temporal-worker-template)
+worker:
+  enabled: false  # Worker 不在 Cluster chart 内
+
+serviceAccount:
+  create: true
+  name: temporal-server

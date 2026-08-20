@@ -1,0 +1,11 @@
+# helm/mp-umbrella/charts/cert-manager/values.yaml
+clusterIssuer:
+  name: letsencrypt-prod
+  email: sre@mp-platform.local
+  staging: false  # true 仅 dev/staging
+  solvers:
+    - http01:
+        ingress:
+          class: nginx
+
+# Namespace 由 helm install 时 CreateNamespace=true 自动创建

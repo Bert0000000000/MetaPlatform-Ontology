@@ -1,0 +1,79 @@
+# helm/mp-umbrella/charts/temporal/templates/server-deployment.yaml
+# Temporal Frontend + History + Matching 在一个 Deployment 里,
+# 不同 component 启动参数不同. 简化版 skeleton (生产用官方 temporal helm chart).
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-frontend
+  namespace: mp-orchestration
+  labels:
+    app: temporal
+    component: frontend
+    platform.mp/version: "v6.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: temporal
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: temporal
+        component: frontend
+        platform.mp/role: temporal-component
+        platform.mp/version: "v6.0"
+    spec:
+      serviceAccountName: temporal-server
+      containers:
+        - name: temporal-frontend
+          image: temporalio/auto-setup:1.24.0
+          args:
+            - temporal
+            - server
+            - start
+            - --service=temporal-frontend
+            - --namespace=mp-orchestration
+            - --grpc-port=7233
+            - --http-port=7234
+            - --metrics-port=9090
+            - --enable-metrics=true
+          env:
+            - name: DB
+              value: postgres12
+            - name: DB_HOST
+              value: {{ .Values.server.persistence.defaultStore.sql.host }}
+            - name: DB_PORT
+              value: {{ .Values.server.persistence.defaultStore.sql.port | quote }}
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.server.persistence.defaultStore.sql.passwordSecret }}
+                  key: user
+            - name: DB_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.server.persistence.defaultStore.sql.passwordSecret }}
+                  key: password
+            - name: DB_NAME
+              value: {{ .Values.server.persistence.defaultStore.sql.database }}
+            - name: POSTGRES_SCHEMA
+              value: {{ .Values.server.persistence.defaultStore.sql.schema }}
+          ports:
+            - { containerPort: 7233, name: grpc }
+            - { containerPort: 9090, name: metrics }
+          resources: {{- toYaml .Values.server.resources.frontend | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: temporal-frontend
+  namespace: mp-orchestration
+spec:
+  selector:
+    app: temporal
+    component: frontend
+  ports:
+    - { name: grpc, port: 7233, targetPort: 7233 }
+    - { name: metrics, port: 9090, targetPort: 9090 }

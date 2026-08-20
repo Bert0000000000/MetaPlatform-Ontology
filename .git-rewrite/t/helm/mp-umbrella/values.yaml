@@ -1,0 +1,59 @@
+# helm/mp-umbrella/values.yaml
+# 默认 values — 生产部署时 values-prod.yaml 覆盖
+
+cert-manager:
+  enabled: true
+  installCRDs: true
+  clusterIssuer:
+    email: sre@mp-platform.local
+    staging: false  # 生产用 prod issuer
+
+ingress-nginx:
+  enabled: true
+  controller:
+    service:
+      type: LoadBalancer
+    ingressClassResource:
+      name: nginx
+      default: true
+    config:
+      use-forward-headers: "true"
+      enable-real-ip: "true"
+
+external-secrets:
+  enabled: true
+  installCRDs: true
+  webhook:
+    replicaCount: 2
+  # Vault backend 由 values-<env>.yaml 覆盖
+
+velero:
+  enabled: true
+  configuration:
+    provider: aws
+    backupStorageLocations:
+      - name: default
+        bucket: mp-velero-backup
+        config:
+          region: cn-north-1
+    volumeSnapshotLocations:
+      - name: default
+        config:
+          region: cn-north-1
+  schedules:
+    daily-full:
+      schedule: "0 2 * * *"
+      template:
+        ttl: "720h"  # 30 天
+    weekly-full:
+      schedule: "0 3 * * 0"
+      template:
+        ttl: "2160h"  # 90 天
+
+temporal:
+  enabled: false  # MP-V6-TEMPORAL-01 默认关闭, 该 Batch 完成后开启
+  # 配置见 values-temporal.yaml
+
+observability:
+  enabled: false  # MP-V6-OBSERVABILITY-01 默认关闭
+  # 配置见 values-observability.yaml

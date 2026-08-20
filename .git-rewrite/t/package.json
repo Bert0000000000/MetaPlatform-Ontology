@@ -1,0 +1,49 @@
+{
+  "name": "metaplatform-ontology",
+  "version": "6.0.0",
+  "private": true,
+  "description": "MetaPlatform v6.0 monorepo (Supabase + dsh + Temporal + OTel)",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=22.19",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx,.js,.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build": "pnpm -r --filter \"./packages/*\" run build",
+    "validate:rls": "bash scripts/ci/rls-check.sh",
+    "validate:networkpolicy": "bash scripts/ci/networkpolicy-check.sh",
+    "validate:evidence": "bash scripts/ci/evidence-check.sh",
+    "validate:helm": "bash scripts/ci/helm-validate.sh",
+    "validate:all": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build && pnpm run validate:rls && pnpm run validate:networkpolicy && pnpm run validate:evidence",
+    "loop:next": "bash scripts/loop/next-batch.sh",
+    "loop:new": "bash scripts/loop/new-batch.sh",
+    "loop:run-once": "bash scripts/loop/run-once.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.0",
+    "@temporalio/client": "^1.11.0",
+    "@temporalio/worker": "^1.11.0",
+    "@temporalio/workflow": "^1.11.0",
+    "@temporalio/activity": "^1.11.0",
+    "pg": "^8.13.1",
+    "yaml": "^2.6.0",
+    "zod": "^3.24.1"
+  }
+}

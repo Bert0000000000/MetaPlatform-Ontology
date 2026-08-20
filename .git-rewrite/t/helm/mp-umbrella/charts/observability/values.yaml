@@ -1,0 +1,76 @@
+# helm/mp-umbrella/charts/observability/values.yaml
+otel:
+  enabled: true
+  mode: deployment
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: 0.103.0
+  config:
+    exporters:
+      otlp:
+        endpoint: tempo.monitoring.svc:4317
+      prometheus:
+        endpoint: 0.0.0.0:8889
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 20
+    receivers:
+      otlp:
+        protocols:
+          grpc: { endpoint: 0.0.0.0:4317 }
+          http: { endpoint: 0.0.0.0:4318 }
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlp]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: []
+
+tempo:
+  enabled: true
+  storage:
+    trace:
+      backend: s3
+      s3:
+        bucket: mp-tempo-traces
+        region: cn-north-1
+
+prometheus:
+  enabled: true
+  server:
+    retention: 30d
+    persistentVolume:
+      size: 50Gi
+
+loki:
+  enabled: true
+  storage:
+    type: s3
+    s3:
+      bucketnames: mp-loki-logs
+      region: cn-north-1
+
+grafana:
+  enabled: true
+  adminPassword: ""  # 由 Vault / ExternalSecret 注入
+  persistence:
+    enabled: true
+    size: 5Gi
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - { name: Prometheus, type: prometheus, url: http://prometheus:9090 }
+        - { name: Tempo, type: tempo, url: http://tempo:3100 }
+        - { name: Loki, type: loki, url: http://loki:3100 }

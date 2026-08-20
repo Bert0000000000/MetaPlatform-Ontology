@@ -1,0 +1,29 @@
+# k8s/networkpolicies/allow-matrix/mp-monitoring-scrape.yaml
+# PRD: docs/active/prd/foundation-networkpolicy.md §4.2
+# mp-monitoring (Prometheus + OTel Collector) 抓取所有 ns 的 metrics endpoint
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mp-monitoring-scrape
+  namespace: mp-monitoring
+  labels:
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "foundation"
+spec:
+  podSelector:
+    matchLabels:
+      platform.mp/role: "metrics-scraper"
+  policyTypes:
+    - Egress
+  egress:
+    # Prometheus scrape 各 ns /metrics (典型端口 9090 / 8889 / 4318)
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 9090  # Prometheus exposition
+        - protocol: TCP
+          port: 8889  # OTel Collector prometheus exporter
+        - protocol: TCP
+          port: 4318  # OTel HTTP receiver

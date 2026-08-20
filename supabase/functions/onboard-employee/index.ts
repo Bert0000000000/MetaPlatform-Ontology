@@ -63,7 +63,7 @@ serve(async (req) => {
 
     const { data: employee, error: empErr } = await supabase
       .from("employees")
-      .insert({
+      .insert({ tenant_id: auth.tenantId,
         tenant_id: auth.tenantId,
         user_id: userId,
         employee_number: employeeNumber,

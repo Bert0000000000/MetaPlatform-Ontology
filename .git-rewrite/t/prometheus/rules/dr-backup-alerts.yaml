@@ -1,0 +1,51 @@
+# prometheus/rules/dr-backup-alerts.yaml
+# PRD: docs/active/prd/foundation-dr-backup.md §5
+# DR / Backup 相关 Prometheus 告警规则
+
+groups:
+  - name: mp-backup-critical
+    interval: 60s
+    rules:
+      # Critical: 备份缺失 (上次成功 backup > 26 小时)
+      - alert: BackupMissing
+        expr: (time() - mp_pg_basebackup_last_success_timestamp_seconds) > 93600
+        for: 5m
+        labels:
+          severity: critical
+          platform.mp/tier: foundation
+        annotations:
+          summary: "PG base backup missing for {{ $labels.env }}"
+          description: "最近一次成功 base backup 已超过 26 小时. RPO 风险."
+          runbook_url: "https://runbooks/mp/pg-basebackup-missing"
+
+      # Critical: WAL 归档延迟 (lag > 10 分钟)
+      - alert: WALArchivalLag
+        expr: mp_pg_wal_archive_lag_seconds > 600
+        for: 2m
+        labels:
+          severity: critical
+          platform.mp/tier: foundation
+        annotations:
+          summary: "PG WAL 归档延迟 {{ $value }}s"
+          description: "WAL 归档已落后 PG 当前 LSN 超过 10 分钟. RPO 风险."
+
+      # Warning: 备份耗时过长 (> 30 分钟)
+      - alert: BackupSlow
+        expr: mp_pg_basebackup_duration_seconds > 1800
+        for: 1m
+        labels:
+          severity: warning
+          platform.mp/tier: foundation
+        annotations:
+          summary: "PG base backup 耗时 {{ $value }}s (阈值 1800s)"
+
+      # Info: PITR 演练周期提醒 (每月演练)
+      - alert: DRDrillOverdue
+        expr: (time() - mp_dr_drill_last_success_timestamp_seconds) > (32 * 86400)
+        for: 1h
+        labels:
+          severity: info
+          platform.mp/tier: foundation
+        annotations:
+          summary: "DR drill 已超过 32 天未演练"
+          description: "请按 runbooks/dr-pitr.md §月度演练 执行. 上次: {{ $value | humanizeDuration }}."

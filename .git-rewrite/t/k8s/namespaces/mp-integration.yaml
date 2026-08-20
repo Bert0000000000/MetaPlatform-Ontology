@@ -1,0 +1,26 @@
+# k8s/namespaces/mp-integration.yaml
+# approval-saas (钉钉/飞书/企微 适配) / webhook-router
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-integration
+  labels:
+    kubernetes.io/metadata.name: mp-integration
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "integration"
+    name: mp-integration
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-integration-quota
+  namespace: mp-integration
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: "8Gi"
+    limits.cpu: "16"
+    limits.memory: "32Gi"
+    pods: "20"
+    services: "10"

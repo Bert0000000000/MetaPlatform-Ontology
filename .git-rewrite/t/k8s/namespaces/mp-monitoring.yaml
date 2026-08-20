@@ -1,0 +1,27 @@
+# k8s/namespaces/mp-monitoring.yaml
+# OTel Collector / Tempo / Prometheus / Loki / Grafana
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-monitoring
+  labels:
+    kubernetes.io/metadata.name: mp-monitoring
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "monitoring"
+    name: mp-monitoring
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-monitoring-quota
+  namespace: mp-monitoring
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: "16Gi"
+    limits.cpu: "32"
+    limits.memory: "128Gi"
+    persistentvolumeclaims: "20"
+    pods: "20"
+    services: "10"

@@ -1,0 +1,25 @@
+feat(events): MP-V6-EVENTS-01 implementation (event_queue + 12+ trigger router + 5 cron)
+
+PRD: docs/active/prd/events-db-webhook.md (Draft v1.0)
+Batch: MP-V6-EVENTS-01
+
+Delivered:
+- supabase/migrations/20260820180000_create_event_queue_and_cron.sql
+  - public.event_queue (重试 + DLQ, RLS + tg_inject_tenant)
+  - public.event_dlq (7天冷存储)
+  - pg_cron: event-retry (*/5 * * * *) + event-dlq-cleanup (daily 03:00)
+  - pg_cron: audit-log-cleanup (weekly Sun 04:00, 2y retention)
+  - pg_cron: db-health-check (hourly) + webhook-delivery-stats (hourly :15)
+- supabase/functions/dsp-webhook/index.ts (扩展到 12+ 表路由)
+  - orders/contracts/hitl_requests/tickets/invoices/dsh_sessions/
+    ontology/pending_changes/notifications/employees/departments/documents
+  - 路由策略: amount>10k → Temporal / total>100k → Temporal / 紧急 → HITL / 默认 → Realtime
+- tests/events/webhook_router.test.ts (4 cases)
+- docs/active/prd/events-db-webhook.md (PRD v1.0)
+- evidence/MP-V6-EVENTS-01-ACCEPTANCE.md
+
+Verified:
+- rls-check: 25 CREATE TABLE, all RLS (was 23, +2)
+- next-batch.sh → MP-V6-LLM-01
+
+Refs: MP-V6-EVENTS-01, MP-V6-LLM-01, MP-V6-RAG-01

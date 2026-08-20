@@ -1,0 +1,17 @@
+# helm/mp-umbrella/charts/cert-manager/templates/cluster-issuer.yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.clusterIssuer.name }}
+  labels:
+    platform.mp/version: "v6.0"
+spec:
+  acme:
+    email: {{ .Values.clusterIssuer.email }}
+    server: {{ if .Values.clusterIssuer.staging }}https://acme-staging-v02.api.letsencrypt.org/directory{{ else }}https://acme-v02.api.letsencrypt.org/directory{{ end }}
+    privateKeySecretRef:
+      name: {{ .Values.clusterIssuer.name }}-account-key
+    solvers:
+      {{- range .Values.clusterIssuer.solvers }}
+      - {{ toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,28 @@
+tree 92fa89c6f3bde19f82d45b83bad903d2f17e91d2
+parent fa943017282aabd4953ee0131687240d437bfbb4
+author wenchao <281817195@qq.com> 1787191830 +0800
+committer wenchao <281817195@qq.com> 1787191830 +0800
+
+feat(llm): MP-V6-LLM-01 implementation (Provider manager + token meter)
+
+PRD: docs/active/prd/llm-providers.md (Draft v1.0)
+Batch: MP-V6-LLM-01
+
+Delivered:
+- supabase/migrations/20260820190000_create_dsh_token_usage.sql
+  - public.dsh_token_usage (按月分区 + RLS + 索引)
+  - public.llm_pricing (默认价格表, 3 provider × 3 model)
+- packages/mp-llm-client/src/provider-manager.ts
+  - TokenBucketLimiter (requests/min + tokens/min)
+  - SimpleCircuitBreaker (failureThreshold + cooldown + half-open)
+  - ProviderManager.chat(req, fallbackChain) — 自动跳过 rate limit / circuit open
+- packages/mp-llm-client/{package.json, tsconfig.json}
+- packages/mp-llm-client/tests/provider-manager.test.ts (5 cases)
+- docs/active/prd/llm-providers.md (PRD v1.0)
+- evidence/MP-V6-LLM-01-ACCEPTANCE.md
+
+Verified:
+- rls-check: 28 CREATE TABLE, all RLS (was 25, +3)
+- next-batch.sh → MP-V6-RAG-01
+
+Refs: MP-V6-LLM-01, MP-V6-RAG-01

@@ -1,0 +1,20 @@
+# helm/mp-umbrella/charts/temporal/Chart.yaml
+# PRD: docs/active/prd/temporal-cluster.md
+# Temporal Cluster Helm chart skeleton — MP-V6-TEMPORAL-01
+
+apiVersion: v2
+name: temporal
+description: Temporal Cluster for MetaPlatform v6.0 workflow orchestration
+type: application
+version: 0.1.0
+appVersion: "1.24.0"
+home: https://temporal.io
+
+keywords:
+  - temporal
+  - workflow
+  - orchestration
+
+maintainers:
+  - name: MetaPlatform SRE Team
+    email: sre@mp-platform.local

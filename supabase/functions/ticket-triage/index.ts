@@ -84,7 +84,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       ticket_id: body.ticket_id,
-      triage:,
+      triage: triageResult,
       applied: body.auto_apply === true,
     }), {
       status: 200,

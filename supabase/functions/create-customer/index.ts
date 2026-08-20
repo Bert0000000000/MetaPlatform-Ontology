@@ -53,7 +53,7 @@ serve(async (req) => {
     // 2. 创建 (tg_inject_tenant 自动注入 tenant_id)
     const { data: customer, error: createErr } = await supabase
       .from("customers")
-      .insert({
+      .insert({ tenant_id: auth.tenantId,
         name: body.name,
         contact_email: body.contact_email ?? null,
         contact_phone: body.contact_phone ?? null,

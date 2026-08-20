@@ -1,0 +1,85 @@
+# k8s/deployments/dsh-web.yaml
+# PRD: docs/active/specs/2026-08-19-mp-v6-architecture.md §7.14.4
+# dsh-web Deployment (3 副本 + HPA), 镜像来自 DSH-DOCKER-01 batch
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsh-web
+  namespace: mp-runtime
+  labels:
+    app: dsh-web
+    version: v6.0
+    platform.mp/version: "v6.0"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dsh-web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  template:
+    metadata:
+      labels:
+        app: dsh-web
+        platform.mp/role: dsh-runtime
+        platform.mp/version: "v6.0"
+    spec:
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, fsGroup: 10001 }
+      containers:
+        - name: dsh-web
+          image: harbor.mp-platform.local/mp/dsh-web:v6.0.0-PLACEHOLDER  # 由 values-prod 覆盖
+          ports:
+            - { containerPort: 3000, name: http }
+            - { containerPort: 3001, name: scheduler }
+            - { containerPort: 3002, name: runtime }
+          env:
+            - { name: NODE_ENV, value: production }
+            - { name: DSH_PORT, value: "3000" }
+            - { name: SUPABASE_URL, value: http://supabase-postgres.mp-data.svc:5432 }
+            - { name: SUPABASE_SERVICE_KEY, valueFrom: { secretKeyRef: { name: supabase-secrets, key: service-role-key } } }
+            - { name: TEMPORAL_ADDRESS, value: temporal.mp-orchestration.svc:7233 }
+            - { name: DEEPSEEK_API_KEY, valueFrom: { secretKeyRef: { name: dsh-secrets, key: deepseek-api-key } } }
+          resources:
+            requests: { memory: "512Mi", cpu: "500m" }
+            limits:   { memory: "2Gi",    cpu: "2000m" }
+          livenessProbe:
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /health, port: 3000 }
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 2
+      volumes:
+        - name: dsh-cache
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsh-web
+  namespace: mp-runtime
+spec:
+  type: ClusterIP
+  selector: { app: dsh-web }
+  ports:
+    - { port: 80, targetPort: 3000, name: http }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: dsh-web-hpa
+  namespace: mp-runtime
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: dsh-web }
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+    - type: Resource
+      resource: { name: memory, target: { type: Utilization, averageUtilization: 80 } }

@@ -1,0 +1,26 @@
+# k8s/namespaces/mp-business.yaml
+# Supabase Edge Functions 业务后端 (mp-edge-biz, mp-edge-ontology, mp-edge-workflow, mp-edge-action, mp-edge-admin)
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-business
+  labels:
+    kubernetes.io/metadata.name: mp-business
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "business"
+    name: mp-business
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-business-quota
+  namespace: mp-business
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: "16Gi"
+    limits.cpu: "32"
+    limits.memory: "64Gi"
+    pods: "50"
+    services: "20"

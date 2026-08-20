@@ -70,7 +70,7 @@ serve(async (req) => {
 
     const { data: order, error: orderErr } = await supabase
       .from("orders")
-      .insert({
+      .insert({ tenant_id: auth.tenantId,
         order_number: orderNumber,
         customer_id: body.customer_id,
         amount: body.amount,

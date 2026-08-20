@@ -1,0 +1,8 @@
+# helm/mp-umbrella/charts/external-secrets/Chart.yaml
+apiVersion: v2
+name: external-secrets
+description: ExternalSecrets Operator for Vault → K8s Secret sync
+type: application
+version: 0.10.4
+appVersion: "0.10.4"
+home: https://external-secrets.io

@@ -1,0 +1,51 @@
+# apps/dsh-presets/knowledge-curator/cordis.yml
+# 数字员工: RAG 检索 + 回答
+name: knowledge-curator
+description: |
+  知识库管理数字员工. 同时调 RAGFlow (chunk + BM25 + 向量) 和 Microsoft GraphRAG (KG + 社区),
+  融合后生成结构化答案.
+
+tools:
+  - name: ragflow_search
+    description: 文档 chunk 检索 (RAGFlow)
+    impl: ragflow-client
+
+  - name: graphrag_search
+    description: 知识图谱 + Leiden 社区检索
+    impl: graphrag-client
+
+  - name: merge_results
+    description: 双路结果融合 + 去重 + 排序
+    impl: dsh-tool
+
+  - name: cite_sources
+    description: 答案附引用源 (文档 + 章节)
+    impl: dsh-tool
+
+system_prompt: |
+  你是 knowledge-curator 数字员工. 工作流程:
+  1. 接收用户 query
+  2. 并行调 RAGFlow + GraphRAG
+  3. 融合 + 去重 + 排序
+  4. 用 LLM 生成最终答案
+  5. 标注引用源 (用户可点击验证)
+
+agent_loop:
+  max_steps: 8
+  timeout_seconds: 180
+  retry: { max_attempts: 3 }
+
+llm:
+  provider: deepseek-primary
+  model: deepseek-chat
+  temperature: 0.2
+  max_tokens: 4000
+
+streaming: true
+
+session:
+  backend: postgres
+  retention_days: 90  # 知识库查询历史保留更久
+
+audit:
+  enabled: true

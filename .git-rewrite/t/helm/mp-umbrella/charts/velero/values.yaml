@@ -1,0 +1,40 @@
+# helm/mp-umbrella/charts/velero/values.yaml
+configuration:
+  provider: aws
+  backupStorageLocations:
+    - name: default
+      bucket: mp-velero-backup
+      config:
+        region: cn-north-1
+  volumeSnapshotLocations:
+    - name: default
+      config:
+        region: cn-north-1
+
+credentials:
+  # 由 ExternalSecret 注入 AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+  # 此处只引用 Secret 名, 实际值不在 values.yaml
+  useSecret: true
+
+schedules:
+  daily-full:
+    schedule: "0 2 * * *"
+    template:
+      ttl: "720h"  # 30d
+      includedNamespaces:
+        - mp-data
+        - mp-orchestration
+        - mp-runtime
+  weekly-full:
+    schedule: "0 3 * * 0"
+    template:
+      ttl: "2160h"  # 90d
+      includedNamespaces:
+        - mp-data
+        - mp-orchestration
+        - mp-runtime
+        - mp-monitoring
+
+resources:
+  requests: { cpu: 500m, memory: 512Mi }
+  limits:   { cpu: 2,    memory: 2Gi   }

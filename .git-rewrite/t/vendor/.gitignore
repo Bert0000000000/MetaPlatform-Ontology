@@ -1,0 +1,25 @@
+# vendor/deepseek-harness/.gitignore
+# Vendor 模式: clone 后只保留 src/ + package.json + 关键配置
+
+node_modules/
+dist/
+build/
+.turbo/
+coverage/
+*.log
+*.test.ts
+*.spec.ts
+.github/
+docs/
+examples/
+tests/
+
+# 仅保留 dsh 核心 source
+!packages/
+!apps/
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!package.json
+!tsconfig.json
+!tsconfig.base.json
+!README.md

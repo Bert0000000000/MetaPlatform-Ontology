@@ -1,0 +1,71 @@
+# 编辑器 / 系统
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 临时
+*.bak
+*.tmp
+.tmp/
+
+# 日志
+*.log
+
+# 依赖
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pnpm-store/
+
+# 构建产物
+dist/
+build/
+target/
+.turbo/
+.next/
+
+# 测试覆盖
+coverage/
+*.lcov
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# K8s / Helm
+charts/*.tgz
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# 密钥 / 凭证（兜底白名单，CI secret-scan 也会拦）
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+service-account.json
+gha-creds-*.json
+
+# 本体工具常见产物
+*.owl.bak
+*.rdf.bak
+*.ttl.bak
+
+# Claude Code loop state
+.claude/current-batch.md
+.loop-state/

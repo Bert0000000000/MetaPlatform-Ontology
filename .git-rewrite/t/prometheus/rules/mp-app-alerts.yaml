@@ -1,0 +1,58 @@
+# prometheus/rules/mp-app-alerts.yaml
+# PRD: docs/active/prd/otel-collector-config.md §6
+# 6 项基础告警规则
+
+groups:
+  - name: mp-app-critical
+    interval: 30s
+    rules:
+      # 1. HighErrorRate — service 错误率 > 5% 持续 5min
+      - alert: HighErrorRate
+        expr: |
+          sum by (service, namespace) (rate(http_requests_total{status=~"5..",platform.mp="v6.0"}[5m]))
+          / sum by (service, namespace) (rate(http_requests_total{platform.mp="v6.0"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          platform.mp/tier: observability
+        annotations:
+          summary: "High error rate on {{ $labels.service }}"
+          description: "Error rate {{ $value | humanizePercentage }} over 5min for {{ $labels.service }}/{{ $labels.namespace }}."
+
+      # 2. P99LatencyHigh — P99 延迟 > 3s 持续 5min
+      - alert: P99LatencyHigh
+        expr: |
+          histogram_quantile(0.99,
+            sum by (le, service) (rate(http_request_duration_seconds_bucket{platform.mp="v6.0"}[5m]))
+          ) > 3
+        for: 5m
+        labels:
+          severity: warning
+          platform.mp/tier: observability
+        annotations:
+          summary: "P99 latency high on {{ $labels.service }}"
+          description: "P99 = {{ $value }}s (> 3s threshold)."
+
+      # 3. PGConnectionsHigh — Supabase PG active connections > 80% max
+      - alert: PGConnectionsHigh
+        expr: pg_stat_activity_count{platform.mp="v6.0"} / pg_settings_max_connections > 0.8
+        for: 2m
+        labels:
+          severity: critical
+          platform.mp/tier: observability
+        annotations:
+          summary: "PG connections {{ $value | humanizePercentage }} of max"
+
+      # 4. BackupMissing — 已在 dr-backup-alerts.yaml 中定义 (跨文件加载)
+
+      # 5. WALArchivalLag — 已在 dr-backup-alerts.yaml 中定义
+
+      # 6. TemporalShardLag — Temporal history shard lag > 30s
+      - alert: TemporalShardLag
+        expr: temporal_task_queue_latency_p99{platform.mp="v6.0"} > 30
+        for: 5m
+        labels:
+          severity: warning
+          platform.mp/tier: observability
+        annotations:
+          summary: "Temporal shard lag {{ $value }}s"
