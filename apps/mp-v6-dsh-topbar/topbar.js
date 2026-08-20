@@ -226,6 +226,12 @@
     } else {
       document.body.appendChild(wrap)
     }
+
+    // Mark the matching menu item as active so the user gets visual feedback
+    // that they're in a mp-* tab right now.
+    var path = ''
+    try { path = new URL(href, window.location.href).pathname } catch (e) { /* ignore */ }
+    setActiveByPath(path)
   }
 
   function unmountIframe() {
