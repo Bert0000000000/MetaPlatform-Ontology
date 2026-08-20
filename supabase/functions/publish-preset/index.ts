@@ -56,7 +56,7 @@ serve(async (req) => {
     if (errors.length > 0) {
       return new Response(JSON.stringify({ error: 'Validation failed', details: errors }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -76,10 +76,10 @@ serve(async (req) => {
     if (existing) {
       return new Response(JSON.stringify({
         error: 'preset slug already exists for this tenant',
-        existing_id: existing.id,
+        existing_id: existing.id
       }), {
         status: 409,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -95,7 +95,7 @@ serve(async (req) => {
         current_version: body.version,
         downloads_count: 0,
         visibility: body.visibility ?? 'public',
-        maintainer_id: auth.userId,
+        maintainer_id: auth.userId
       })
       .select()
       .single();
@@ -103,7 +103,7 @@ serve(async (req) => {
     if (presetErr || !preset) {
       return new Response(JSON.stringify({ error: presetErr?.message ?? 'Failed to create preset' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
@@ -116,9 +116,8 @@ serve(async (req) => {
         version: body.version,
         manifest: body.manifest,
         manifest_size: JSON.stringify(body.manifest).length,
-        changelog: body.changelog ?? 'Initial ' + body.version + ' release',
+        changelog: body.changelog ?? "Initial " + body.version + " release",
         is_current: true,
-        published_by: auth.userId,
       })
       .select()
       .single();
@@ -127,7 +126,7 @@ serve(async (req) => {
       await supabase.schema('mp_preset_registry').from('presets').delete().eq('id', preset.id);
       return new Response(JSON.stringify({ error: verErr?.message ?? 'Failed to create version' }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' }
       });
     }
 
