@@ -1,0 +1,68 @@
+# scripts/etl/schema_mapping.yaml
+# PRD: docs/active/prd/etl-export-v3.md §4.5 + etl-import-v6.md §4.4
+# v3.0 → v6.0 schema 字段映射 (17 域各一份)
+
+version: "1.0"
+generated_at: "2026-08-20"
+
+tenants:
+  v3_table: tenants
+  v6_table: public.tenants
+  field_map:
+    - { v3: id,                v6: id,                  transform: "::uuid" }
+    - { v3: slug,              v6: slug,                transform: null }
+    - { v3: name,              v6: name,                transform: null }
+    - { v3: status,            v6: status,              transform: "lower()" }
+    - { v3: metadata,          v6: metadata,            transform: "jsonb" }
+    - { v3: created_at,        v6: created_at,          transform: "::timestamptz" }
+    - { v3: updated_at,        v6: updated_at,          transform: "::timestamptz" }
+  new_v6_fields:
+    - archived_at: null
+
+customers:
+  v3_table: customers
+  v6_table: public.customers
+  field_map:
+    - { v3: id,                v6: id,                  transform: "::uuid" }
+    - { v3: tenant_id,         v6: tenant_id,           transform: "tenant_id_map" }
+    - { v3: name,              v6: name,                transform: null }
+    - { v3: contact_email,     v6: contact_email,       transform: null }
+    - { v3: contact_phone,     v6: contact_phone,       transform: null }
+    - { v3: tier,              v6: tier,                transform: null }
+    - { v3: status,            v6: status,              transform: null }
+    - { v3: created_at,        v6: created_at,          transform: "::timestamptz" }
+    - { v3: updated_at,        v6: updated_at,          transform: "::timestamptz" }
+
+orders:
+  v3_table: orders
+  v6_table: public.orders
+  field_map:
+    - { v3: id,                v6: id,                  transform: "::uuid" }
+    - { v3: tenant_id,         v6: tenant_id,           transform: "tenant_id_map" }
+    - { v3: customer_id,       v6: customer_id,         transform: "customer_id_map" }
+    - { v3: amount,            v6: amount,              transform: "::numeric" }
+    - { v3: currency,          v6: currency,            transform: null }
+    - { v3: status,            v6: status,              transform: null }
+    - { v3: order_number,      v6: order_number,        transform: null }
+    - { v3: created_at,        v6: created_at,          transform: "::timestamptz" }
+  new_v6_fields:
+    - idempotency_key: "gen_random_uuid()::text"
+    - deleted_at: null
+
+contracts:
+  v3_table: contracts
+  v6_table: public.contracts
+  field_map:
+    - { v3: id,                v6: id,                  transform: "::uuid" }
+    - { v3: tenant_id,         v6: tenant_id,           transform: "tenant_id_map" }
+    - { v3: customer_id,       v6: customer_id,         transform: "customer_id_map" }
+    - { v3: contract_number,   v6: contract_number,     transform: null }
+    - { v3: title,             v6: title,               transform: null }
+    - { v3: total_amount,      v6: total_amount,        transform: "::numeric" }
+    - { v3: currency,          v6: currency,            transform: null }
+    - { v3: effective_date,    v6: effective_date,      transform: "::date" }
+    - { v3: expiry_date,       v6: expiry_date,         transform: "::date" }
+    - { v3: status,            v6: status,              transform: null }
+
+# 注: 完整 17 域映射需要业务团队各自补充; 这里列出 4 域示例 (P1)
+# 模板复制: cp -r tenants/ products/ && 修改 v3_table / v6_table / field_map
