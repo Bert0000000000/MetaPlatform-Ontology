@@ -1,6 +1,8 @@
 // e2e/list-presets.spec.ts
 // MP-V6 Loop 2/5: list-presets Edge Function
 
+import { test, expect } from '@playwright/test';
+
 const API = process.env.SUPABASE_API ?? 'http://localhost:54321';
 const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJ...ANON_PLACEHOLDER';
 
