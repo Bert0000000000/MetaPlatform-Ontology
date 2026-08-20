@@ -9,7 +9,7 @@
 //
 // Run: DSH_BASE_URL=http://127.0.0.1:5173 npx playwright test --project=dsh-web-ui -g "internal"
 //
-// Verifies the MP-V6 topbar adds 4 menu items and navigates WITHOUT opening new
+// Verifies the MetaPlatform topbar adds 4 menu items and navigates WITHOUT opening new
 // tabs (replaces target="_blank" with same-tab navigation). The "AI 助手"
 // menu dispatches a 'dsh:open-chat' CustomEvent so any host code (chat panel,
 // sidebar toggle, etc.) can react. The 3 link menus navigate the current tab
