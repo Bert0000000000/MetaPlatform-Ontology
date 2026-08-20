@@ -1,7 +1,7 @@
 // e2e/dsh-web.spec.ts
 // MP-V6 E2E: dsh-web UI 测试 (需要本机 dsh-web 跑起来)
 //
-// 启动: cd vendor/deepseek-harness && pnpm install && DSH_PORT=3080 pnpm dsh web
+// 启动: cd vendor/deepseek-harness && pnpm install && DSH_PORT=5173 pnpm dsh web
 // 运行: pnpm exec playwright test dsh-web
 //
 // 验证:
@@ -13,7 +13,7 @@
 
 import { test, expect } from '@playwright/test';
 
-const DSH_BASE = process.env.DSH_BASE_URL ?? 'http://localhost:3080';
+const DSH_BASE = process.env.DSH_BASE_URL ?? 'http://localhost:5173';
 
 test.describe('dsh-web UI', () => {
   test('1. homepage loads (200 + title)', async ({ page }) => {

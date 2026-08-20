@@ -1,7 +1,7 @@
 // playwright.config.ts
 // MP-V6 E2E Test Configuration
 // - Test supabase (Auth, Edge Functions, RLS) — runs against localhost:54321
-// - Test dsh-web (UI) — runs against localhost:3080 (when dsh-web is up)
+// - Test dsh-web (UI) — runs against localhost:5173 (when dsh-web is up)
 //
 // Run: pnpm exec playwright test
 // UI:   pnpm exec playwright test --ui
@@ -36,7 +36,7 @@ export default defineConfig({
     {
       name: 'dsh-web-ui',
       testMatch: /e2e\/dsh-web\.spec\.ts/,
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3080' },
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5173' },
     },
   ],
 });
