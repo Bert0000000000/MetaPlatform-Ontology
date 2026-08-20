@@ -57,6 +57,15 @@ test.describe('uninstall + list (Loop 5/5)', () => {
   });
 
   test('1. uninstall POST → 200 (soft-delete install)', async () => {
+    // Ensure install exists (in case beforeAll failed or was wiped)
+    if (!installId) {
+      const ins = await fetch(API + '/functions/v1/install-preset', {
+        method: 'POST', headers: { 'Authorization': 'Bearer ' + userAJwt, 'apikey': ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preset_slug: 'contract-drafter', workspace_id: 'ws-' + Date.now() }),
+      });
+      const insBody = await ins.json();
+      installId = insBody.install_id;
+    }
     const r = await fetch(API + '/functions/v1/uninstall-preset', {
       method: 'POST', headers: { 'Authorization': 'Bearer ' + userAJwt, 'apikey': ANON_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ install_id: installId }),
