@@ -1,0 +1,45 @@
+# k8s/namespaces/mp-runtime.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-runtime
+  labels:
+    kubernetes.io/metadata.name: mp-runtime
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "runtime"
+    name: mp-runtime
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-runtime-quota
+  namespace: mp-runtime
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: "40Gi"
+    limits.cpu: "80"
+    limits.memory: "160Gi"
+    persistentvolumeclaims: "20"
+    pods: "100"
+    services: "40"
+    secrets: "100"
+    configmaps: "100"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mp-runtime-limits
+  namespace: mp-runtime
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "1"
+        memory: "2Gi"
+      defaultRequest:
+        cpu: "200m"
+        memory: "256Mi"
+      max:
+        cpu: "4"
+        memory: "8Gi"

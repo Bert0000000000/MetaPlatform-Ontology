@@ -1,0 +1,26 @@
+# k8s/namespaces/mp-ai.yaml
+# graphrag / ragflow / embedding-svc (Python 服务)
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-ai
+  labels:
+    kubernetes.io/metadata.name: mp-ai
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "ai"
+    name: mp-ai
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-ai-quota
+  namespace: mp-ai
+spec:
+  hard:
+    requests.cpu: "16"
+    requests.memory: "32Gi"
+    limits.cpu: "64"
+    limits.memory: "128Gi"
+    pods: "30"
+    services: "15"

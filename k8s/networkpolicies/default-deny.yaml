@@ -1,0 +1,43 @@
+# k8s/networkpolicies/default-deny.yaml
+# PRD: docs/active/prd/foundation-networkpolicy.md §3.1
+# 默认拒绝: 所有 namespace 部署后, 先 apply 这两个 policy
+# 再按 k8s/networkpolicies/allow-matrix/*.yaml 放行白名单
+
+---
+# Default-deny ingress — 拒绝所有入站流量
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  labels:
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "foundation"
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Default-deny egress — 拒绝所有出站流量
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  labels:
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "foundation"
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  # 允许 DNS (kube-system)
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+              kubernetes.io/metadata.namespace: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

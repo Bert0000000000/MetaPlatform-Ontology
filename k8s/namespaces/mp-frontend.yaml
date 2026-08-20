@@ -1,0 +1,26 @@
+# k8s/namespaces/mp-frontend.yaml
+# 前端 (Semi Design React shell)
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-frontend
+  labels:
+    kubernetes.io/metadata.name: mp-frontend
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "frontend"
+    name: mp-frontend
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-frontend-quota
+  namespace: mp-frontend
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: "8Gi"
+    limits.cpu: "16"
+    limits.memory: "32Gi"
+    pods: "30"
+    services: "15"

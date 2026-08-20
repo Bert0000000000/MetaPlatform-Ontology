@@ -1,0 +1,43 @@
+# helm/mp-umbrella/values-prod.yaml
+# 生产环境覆盖: 高副本 + 严格资源 + 跨 AZ
+
+cert-manager:
+  clusterIssuer:
+    staging: false
+
+ingress-nginx:
+  controller:
+    replicaCount: 3
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2
+        memory: 2Gi
+
+velero:
+  configuration:
+    backupStorageLocations:
+      - name: default
+        bucket: mp-velero-backup-prod
+        config:
+          region: cn-north-1
+          kmsKeyId: alias/mp-backup-kms-prod
+
+external-secrets:
+  webhook:
+    replicaCount: 3
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+temporal:
+  enabled: true
+
+observability:
+  enabled: true

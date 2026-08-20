@@ -1,0 +1,26 @@
+# k8s/namespaces/mp-infra.yaml
+# cert-manager / ingress-nginx / external-secrets / argocd / velero / vault
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-infra
+  labels:
+    kubernetes.io/metadata.name: mp-infra
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "infra"
+    name: mp-infra
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-infra-quota
+  namespace: mp-infra
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: "8Gi"
+    limits.cpu: "16"
+    limits.memory: "32Gi"
+    pods: "30"
+    services: "15"

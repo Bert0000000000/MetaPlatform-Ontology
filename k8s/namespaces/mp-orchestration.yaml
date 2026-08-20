@@ -1,0 +1,45 @@
+# k8s/namespaces/mp-orchestration.yaml
+# Temporal Cluster 跑这里
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-orchestration
+  labels:
+    kubernetes.io/metadata.name: mp-orchestration
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "orchestration"
+    name: mp-orchestration
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-orchestration-quota
+  namespace: mp-orchestration
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: "16Gi"
+    limits.cpu: "32"
+    limits.memory: "64Gi"
+    persistentvolumeclaims: "10"
+    pods: "40"
+    services: "20"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mp-orchestration-limits
+  namespace: mp-orchestration
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "1"
+        memory: "2Gi"
+      defaultRequest:
+        cpu: "250m"
+        memory: "512Mi"
+      max:
+        cpu: "4"
+        memory: "8Gi"

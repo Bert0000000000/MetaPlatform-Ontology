@@ -1,0 +1,47 @@
+# k8s/namespaces/mp-data.yaml
+# mp-data 跑 Supabase PG / Storage / Realtime / Edge / PostgREST / Studio
+# 资源配额较大 (PG 实例独占较多内存)
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-data
+  labels:
+    kubernetes.io/metadata.name: mp-data
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "data"
+    name: mp-data
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-data-quota
+  namespace: mp-data
+spec:
+  hard:
+    requests.cpu: "32"
+    requests.memory: "128Gi"
+    limits.cpu: "128"
+    limits.memory: "512Gi"
+    persistentvolumeclaims: "50"
+    pods: "60"
+    services: "30"
+    secrets: "100"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mp-data-limits
+  namespace: mp-data
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "2"
+        memory: "4Gi"
+      defaultRequest:
+        cpu: "500m"
+        memory: "1Gi"
+      max:
+        cpu: "16"
+        memory: "32Gi"

@@ -1,0 +1,48 @@
+# k8s/namespaces/mp-platform.yaml
+# PRD: docs/active/prd/foundation-k8s-clusters.md §3.3
+# 10 个 namespace 之一: mp-platform (默认 namespace / 平台总览)
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mp-platform
+  labels:
+    kubernetes.io/metadata.name: mp-platform
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "platform"
+    name: mp-platform
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: mp-platform-quota
+  namespace: mp-platform
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: "8Gi"
+    limits.cpu: "16"
+    limits.memory: "32Gi"
+    persistentvolumeclaims: "10"
+    services: "20"
+    secrets: "50"
+    configmaps: "50"
+---
+# LimitRange: 防止单个 Pod 占用过多资源
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mp-platform-limits
+  namespace: mp-platform
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "500m"
+        memory: "512Mi"
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+      max:
+        cpu: "2"
+        memory: "4Gi"

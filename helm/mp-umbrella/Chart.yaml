@@ -1,0 +1,49 @@
+# helm/mp-umbrella/Chart.yaml
+# PRD: docs/active/prd/foundation-k8s-clusters.md §5
+# Umbrella chart: 包含 cert-manager / ingress-nginx / external-secrets / velero / temporal / observability 子 chart
+
+apiVersion: v2
+name: mp-umbrella
+description: MetaPlatform v6.0 umbrella chart — Foundation + downstream Batches
+type: application
+version: 6.0.0
+appVersion: "6.0.0"
+home: https://github.com/Bert0000000000/MetaPlatform-Ontology
+sources:
+  - https://github.com/Bert0000000000/MetaPlatform-Ontology
+
+keywords:
+  - metaplatform
+  - v6.0
+  - supabase
+  - temporal
+  - dsh
+  - ontology
+
+maintainers:
+  - name: MetaPlatform SRE Team
+    email: sre@mp-platform.local
+
+dependencies:
+  - name: cert-manager
+    version: "1.15.0"
+    repository: https://charts.jetstack.io
+    condition: cert-manager.enabled
+  - name: ingress-nginx
+    version: "4.11.2"
+    repository: https://kubernetes.github.io/ingress-nginx
+    condition: ingress-nginx.enabled
+  - name: external-secrets
+    version: "0.10.4"
+    repository: https://charts.external-secrets.io
+    condition: external-secrets.enabled
+  - name: velero
+    version: "8.0.0"
+    repository: https://vmware-tanzu.github.io/helm-charts
+    condition: velero.enabled
+  - name: temporal
+    version: "0.0.0"  # 自定义 chart, 见 charts/temporal/
+    condition: temporal.enabled
+  - name: observability
+    version: "0.0.0"  # 自定义 chart, 见 charts/observability/
+    condition: observability.enabled

@@ -1,0 +1,54 @@
+# k8s/networkpolicies/allow-matrix/mp-orchestration-internal.yaml
+# PRD: docs/active/prd/foundation-networkpolicy.md §4.2
+# mp-orchestration 内部 (Temporal Worker ↔ Temporal Server gRPC :7233 + Web :8233)
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mp-orchestration-internal
+  namespace: mp-orchestration
+  labels:
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "foundation"
+spec:
+  podSelector:
+    matchLabels:
+      platform.mp/role: "temporal-component"
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Temporal Server frontend (gRPC :7233)
+    - from:
+        - podSelector:
+            matchLabels:
+              platform.mp/role: "temporal-component"
+      ports:
+        - protocol: TCP
+          port: 7233
+    # Temporal Web UI (HTTP :8233) — 仅同 ns 或 VPN ingress
+    - from:
+        - podSelector:
+            matchLabels:
+              platform.mp/role: "temporal-component"
+      ports:
+        - protocol: TCP
+          port: 8233
+  egress:
+    # Worker → Server gRPC
+    - to:
+        - podSelector:
+            matchLabels:
+              platform.mp/role: "temporal-component"
+      ports:
+        - protocol: TCP
+          port: 7233
+    # Server → mp-data (temporal schema 在 Supabase PG)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: mp-data
+              kubernetes.io/metadata.namespace: mp-data
+      ports:
+        - protocol: TCP
+          port: 5432

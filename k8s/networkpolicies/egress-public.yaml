@@ -1,0 +1,43 @@
+# k8s/networkpolicies/egress-public.yaml
+# PRD: docs/active/prd/foundation-networkpolicy.md §3.3
+# 允许出站公网 (SaaS: 钉钉/飞书/企微/DeepSeek API),
+# 但 except 列表禁止访问 RFC1918 + loopback + link-local,
+# 防止 egress rule 被滥用做内网穿透.
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: egress-public-saas
+  labels:
+    platform.mp/version: "v6.0"
+    platform.mp/tier: "foundation"
+spec:
+  podSelector:
+    matchLabels:
+      platform.mp/egress-public: "allowed"
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              # RFC1918 private
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              # Loopback
+              - 127.0.0.0/8
+              # Link-local
+              - 169.254.0.0/16
+              # Multicast
+              - 224.0.0.0/4
+              # Test-net
+              - 192.0.2.0/24
+              - 198.51.100.0/24
+              - 203.0.113.0/24
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
