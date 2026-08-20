@@ -1,0 +1,62 @@
+# apps/dsh-web/config/llm.yml
+# PRD: docs/active/prd/dsh-60-packages.md §4.3
+# dsh LLM provider 配置 (DeepSeek primary + OpenAI fallback)
+
+providers:
+  - name: deepseek-primary
+    type: deepseek
+    api_key_env: DEEPSEEK_API_KEY
+    base_url: https://api.deepseek.com/v1
+    default_model: deepseek-chat
+    timeout_ms: 30000
+    rate_limit:
+      requests_per_minute: 1000
+      tokens_per_minute: 1000000
+
+  - name: openai-secondary
+    type: openai
+    api_key_env: OPENAI_API_KEY
+    base_url: https://api.openai.com/v1
+    default_model: gpt-4o-mini
+    timeout_ms: 30000
+    rate_limit:
+      requests_per_minute: 500
+      tokens_per_minute: 200000
+
+  # 备选 (可选, 用于高优先级场景)
+  - name: anthropic-tertiary
+    type: anthropic
+    api_key_env: ANTHROPIC_API_KEY
+    base_url: https://api.anthropic.com
+    default_model: claude-3-5-sonnet
+    enabled: false  # 默认关闭, 需要时手工开启
+
+routing:
+  default: deepseek-primary
+  fallback_chain:
+    - deepseek-primary
+    - openai-secondary
+    - anthropic-tertiary
+  retry:
+    max_attempts: 3
+    backoff: exponential
+    initial_delay_ms: 500
+    max_delay_ms: 10000
+  circuit_breaker:
+    failure_threshold: 5
+    cooldown_seconds: 60
+
+token_meter:
+  enabled: true
+  storage: postgres  # 复用 Supabase PG, 表 dsh_token_usage
+  alert_threshold_per_hour: 500000  # 50万 token/小时 告警
+
+observability:
+  otel_endpoint: http://otel-collector.mp-monitoring:4318
+  span_attributes:
+    - llm.provider
+    - llm.model
+    - llm.tokens.input
+    - llm.tokens.output
+    - llm.duration_ms
+    - tenant.id

@@ -1,0 +1,64 @@
+# apps/dsh-presets/support-triage/cordis.yml
+# PRD: docs/active/prd/dsh-60-packages.md §4.2
+# 数字员工 preset: 客服工单分诊
+
+name: support-triage
+description: |
+  客服工单分诊数字员工. 自动分析工单内容, 分类 (bug / feature / question / other),
+  评估优先级 (low / normal / high / urgent), 推荐 assignee.
+tools:
+  - name: read_ticket
+    description: 读取工单详情
+    impl: supabase-rest
+    config:
+      table: tickets
+      operation: select
+
+  - name: search_knowledge
+    description: 在知识库 (RAG) 检索相似工单 / FAQ
+    impl: graphrag-search
+
+  - name: recommend_assignee
+    description: 根据工单 category + 历史数据推荐处理人
+    impl: dsh-tool
+
+  - name: update_ticket
+    description: 更新工单分类 / 优先级 / assignee
+    impl: supabase-rest
+    config:
+      table: tickets
+      operation: update
+
+system_prompt: |
+  你是 support-triage 数字员工. 工作流程:
+  1. 读取工单详情 (title / description / customer)
+  2. 搜索知识库, 找相似历史工单 / FAQ
+  3. 评估 priority (考虑 SLA + 客户 tier)
+  4. 推荐 assignee (基于历史 + 部门负载)
+  5. 输出 JSON: { category, priority, assignee_id, rationale }
+  不要直接改数据库; 等待 HITL 确认后再调 update_ticket.
+
+agent_loop:
+  max_steps: 10
+  timeout_seconds: 300
+  retry: { max_attempts: 3 }
+
+state_machine:
+  initial: running
+  transitions:
+    - { from: running, to: waiting_hitl, when: 'recommendation_ready' }
+    - { from: waiting_hitl, to: completed, when: 'user_approved' }
+
+llm:
+  provider: deepseek-primary
+  model: deepseek-chat
+  temperature: 0.3
+  max_tokens: 2000
+
+session:
+  backend: postgres
+  retention_days: 30
+
+audit:
+  enabled: true
+  trigger_on: ['recommendation_ready', 'update_ticket']

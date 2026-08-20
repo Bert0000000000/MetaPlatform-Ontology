@@ -1,0 +1,72 @@
+# k8s/jobs/dsh-task-job.yaml
+# PRD: docs/active/prd/dsh-60-packages.md §6 + architecture spec §7.14.4
+# dsh sandbox Job (一次性短任务, K8s Job 触发)
+# 注意: dsh sandbox Landlock/bwrap 需要 SYS_ADMIN capability
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: dsh-task-{taskId}
+  namespace: mp-runtime
+  labels:
+    app: dsh-task
+    platform.mp/version: "v6.0"
+spec:
+  ttlSecondsAfterFinished: 3600  # 1h 后清理
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: dsh-task
+        platform.mp/role: dsh-sandbox-task
+        platform.mp/version: "v6.0"
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+        # dsh sandbox 需要 Landlock / bwrap capability (Linux 内核 5.13+)
+        capabilities:
+          add: [SYS_ADMIN]  # bwrap / Landlock 必需
+      containers:
+        - name: dsh-task
+          image: harbor.mp-platform.local/mp/dsh-web:v6.0.0-PLACEHOLDER
+          command:
+            - pnpm
+            - dsh
+            - headless
+            - --profile
+            - /app/config/cordis.yml
+          env:
+            - name: DEEPSEEK_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: dsh-secrets
+                  key: deepseek-api-key
+            - name: SUPABASE_URL
+              value: http://supabase-postgres.mp-data.svc:5432
+            - name: SUPABASE_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: supabase-secrets
+                  key: service-role-key
+            - name: TASK_INPUT
+              value: "{...}"  # 由调用方注入
+            - name: TASK_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['task-id']
+          resources:
+            requests: { memory: "1Gi", cpu: "1000m" }
+            limits:   { memory: "4Gi", cpu: "2000m" }
+          volumeMounts:
+            - { name: dsh-config, mountPath: /app/config }
+            - { name: dsh-cache, mountPath: /app/cache }
+      volumes:
+        - name: dsh-config
+          configMap: { name: dsh-config }
+        - name: dsh-cache
+          emptyDir: {}
+  # ServiceAccount for dsh sandbox (可绑 SYS_ADMIN capability)
+  # 注: K8s admission controller 必须允许 privileged 或 SYS_ADMIN, 由 cluster admin 配置
