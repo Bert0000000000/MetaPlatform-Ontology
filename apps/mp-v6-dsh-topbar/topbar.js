@@ -140,10 +140,13 @@
    * SPA internal navigation for a 'link' item.
    * - Same-origin href  → history.pushState + dispatch popstate (no page reload,
    *                        dsh's React Router / window.location listener can pick it up).
-   * - Cross-origin href → window.location.assign(href), which navigates the
-   *                        CURRENT tab (no new tab, no popup). This replaces
-   *                        target="_blank" which opened a new tab.
-   * - Any parse failure → same fallback (navigate current tab).
+   * - Cross-origin href → target=_blank (new tab). The user keeps dsh open in
+   *                        the current tab and gets a new tab for the mp-marketplace
+   *                        / admin console. This is the "tab switch" UX the user
+   *                        requested: each topbar item opens a new tab, and the
+   *                        topbar stays present on dsh so navigation remains one
+   *                        click away.
+   * - Any parse failure → window.open(href, '_blank') fallback.
    */
   function navigateAsInternal(href) {
     try {
@@ -153,10 +156,10 @@
         window.history.pushState({}, '', path)
         window.dispatchEvent(new PopStateEvent('popstate', { state: {} }))
       } else {
-        window.location.assign(href)
+        window.open(href, '_blank', 'noopener')
       }
     } catch (err) {
-      window.location.assign(href)
+      try { window.open(href, '_blank', 'noopener') } catch (e2) { /* ignore */ }
     }
   }
 
