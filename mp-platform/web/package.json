@@ -1,0 +1,33 @@
+{
+  "name": "@mp-platform/web",
+  "version": "6.0.0",
+  "private": true,
+  "type": "module",
+  "description": "mp-platform 管理后台 (PoC, Sprint 1 升级: React + Vite + Semi Design)",
+  "scripts": {
+    "dev": "bash scripts/dev.sh",
+    "dev:vite": "vite --host 127.0.0.1 --port 5173",
+    "dev:api": "node scripts/admin-api.mjs",
+    "build": "tsc -p tsconfig.json && vite build",
+    "preview": "vite preview --port 5173",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@douyinfe/semi-icons": "^2.89.0",
+    "@douyinfe/semi-ui": "^2.89.0",
+    "@supabase/supabase-js": "^2.47.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "pg": "^8.13.1",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11"
+  }
+}
