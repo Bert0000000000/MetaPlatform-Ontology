@@ -1,5 +1,5 @@
 // mp-platform/web/scripts/admin-api.mjs
-// mp-platform 管理后台本地 API (PoC Sprint 1 升级版)
+// Ontology 本体平台本地 API (MetaPlatform Sprint 1 升级版)
 // - 取代 admin-server.mjs 的 HTML-only 输出, 改为 JSON API
 // - 端口 8081, Vite dev proxy 把 /api/* 转发到这
 // - 直接连 Supabase Postgres (54322), 不经 PostgREST 即可跨 schema 查询
@@ -151,7 +151,7 @@ async function handleCron() {
 
 const routes = {
   'GET /api/health': async (_req, res) => {
-    json(res, 200, { ok: true, version: '6.0.0-sprint1', ts: new Date().toISOString() });
+    json(res, 200, { ok: true, version: 'metaplatform-sprint1', ts: new Date().toISOString() });
   },
   'GET /api/stats': async (_req, res) => {
     try {
@@ -207,5 +207,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(port, HOST, () => {
-  console.log(`▶  mp-platform admin-api on http://${HOST}:${port}`);
+  console.log(`▶  Ontology 本体平台 admin-api on http://${HOST}:${port}`);
 });

@@ -76,7 +76,7 @@ export function App() {
           borderBottom: '1px solid var(--semi-color-border)',
         }}>
           <div style={{ fontSize: 18, fontWeight: 500 }} data-testid="mp-page-title">
-            mp-platform 管理后台
+            Ontology 本体平台
           </div>
           <Dropdown
             trigger="click"

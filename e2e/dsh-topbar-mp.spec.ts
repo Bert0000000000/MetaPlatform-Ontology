@@ -1,6 +1,6 @@
 // e2e/dsh-topbar-mp.spec.ts
 //
-// MP-V6 dsh-web topbar (2 mp menus) E2E test
+// MetaPlatform dsh-web topbar (4 menus: 云市场 + 应用中心 + Ontology 本体平台 + AI 助手) E2E test
 //
 // Run prerequisites:
 //   1. dsh-web is up: DSH_DEEPSEEK_API_KEY=sk-xxx ./scripts/dev/dsh-web.sh
@@ -12,23 +12,25 @@
 // Verifies:
 //   1. The /__mp_v6_topbar__/topbar.js bundle is served by dsh-web (200)
 //   2. dsh-web index.html injects the <script defer src=...> tag
-//   3. The topbar mounts in the browser with 2 anchor items
-//   4. Each menu id maps to the right external URL (data-menu-id round-trip)
-//   5. Clicking the link opens the target URL in a new tab (target="_blank")
+//   3. The topbar mounts in the browser with 4 anchor items
+//   4. Each menu id maps to the right label (data-menu-id round-trip)
+//   5. AI 助手 dispatches CustomEvent('dsh:open-chat') when clicked
 
 import { test, expect } from '@playwright/test';
 
 const DSH_BASE = process.env.DSH_BASE_URL ?? 'http://127.0.0.1:5173';
 
-test.describe('MP-V6 dsh-web topbar (mp-marketplace + mp-platform-admin)', () => {
+test.describe('MetaPlatform dsh-web topbar (云市场 + 应用中心 + Ontology 本体平台 + AI 助手)', () => {
   test('1. /__mp_v6_topbar__/topbar.js is served (200)', async ({ request }) => {
     const r = await request.get(`${DSH_BASE}/__mp_v6_topbar__/topbar.js`);
     expect(r.status()).toBe(200);
     const body = await r.text();
     // sanity: the file is our own JS, not a 404 HTML page or someone else's
-    expect(body).toContain('MP-V6 顶栏 plugin');
+    expect(body).toContain('MetaPlatform 顶栏 plugin');
     expect(body).toContain('mp-marketplace');
     expect(body).toContain('mp-platform-admin');
+    expect(body).toContain('mp-app-center');
+    expect(body).toContain('mp-ai-assistant');
   });
 
   test('2. dsh-web index.html injects the topbar <script>', async ({ request }) => {
@@ -39,7 +41,7 @@ test.describe('MP-V6 dsh-web topbar (mp-marketplace + mp-platform-admin)', () =>
     expect(html).toMatch(/<script[^>]*src="\/__mp_v6_topbar__\/topbar\.js"[^>]*defer/);
   });
 
-  test('3. topbar mounts with 2 menu items in the browser DOM', async ({ page }) => {
+  test('3. topbar mounts with 4 menu items in the browser DOM', async ({ page }) => {
     await page.goto(DSH_BASE);
     // Wait for our plugin to mount (vanilla DOM, fires from <script defer>).
     await page.waitForFunction(
@@ -62,10 +64,10 @@ test.describe('MP-V6 dsh-web topbar (mp-marketplace + mp-platform-admin)', () =>
     expect(parseInt(css.zIndex, 10)).toBeGreaterThan(1000);
 
     const items = topbar.locator('a[data-menu-id]');
-    await expect(items).toHaveCount(2);
+    await expect(items).toHaveCount(4);
   });
 
-  test('4. menu ids and labels match PRD spec', async ({ page }) => {
+  test('4. menu ids and labels match PRD spec (云市场 / 应用中心 / Ontology 本体平台 / AI 助手)', async ({ page }) => {
     await page.goto(DSH_BASE);
     await page.waitForFunction(
       () => document.body.getAttribute('data-mp-v6-topbar-mounted') === '1',
@@ -73,18 +75,24 @@ test.describe('MP-V6 dsh-web topbar (mp-marketplace + mp-platform-admin)', () =>
     );
 
     const marketplace = page.locator('#mp-v6-topbar a[data-menu-id="mp-marketplace"]');
+    const appCenter = page.locator('#mp-v6-topbar a[data-menu-id="mp-app-center"]');
     const admin = page.locator('#mp-v6-topbar a[data-menu-id="mp-platform-admin"]');
+    const aiAssistant = page.locator('#mp-v6-topbar a[data-menu-id="mp-ai-assistant"]');
 
     await expect(marketplace).toBeVisible();
-    await expect(marketplace).toHaveText('市场');
-    await expect(marketplace).toHaveAttribute('target', '_blank');
+    await expect(marketplace).toHaveText('云市场');
+
+    await expect(appCenter).toBeVisible();
+    await expect(appCenter).toHaveText('应用中心');
 
     await expect(admin).toBeVisible();
-    await expect(admin).toHaveText('后台管理');
-    await expect(admin).toHaveAttribute('target', '_blank');
+    await expect(admin).toHaveText('Ontology 本体平台');
+
+    await expect(aiAssistant).toBeVisible();
+    await expect(aiAssistant).toHaveText('AI 助手');
   });
 
-  test('5. menu URLs are correct (mp-marketplace → :8080/marketplace, admin → :8080/admin)', async ({ page }) => {
+  test('5. menu URLs are correct (云市场 → :8080/marketplace, 应用中心 → :8080/marketplace, admin → :8080/admin)', async ({ page }) => {
     await page.goto(DSH_BASE);
     await page.waitForFunction(
       () => document.body.getAttribute('data-mp-v6-topbar-mounted') === '1',
@@ -94,60 +102,60 @@ test.describe('MP-V6 dsh-web topbar (mp-marketplace + mp-platform-admin)', () =>
     const marketplaceHref = await page
       .locator('#mp-v6-topbar a[data-menu-id="mp-marketplace"]')
       .getAttribute('href');
+    const appCenterHref = await page
+      .locator('#mp-v6-topbar a[data-menu-id="mp-app-center"]')
+      .getAttribute('href');
     const adminHref = await page
       .locator('#mp-v6-topbar a[data-menu-id="mp-platform-admin"]')
       .getAttribute('href');
 
     expect(marketplaceHref).toBe('http://localhost:8080/marketplace');
+    expect(appCenterHref).toBe('http://localhost:8080/marketplace');
     expect(adminHref).toBe('http://localhost:8080/admin');
   });
 
-  test('6. clicking 后台管理 opens admin-server /admin (round-trip navigation)', async ({ page, context }) => {
-    // Capture popup for the new tab that target="_blank" opens.
-    const popupPromise = context.waitForEvent('page', { timeout: 5_000 });
-
+  test('6. clicking Ontology 本体平台 SPA-navigates to admin-server /admin (no popup)', async ({ page }) => {
+    // New SPA-internal navigation: history.pushState on same-origin href.
+    // No popup / new tab is opened. The same-tab URL updates in place.
     await page.goto(DSH_BASE);
     await page.waitForFunction(
       () => document.body.getAttribute('data-mp-v6-topbar-mounted') === '1',
       { timeout: 10_000 },
     );
 
+    // The link uses same-tab SPA navigation (history.pushState + popstate).
     await page.locator('#mp-v6-topbar a[data-menu-id="mp-platform-admin"]').click();
-    const popup = await popupPromise;
+    await page.waitForTimeout(500);
 
-    // The popup should be at admin-server :8080/admin (already running in dev).
-    await popup.waitForLoadState('domcontentloaded', { timeout: 10_000 });
-    expect(popup.url()).toBe('http://localhost:8080/admin');
-    // The admin server renders an <h1>mp-platform 管理后台 PoC</h1>.
-    await expect(popup.locator('h1')).toContainText('mp-platform 管理后台');
+    // After click, the same-tab pathname should be /admin (same origin path).
+    const url = new URL(page.url());
+    expect(url.pathname).toBe('/admin');
   });
 
-  test('7. clicking 市场 opens mp-marketplace URL (placeholder target for now)', async ({ page, context }) => {
-    const popupPromise = context.waitForEvent('page', { timeout: 5_000 }).catch(() => null);
-
+  test('7. clicking AI 助手 dispatches CustomEvent dsh:open-chat', async ({ page }) => {
     await page.goto(DSH_BASE);
     await page.waitForFunction(
       () => document.body.getAttribute('data-mp-v6-topbar-mounted') === '1',
       { timeout: 10_000 },
     );
 
-    await page.locator('#mp-v6-topbar a[data-menu-id="mp-marketplace"]').click();
-    const popup = await popupPromise;
+    // Listen for the custom event before clicking.
+    const eventPromise = page.evaluate(
+      () =>
+        new Promise<{ source: string; menuId: string; label: string }>((resolve) => {
+          window.addEventListener(
+            'dsh:open-chat',
+            (ev) => resolve((ev as CustomEvent).detail),
+            { once: true },
+          );
+        }),
+    );
 
-    // mp-marketplace UI not implemented yet — admin-server /marketplace 404s,
-    // we still want to confirm the click opens a popup at the expected URL.
-    // (When mp-marketplace ships, the admin route will return 200 and we can
-    //  assert on its content too.)
-    if (popup) {
-      await popup.waitForLoadState('domcontentloaded', { timeout: 10_000 });
-      expect(popup.url()).toBe('http://localhost:8080/marketplace');
-    } else {
-      // If popup blocked / browser didn't fire, fall back to verifying the
-      // href attribute is correct — still proves the click would navigate.
-      const href = await page
-        .locator('#mp-v6-topbar a[data-menu-id="mp-marketplace"]')
-        .getAttribute('href');
-      expect(href).toBe('http://localhost:8080/marketplace');
-    }
+    await page.locator('#mp-v6-topbar a[data-menu-id="mp-ai-assistant"]').click();
+    const detail = await eventPromise;
+
+    expect(detail.source).toBe('mp-v6-topbar');
+    expect(detail.menuId).toBe('mp-ai-assistant');
+    expect(detail.label).toBe('AI 助手');
   });
 });

@@ -1,5 +1,5 @@
 // scripts/dev/admin-server.mjs
-// MP-V6 mp-platform 管理后台 PoC
+// MetaPlatform Ontology 本体平台 PoC
 // PRD: docs/active/prd/mp-platform.md
 // Issue: #7 (12w P0)
 // PoC: minimal Node + pg + plain HTML dashboard
@@ -18,7 +18,7 @@ const port = 8080;
 function html(body) {
   return `<!DOCTYPE html>
 <html lang="zh-CN"><head>
-<meta charset="UTF-8"><title>mp-platform 管理后台</title>
+<meta charset="UTF-8"><title>Ontology 本体平台</title>
 <style>
 body { font-family: -apple-system, sans-serif; margin: 0; background: #f5f5f5; }
 header { background: #1a1a1a; color: white; padding: 20px; }
@@ -34,7 +34,7 @@ th { background: #fafafa; font-weight: 600; }
 .badge-blue { background: #dbeafe; color: #1e40af; }
 .badge-red { background: #fee2e2; color: #991b1b; }
 </style></head><body>
-<header><h1>mp-platform 管理后台 PoC</h1></header>
+<header><h1>Ontology 本体平台 PoC</h1></header>
 <main>${body}</main>
 </body></html>`;
 }
@@ -104,5 +104,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(port, '127.0.0.1', () => {
-  console.log('mp-platform admin server on http://127.0.0.1:' + port);
+  console.log('Ontology 本体平台 admin server on http://127.0.0.1:' + port);
 });

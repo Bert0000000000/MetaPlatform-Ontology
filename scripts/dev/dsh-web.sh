@@ -32,7 +32,7 @@ fi
 
 cd "$DSH_DIR"
 
-# MP-V6 dsh-web topbar overlay: prepends 2 menu items (市场 + 后台管理) into
+# MetaPlatform dsh-web topbar overlay: prepends 2 menu items (云市场 + Ontology 本体平台) into
 # the served dsh-web page. Path is relative to vendor/deepseek-harness (cwd
 # after `cd "$DSH_DIR"` above). See apps/mp-v6-dsh-topbar/ for the plugin.
 MP_V6_TOPBAR_PATCH="$DSH_DIR/../../apps/mp-v6-dsh-topbar/cordis.patch.yml"

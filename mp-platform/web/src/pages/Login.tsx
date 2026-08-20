@@ -80,7 +80,7 @@ export default function LoginPage() {
         width: 380, padding: 32, background: 'var(--semi-color-bg-1)',
         borderRadius: 8, boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
       }}>
-        <h2 style={{ marginTop: 0 }}>mp-platform 管理后台</h2>
+        <h2 style={{ marginTop: 0 }}>Ontology 本体平台</h2>
         <Banner
           type="info"
           description="PoC 登录. 默认本地 Supabase. PoC 默认账号: admin@mp.local / Admin123! 由 E2E 测试创建."
