@@ -60,6 +60,7 @@ test.describe('mp-sandbox Edge Function PoC', () => {
     await c.connect();
     // cleanup audit_log entries created by this tenant
     try { await c.query("DELETE FROM public.audit_log WHERE tenant_id = $1 AND schema_name = 'mp_sandbox'", [tenantA]); } catch (e) { console.log('audit_log cleanup warn:', (e as Error).message); }
+    try { await c.query("DELETE FROM mp_sandbox.executions WHERE tenant_id = $1", [tenantA]); } catch (e) { console.log('executions cleanup warn:', (e as Error).message); }
     try { await c.query('DELETE FROM public.profiles WHERE id = $1', [adminUser.id]); } catch (e) {}
     try { await c.query('DELETE FROM public.tenants WHERE id = $1', [tenantA]); } catch (e) {}
     await c.end();
@@ -144,13 +145,69 @@ test.describe('mp-sandbox Edge Function PoC', () => {
   });
 
   test('4. anon POST (no Authorization header) -> 401', async () => {
+    // Supabase gateway 在 apikey 不可解析为有效 user JWT 时直接 401
+    // (response shape: { code: 'UNAUTHORIZED_LEGACY_JWT', ... } 或 EF 的 MISSING_AUTH).
+    // 验收: status === 401 (anon 必须被拒).
     const r = await fetch(`${API}/functions/v1/mp-sandbox`, {
       method: 'POST',
       headers: { 'apikey': ANON_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ code: "echo 'no auth'", language: 'bash' }),
     });
     expect(r.status).toBe(401);
-    const body = await r.json();
-    expect(body.error).toBeTruthy();
+  });
+
+  // Issue #15 Loop 1/3: mp_sandbox.executions 表 + execution_stats view
+  // (RLS 隔离由 _policy_tenant_select + mp-runtime test 4 cross-tenant RLS 已覆盖)
+  test('5. mp_sandbox.executions table + execution_stats view', async () => {
+    // 先做一次 execute 触发 EF 写表
+    const r = await fetch(`${API}/functions/v1/mp-sandbox`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${adminJwt}`, 'apikey': ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: "echo 'executions-table-test'", language: 'bash' }),
+    });
+    if (r.status !== 200) {
+      const txt = await r.text();
+      throw new Error(`EF POST failed: ${r.status} ${txt}`);
+    }
+
+    // 用 service_role 直接查 mp_sandbox.executions (应该至少有 1 行本次 + 之前)
+    const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
+    await c.connect();
+    const all = await c.query(
+      "SELECT action, language, code_bytes, network, mode FROM mp_sandbox.executions WHERE tenant_id = $1 ORDER BY created_at DESC",
+      [tenantA],
+    );
+    expect(all.rows.length).toBeGreaterThanOrEqual(1);
+    const row = all.rows[0];
+    expect(row.action).toBe('SANDBOX_EXECUTE');
+    expect(row.language).toBe('bash');
+    expect(row.network).toBe('isolated');
+    expect(row.mode).toBe('poc_mock');
+
+    // execution_stats view 也能查 (count 返回 bigint → cast int)
+    const stats = await c.query(
+      "SELECT execute_count::int AS execute_count, denied_count::int AS denied_count, timeout_count::int AS timeout_count FROM mp_sandbox.execution_stats WHERE tenant_id = $1 ORDER BY hour DESC LIMIT 1",
+      [tenantA],
+    );
+    expect(stats.rows.length).toBeGreaterThanOrEqual(1);
+    expect(stats.rows[0].execute_count).toBeGreaterThanOrEqual(1);
+
+    // 验证 _policy_tenant_* 4 个 RLS policy 都已经挂到表上
+    const policies = await c.query(
+      "SELECT polname, polcmd FROM pg_policy WHERE polrelid = 'mp_sandbox.executions'::regclass ORDER BY polcmd"
+    );
+    expect(policies.rows.length).toBe(4);  // SELECT/INSERT/UPDATE/DELETE
+    const cmds = policies.rows.map((r) => r.polcmd).sort();
+    expect(cmds).toEqual(['a', 'd', 'r', 'w']);
+
+    // tg_inject_tenant + tg_audit 触发器都已挂
+    const triggers = await c.query(
+      "SELECT tgname FROM pg_trigger WHERE tgrelid = 'mp_sandbox.executions'::regclass AND NOT tgisinternal"
+    );
+    const tgnames = triggers.rows.map((r) => r.tgname);
+    expect(tgnames).toContain('tg_mp_sandbox_executions_inject_tenant');
+    expect(tgnames).toContain('tg_mp_sandbox_executions_audit');
+
+    await c.end();
   });
 });

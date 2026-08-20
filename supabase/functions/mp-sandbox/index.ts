@@ -1,15 +1,19 @@
 // supabase/functions/mp-sandbox/index.ts
 // PRD: docs/active/prd/mp-sandbox.md
 // ADR:  docs/active/decisions/ADR-0069-mp-sandbox-poc.md
-// Batch: MetaPlatform.1-MP-SANDBOX-PoC (Issue #16 tracker)
+// Batch: MetaPlatform.1-MP-SANDBOX-01 (Issue #15 production path §3 — Loop 1/3)
+// Issue: #15 (mp-sandbox 完整生产路径)
 //
-// 安全代码执行沙箱 (PoC)
+// 安全代码执行沙箱 (PoC → 生产切换 Loop 1/3)
 //
-// 生产实现路径 (见 ADR-0069 §3):
+// Loop 1 (this commit): mp_sandbox.executions 表 + RLS + EF 直接 INSERT (同时保留
+//   public.record_execution RPC 写 audit_log 语义 SANDBOX_* 动作, 后续 loop 删).
+//
+// 生产完整路径 (ADR-0069 §3):
 //   - sync  (<30s): sidecar in mp-runtime Deployment, 用 bwrap / Landlock
 //   - async (K8s Job): mp-ai namespace, Job template 动态生成
 //
-// **PoC 警示**: 当前实现是 mock stub — 用 `await Promise.resolve()` 模拟执行,
+// **PoC 警示**: 当前 mockExecute 是 stub — 用 setTimeout 模拟执行,
 // 严禁生产用. 真实代码执行需要 sidecar bwrap / Landlock 强制隔离.
 // 本 EF 在生产路径到位前仅用于:
 //   1. 走通 HTTP contract (request/response shape + 错误码 + audit_log)
@@ -105,6 +109,86 @@ function jsonResponse(body: unknown, status: number): Response {
     status,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+// -----------------------------------------------------------------------------
+// recordExecution — Issue #15 Loop 1/3
+// -----------------------------------------------------------------------------
+// 双写:
+//   1. mp_sandbox.executions (structured record, tenant RLS, queryable by mp-audit)
+//   2. public.record_execution RPC → audit_log (semantic SANDBOX_* action — Loop 2 删)
+// 失败不抛 — 沙箱不能因为审计失败而拒绝用户执行.
+async function recordExecution(args: {
+  tenantId: string;
+  actorId: string;
+  action: 'SANDBOX_EXECUTE' | 'SANDBOX_DENIED' | 'SANDBOX_TIMEOUT';
+  language: string;
+  codeSha: string;
+  codeBytes: number;
+  timeoutMs: number;
+  network: 'isolated' | 'internet';
+  exitCode: number | null;
+  durationMs: number | null;
+  stdoutBytes: number;
+  stderrBytes: number;
+  mode: 'poc_mock' | 'sidecar_sync' | 'k8s_job_async';
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  const sb = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
+  const meta = args.metadata ?? {};
+
+  // 1) mp_sandbox.executions INSERT
+  try {
+    const { error: insErr } = await sb.schema('mp_sandbox').from('executions').insert({
+      tenant_id: args.tenantId,
+      actor_id: args.actorId,
+      action: args.action,
+      language: args.language,
+      code_sha256: args.codeSha,
+      code_bytes: args.codeBytes,
+      timeout_ms: args.timeoutMs,
+      network: args.network,
+      exit_code: args.exitCode,
+      duration_ms: args.durationMs,
+      stdout_bytes: args.stdoutBytes,
+      stderr_bytes: args.stderrBytes,
+      mode: args.mode,
+      metadata: meta,
+    });
+    if (insErr) console.error('[mp-sandbox] executions insert failed:', insErr.message);
+  } catch (ex) {
+    console.error('[mp-sandbox] executions insert exception:', String(ex));
+  }
+
+  // 2) public.record_execution RPC → audit_log semantic SANDBOX_* action
+  try {
+    const { error: rpcErr } = await sb.schema('mp_sandbox').rpc('record_execution', {
+      p_tenant_id: args.tenantId,
+      p_actor_id: args.actorId,
+      p_action: args.action,
+      p_language: args.language,
+      p_code_sha256: args.codeSha,
+      p_code_bytes: args.codeBytes,
+      p_timeout_ms: args.timeoutMs,
+      p_network: args.network,
+      p_exit_code: args.exitCode,
+      p_duration_ms: args.durationMs,
+      p_stdout_bytes: args.stdoutBytes,
+      p_stderr_bytes: args.stderrBytes,
+      p_metadata: meta,
+    });
+    if (rpcErr) console.error('[mp-sandbox] audit rpc failed:', rpcErr.message);
+  } catch (ex) {
+    console.error('[mp-sandbox] audit rpc exception:', String(ex));
+  }
+}
+
+async function sha256Hex(text: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map((x) => x.toString(16).padStart(2, '0')).join('');
 }
 
 // PoC 模拟执行:
@@ -218,42 +302,24 @@ serve(async (req) => {
     // 1. 黑白名单过滤
     const denied = denyReason(body.code);
     if (denied) {
-      // 写入 audit_log (拒答也记录) — 走 SECURITY DEFINER RPC, 不直接 INSERT
-      try {
-        const codeSha = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body.code))
-          .then((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''));
-        const rpcResp = await fetch(
-          `${Deno.env.get("SUPABASE_URL")}/rest/v1/rpc/record_execution`,
-          {
-            method: 'POST',
-            headers: {
-              'apikey': Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-              'Authorization': `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              p_tenant_id: auth.tenantId,
-              p_actor_id: auth.userId,
-              p_action: 'SANDBOX_DENIED',
-              p_language: body.language,
-              p_code_sha256: codeSha,
-              p_code_bytes: body.code.length,
-              p_timeout_ms: timeoutMs,
-              p_network: body.network ?? 'isolated',
-              p_exit_code: null,
-              p_duration_ms: null,
-              p_stdout_bytes: 0,
-              p_stderr_bytes: 0,
-              p_metadata: { reason: denied.reason, pattern_matched: denied.pattern_matched, mode: 'poc_mock' },
-            }),
-          }
-        );
-        if (!rpcResp.ok) {
-          console.error(`[mp-sandbox] audit rpc (denied) failed: ${rpcResp.status} ${await rpcResp.text()}`);
-        }
-      } catch (auditEx) {
-        console.error('[mp-sandbox] audit rpc (denied) exception:', String(auditEx));
-      }
+      // 双写: mp_sandbox.executions + public.record_execution RPC → audit_log
+      const codeSha = await sha256Hex(body.code);
+      await recordExecution({
+        tenantId: auth.tenantId,
+        actorId: auth.userId,
+        action: 'SANDBOX_DENIED',
+        language: body.language,
+        codeSha,
+        codeBytes: body.code.length,
+        timeoutMs,
+        network: body.network ?? 'isolated',
+        exitCode: null,
+        durationMs: null,
+        stdoutBytes: 0,
+        stderrBytes: 0,
+        mode: 'poc_mock',
+        metadata: { reason: denied.reason, pattern_matched: denied.pattern_matched },
+      });
       return jsonResponse({
         error: 'command_denied',
         message: denied.reason,
@@ -277,34 +343,23 @@ serve(async (req) => {
       warning: 'PoC stub: no real sandbox. Production requires bwrap/Landlock sidecar. See ADR-0069.',
     };
 
-    // 3. 写 audit_log (成功执行也记 — PoC 给 mp-audit 留对接面) — 走 RPC
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
-    const codeSha = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body.code))
-      .then((b) => Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''));
-
-    try {
-      const { error: rpcErr } = await supabase.schema('mp_sandbox').rpc('record_execution', {
-        p_tenant_id: auth.tenantId,
-        p_actor_id: auth.userId,
-        p_action: result.timed_out ? 'SANDBOX_TIMEOUT' : 'SANDBOX_EXECUTE',
-        p_language: body.language,
-        p_code_sha256: codeSha,
-        p_code_bytes: body.code.length,
-        p_timeout_ms: timeoutMs,
-        p_network: body.network ?? 'isolated',
-        p_exit_code: result.exit_code,
-        p_duration_ms: durationMs,
-        p_stdout_bytes: result.stdout.length,
-        p_stderr_bytes: result.stderr.length,
-        p_metadata: { mode: 'poc_mock' },
-      });
-      if (rpcErr) console.error('[mp-sandbox] audit rpc failed:', rpcErr.message, rpcErr.details);
-    } catch (auditEx) {
-      console.error('[mp-sandbox] audit rpc exception:', String(auditEx));
-    }
+    // 3. 双写 audit_log (成功 / timeout) — Issue #15 Loop 1: 加 mp_sandbox.executions 表写入
+    const codeSha = await sha256Hex(body.code);
+    await recordExecution({
+      tenantId: auth.tenantId,
+      actorId: auth.userId,
+      action: result.timed_out ? 'SANDBOX_TIMEOUT' : 'SANDBOX_EXECUTE',
+      language: body.language,
+      codeSha,
+      codeBytes: body.code.length,
+      timeoutMs,
+      network: body.network ?? 'isolated',
+      exitCode: result.exit_code,
+      durationMs,
+      stdoutBytes: result.stdout.length,
+      stderrBytes: result.stderr.length,
+      mode: 'poc_mock',
+    });
 
     if (result.timed_out) {
       return jsonResponse({

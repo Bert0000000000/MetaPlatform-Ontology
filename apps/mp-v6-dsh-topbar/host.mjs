@@ -5,7 +5,7 @@
 // *     - 云市场            (mp-marketplace)      → :8080/marketplace
 // *     - 应用中心          (mp-app-center)       → :8080/marketplace
 // *     - Ontology 本体平台 (mp-platform-admin)   → :8080/admin
-// *     - AI 助手           (mp-ai-assistant)     → 触发 'dsh:open-chat' CustomEvent
+// *     - Ontology Copilot           (mp-ai-assistant)     → 触发 'dsh:open-chat' CustomEvent
 // *
 // *   集成方式:
 // *     1. 注册静态路由 /__mp_v6_topbar__/topbar.js, 服务 client.js

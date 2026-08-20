@@ -8,7 +8,7 @@
 # The host plugin uses webServer.register + tapIndex to inject a <script> tag into
 # the served index.html. The script prepends a fixed-position <nav> with 4 menu
 # items: 云市场 (mp-marketplace), 应用中心 (mp-app-center),
-# Ontology 本体平台 (mp-platform-admin), and AI 助手 (mp-ai-assistant →
+# Ontology 本体平台 (mp-platform-admin), and Ontology Copilot (mp-ai-assistant →
 # dispatches 'dsh:open-chat' CustomEvent so any host code can react).
 #
 # Navigation: link menus use SPA-internal history.pushState (same-origin) or

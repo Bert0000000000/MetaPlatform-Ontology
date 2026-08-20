@@ -7,7 +7,7 @@ dsh-web (port 5173) 顶栏注入 4 个菜单:
 | 云市场 | `http://localhost:8080/marketplace` (SPA-internal nav, 同 tab) |
 | 应用中心 | `http://localhost:8080/marketplace` (SPA-internal nav, 同 tab) |
 | Ontology 本体平台 | `http://localhost:8080/admin` (SPA-internal nav, 同 tab) |
-| AI 助手 | 触发 `dsh:open-chat` CustomEvent + best-effort 点击 dsh chat 按钮 |
+| Ontology Copilot | 触发 `dsh:open-chat` CustomEvent + best-effort 点击 dsh chat 按钮 |
 
 ## 集成方式
 
@@ -38,7 +38,7 @@ dsh-web (port 5173) 顶栏注入 4 个菜单:
 DSH_DEEPSEEK_API_KEY=sk-xxx ./scripts/dev/dsh-web.sh
 
 # 2. 浏览器打开 http://127.0.0.1:5173, 顶部出现:
-#    [MetaPlatform]  云市场   应用中心   Ontology 本体平台   AI 助手
+#    [MetaPlatform]  云市场   应用中心   Ontology 本体平台   Ontology Copilot
 
 # 3. Playwright (4-menu 版本)
 DSH_BASE_URL=http://127.0.0.1:5173 npx playwright test --project=dsh-web-ui -g "internal"
