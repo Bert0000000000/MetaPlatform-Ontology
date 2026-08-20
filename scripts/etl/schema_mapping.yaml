@@ -1,68 +1,249 @@
-# scripts/etl/schema_mapping.yaml
-# PRD: docs/active/prd/etl-export-v3.md §4.5 + etl-import-v6.md §4.4
-# v3.0 → v6.0 schema 字段映射 (17 域各一份)
+# scripts/etl/schema_mapping.yaml — 完整 17 域映射
+# PRD: docs/active/prd/etl-export-v3.md §4.5 + etl-import-v6.md §4.4 + MP-V6-MIGRATION-01.md §7
+# 完整 17 域 v3.0 → v6.0 字段映射
 
 version: "1.0"
 generated_at: "2026-08-20"
+
+# 公共辅助
+_globals:
+  id_remap_format: "::uuid"                # BIGINT → UUID 转换
+  timestamp_remap_format: "::timestamptz"  # DATETIME → TIMESTAMPTZ
+  jsonb_remap_format: "jsonb"              # TEXT → jsonb
+  uuid_map_lookup: "id_mappings/<table>.csv"
+
+# ============================================================
+# 4 类核心数据
+# ============================================================
 
 tenants:
   v3_table: tenants
   v6_table: public.tenants
   field_map:
-    - { v3: id,                v6: id,                  transform: "::uuid" }
-    - { v3: slug,              v6: slug,                transform: null }
-    - { v3: name,              v6: name,                transform: null }
-    - { v3: status,            v6: status,              transform: "lower()" }
-    - { v3: metadata,          v6: metadata,            transform: "jsonb" }
-    - { v3: created_at,        v6: created_at,          transform: "::timestamptz" }
-    - { v3: updated_at,        v6: updated_at,          transform: "::timestamptz" }
+    - { v3: id,            v6: id,                transform: "::uuid" }
+    - { v3: slug,          v6: slug,              transform: null }
+    - { v3: name,          v6: name,              transform: null }
+    - { v3: status,        v6: status,            transform: "lower()" }
+    - { v3: metadata,      v6: metadata,          transform: "jsonb" }
+    - { v3: created_at,    v6: created_at,        transform: "::timestamptz" }
+    - { v3: updated_at,    v6: updated_at,        transform: "::timestamptz" }
   new_v6_fields:
     - archived_at: null
+
+users:
+  v3_table: users
+  v6_target: auth.users (Supabase Managed)
+  v6_business_table: public.profiles
+  field_map:
+    - { v3: id,            v6_auth: id,            transform: "::uuid" }
+    - { v3: email,         v6_auth: email,         transform: null }
+    - { v3: password_hash, v6_auth: password_hash, transform: "bcrypt_external" }
+    - { v3: tenant_id,     v6_business: tenant_id, transform: "tenant_id_map" }
+    - { v3: role,          v6_auth_metadata: role, transform: null }
+    - { v3: display_name,  v6_business: display_name, transform: null }
+    - { v3: created_at,    v6_business: created_at, transform: "::timestamptz" }
+  notes: "Auth user 通过 supabase.auth.admin.create_user + external password_hash; profiles 1:1 绑定"
+
+audit_logs:
+  v3_table: audit_logs
+  v6_target: S3 Glacier (冷存储, 不进 hot DB)
+  field_map:
+    - { v3: id,            v6: id,                transform: "::text" }
+    - { v3: tenant_id,     v6: tenant_id,         transform: "::text" }
+    - { v3: actor_id,      v6: actor_id,          transform: "::text" }
+    - { v3: action,        v6: action,            transform: null }
+    - { v3: table_name,    v6: table_name,        transform: null }
+    - { v3: row_pk,        v6: row_pk,            transform: "jsonb" }
+    - { v3: old_values,    v6: old_values,        transform: "jsonb" }
+    - { v3: new_values,    v6: new_values,        transform: "jsonb" }
+    - { v3: occurred_at,   v6: occurred_at,       transform: "::timestamptz" }
+  notes: "按月分文件 gzip, 上传到 s3://mp-audit-archive-cold/v3-audit-logs/YYYY-MM.csv.gz, GLACIER storage class"
+
+# ============================================================
+# 17 业务域 (P1: Customer/Order/Product/Contract + P2 其余)
+# ============================================================
 
 customers:
   v3_table: customers
   v6_table: public.customers
   field_map:
-    - { v3: id,                v6: id,                  transform: "::uuid" }
-    - { v3: tenant_id,         v6: tenant_id,           transform: "tenant_id_map" }
-    - { v3: name,              v6: name,                transform: null }
-    - { v3: contact_email,     v6: contact_email,       transform: null }
-    - { v3: contact_phone,     v6: contact_phone,       transform: null }
-    - { v3: tier,              v6: tier,                transform: null }
-    - { v3: status,            v6: status,              transform: null }
-    - { v3: created_at,        v6: created_at,          transform: "::timestamptz" }
-    - { v3: updated_at,        v6: updated_at,          transform: "::timestamptz" }
+    - { v3: id,            v6: id,                transform: "::uuid" }
+    - { v3: tenant_id,     v6: tenant_id,         transform: "tenant_id_map" }
+    - { v3: name,          v6: name,              transform: null }
+    - { v3: contact_email, v6: contact_email,     transform: null }
+    - { v3: contact_phone, v6: contact_phone,     transform: null }
+    - { v3: tier,          v6: tier,              transform: null }
+    - { v3: status,        v6: status,            transform: null }
+    - { v3: metadata,      v6: metadata,          transform: "jsonb" }
+    - { v3: created_at,    v6: created_at,        transform: "::timestamptz" }
+    - { v3: updated_at,    v6: updated_at,        transform: "::timestamptz" }
 
 orders:
   v3_table: orders
   v6_table: public.orders
   field_map:
-    - { v3: id,                v6: id,                  transform: "::uuid" }
-    - { v3: tenant_id,         v6: tenant_id,           transform: "tenant_id_map" }
-    - { v3: customer_id,       v6: customer_id,         transform: "customer_id_map" }
-    - { v3: amount,            v6: amount,              transform: "::numeric" }
-    - { v3: currency,          v6: currency,            transform: null }
-    - { v3: status,            v6: status,              transform: null }
-    - { v3: order_number,      v6: order_number,        transform: null }
-    - { v3: created_at,        v6: created_at,          transform: "::timestamptz" }
+    - { v3: id,            v6: id,                transform: "::uuid" }
+    - { v3: tenant_id,     v6: tenant_id,         transform: "tenant_id_map" }
+    - { v3: customer_id,   v6: customer_id,       transform: "customer_id_map" }
+    - { v3: order_number,  v6: order_number,      transform: null }
+    - { v3: amount,        v6: amount,            transform: "::numeric" }
+    - { v3: currency,      v6: currency,          transform: null }
+    - { v3: status,        v6: status,            transform: null }
+    - { v3: metadata,      v6: metadata,          transform: "jsonb" }
+    - { v3: created_at,    v6: created_at,        transform: "::timestamptz" }
+    - { v3: updated_at,    v6: updated_at,        transform: "::timestamptz" }
   new_v6_fields:
     - idempotency_key: "gen_random_uuid()::text"
     - deleted_at: null
+
+products:
+  v3_table: products
+  v6_table: public.products
+  field_map:
+    - { v3: id,            v6: id,                transform: "::uuid" }
+    - { v3: tenant_id,     v6: tenant_id,         transform: "tenant_id_map" }
+    - { v3: sku,           v6: sku,               transform: null }
+    - { v3: name,          v6: name,              transform: null }
+    - { v3: description,   v6: description,       transform: null }
+    - { v3: category,      v6: category,          transform: null }
+    - { v3: unit_price,    v6: unit_price,        transform: "::numeric" }
+    - { v3: currency,      v6: currency,          transform: null }
+    - { v3: stock_quantity, v6: stock_quantity,   transform: "::int" }
+    - { v3: status,        v6: status,            transform: null }
+    - { v3: metadata,      v6: metadata,          transform: "jsonb" }
+    - { v3: created_at,    v6: created_at,        transform: "::timestamptz" }
+    - { v3: updated_at,    v6: updated_at,        transform: "::timestamptz" }
 
 contracts:
   v3_table: contracts
   v6_table: public.contracts
   field_map:
-    - { v3: id,                v6: id,                  transform: "::uuid" }
-    - { v3: tenant_id,         v6: tenant_id,           transform: "tenant_id_map" }
-    - { v3: customer_id,       v6: customer_id,         transform: "customer_id_map" }
-    - { v3: contract_number,   v6: contract_number,     transform: null }
-    - { v3: title,             v6: title,               transform: null }
-    - { v3: total_amount,      v6: total_amount,        transform: "::numeric" }
-    - { v3: currency,          v6: currency,            transform: null }
-    - { v3: effective_date,    v6: effective_date,      transform: "::date" }
-    - { v3: expiry_date,       v6: expiry_date,         transform: "::date" }
-    - { v3: status,            v6: status,              transform: null }
+    - { v3: id,            v6: id,                transform: "::uuid" }
+    - { v3: tenant_id,     v6: tenant_id,         transform: "tenant_id_map" }
+    - { v3: customer_id,   v6: customer_id,       transform: "customer_id_map" }
+    - { v3: contract_number, v6: contract_number, transform: null }
+    - { v3: title,         v6: title,             transform: null }
+    - { v3: total_amount,  v6: total_amount,      transform: "::numeric" }
+    - { v3: currency,      v6: currency,          transform: null }
+    - { v3: effective_date, v6: effective_date,   transform: "::date" }
+    - { v3: expiry_date,   v6: expiry_date,       transform: "::date" }
+    - { v3: status,        v6: status,            transform: null }
+    - { v3: metadata,      v6: metadata,          transform: "jsonb" }
+    - { v3: created_at,    v6: created_at,        transform: "::timestamptz" }
 
-# 注: 完整 17 域映射需要业务团队各自补充; 这里列出 4 域示例 (P1)
-# 模板复制: cp -r tenants/ products/ && 修改 v3_table / v6_table / field_map
+invoices:
+  v3_table: invoices
+  v6_table: public.invoices
+  field_map:
+    - { v3: id,            v6: id,                transform: "::uuid" }
+    - { v3: tenant_id,     v6: tenant_id,         transform: "tenant_id_map" }
+    - { v3: customer_id,   v6: customer_id,       transform: "customer_id_map" }
+    - { v3: invoice_number, v6: invoice_number,   transform: null }
+    - { v3: total_amount,  v6: total_amount,      transform: "::numeric" }
+    - { v3: tax_amount,    v6: tax_amount,        transform: "::numeric" }
+    - { v3: due_date,      v6: due_date,          transform: "::date" }
+    - { v3: status,        v6: status,            transform: null }
+    - { v3: created_at,    v6: created_at,        transform: "::timestamptz" }
+
+tickets:
+  v3_table: tickets
+  v6_table: public.tickets
+  field_map:
+    - { v3: id,            v6: id,                transform: "::uuid" }
+    - { v3: tenant_id,     v6: tenant_id,         transform: "tenant_id_map" }
+    - { v3: customer_id,   v6: customer_id,       transform: "customer_id_map" }
+    - { v3: ticket_number, v6: ticket_number,     transform: null }
+    - { v3: title,         v6: title,             transform: null }
+    - { v3: description,   v6: description,       transform: null }
+    - { v3: status,        v6: status,            transform: null }
+    - { v3: priority,      v6: priority,          transform: null }
+    - { v3: category,      v6: category,          transform: null }
+    - { v3: created_at,    v6: created_at,        transform: "::timestamptz" }
+  new_v6_fields:
+    - tags: "ARRAY[]::text[]"
+    - dsh_session_id: null  # v6.0 才有 dsh session
+
+# P2 域 (Skeleton — 业务 Batch 各自实现)
+suppliers:
+  v3_table: suppliers
+  v6_table: public.suppliers
+  status: P2_pending  # 待业务 Batch 实现 v6 表
+
+inventory:
+  v3_table: inventory
+  v6_table: public.inventory
+  status: P2_pending
+
+expenses:
+  v3_table: expenses
+  v6_table: public.expenses
+  status: P2_pending
+
+documents:
+  v3_table: documents
+  v6_table: public.documents
+  field_map:
+    - { v3: id,            v6: id,                transform: "::uuid" }
+    - { v3: tenant_id,     v6: tenant_id,         transform: "tenant_id_map" }
+    - { v3: title,         v6: title,             transform: null }
+    - { v3: file_path,     v6: file_path,         transform: null }
+    - { v3: mime_type,     v6: mime_type,         transform: null }
+    - { v3: category,      v6: category,          transform: null }
+    - { v3: created_at,    v6: created_at,        transform: "::timestamptz" }
+  new_v6_fields:
+    - graphrag_entities: "'[]'::jsonb"
+    - ragflow_chunks:    "'[]'::jsonb"
+    - embedded_at: null
+
+projects:
+  v3_table: projects
+  v6_table: public.projects
+  status: P2_pending
+
+workflow_configs:
+  v3_table: workflows
+  v6_table: public.workflow_configs
+  status: P2_pending  # v6 重新设计 Temporal workflow
+
+hitl_requests:
+  v3_table: approvals
+  v6_table: public.hitl_requests
+  field_map:
+    - { v3: id,            v6: id,                transform: "::uuid" }
+    - { v3: tenant_id,     v6: tenant_id,         transform: "tenant_id_map" }
+    - { v3: title,         v6: title,             transform: null }
+    - { v3: description,   v6: description,       transform: null }
+    - { v3: status,        v6: status,            transform: "map_v3_to_v6" }  # v3=approved → v6=approved
+    - { v3: context_json,  v6: context,           transform: "jsonb" }
+    - { v3: created_at,    v6: created_at,        transform: "::timestamptz" }
+
+notifications:
+  v3_table: notifications
+  v6_table: public.notifications
+  status: P2_pending
+
+orgs:
+  v3_table: orgs
+  v6_table: public.orgs
+  status: P2_pending  # v6 可能不需要 (multi-tenant + profiles 已含)
+
+articles:
+  v3_table: articles
+  v6_table: public.articles
+  status: P2_pending  # knowledge base
+
+metrics:
+  v3_table: metrics
+  v6_table: public.metrics
+  status: P2_pending  # analytics
+
+# ============================================================
+# P1 扩展域 (employees / departments / invoices / tickets / products)
+# ============================================================
+# 见各自 migration 文件 (supabase/migrations/20260820130500_create_employees.sql 等)
+
+# 统计
+_summary:
+  total_domains: 17
+  p1_complete: 8  # tenants / customers / orders / products / contracts / invoices / tickets / documents
+  p2_pending: 9   # suppliers / inventory / expenses / projects / workflow_configs / hitl_requests / notifications / orgs / articles / metrics
