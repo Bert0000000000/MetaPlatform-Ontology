@@ -1,0 +1,133 @@
+openapi: 3.1.0
+info:
+  title: MetaPlatform v6.0 - mp-workflow API
+  version: 6.0.0
+  description: 业务流程 API（基于 Temporal）。
+  配套 PRD：docs/active/prd/mp-workflow.md
+
+servers:
+  - url: https://api.mp-platform.local/workflow/v1
+
+security:
+  - bearerAuth: []
+
+paths:
+  /workflows/definitions:
+    post:
+      summary: 部署 workflow 定义（YAML）
+      operationId: createDefinition
+      tags: [definitions]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, yaml]
+              properties:
+                name: { type: string }
+                version: { type: string, default: '1.0' }
+                yaml: { type: string }
+      responses:
+        '201':
+          description: Created
+
+  /workflows/start:
+    post:
+      summary: 启动 workflow 实例
+      operationId: startWorkflow
+      tags: [runs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StartWorkflowRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkflowInstance' }
+
+  /workflows/{workflowId}:
+    parameters:
+      - name: workflowId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: 查询 workflow 状态
+      operationId: getWorkflow
+      tags: [runs]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkflowInstance' }
+
+  /workflows/{workflowId}/signal:
+    post:
+      summary: 发信号
+      operationId: signalWorkflow
+      tags: [runs]
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [signal_name, args]
+              properties:
+                signal_name: { type: string }
+                args: {}
+      responses:
+        '200': { description: OK }
+
+  /workflows/{workflowId}/cancel:
+    post:
+      summary: 取消 workflow
+      operationId: cancelWorkflow
+      tags: [runs]
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: OK }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+
+  schemas:
+    StartWorkflowRequest:
+      type: object
+      required: [name, input, tenantId]
+      properties:
+        name: { type: string }
+        version: { type: string, default: '1.0' }
+        input: {}
+        tenantId: { type: string, format: uuid }
+        workflowId: { type: string, description: 'Optional. Auto-generated if omitted.' }
+
+    WorkflowInstance:
+      type: object
+      properties:
+        workflowId: { type: string, format: uuid }
+        runId: { type: string }
+        name: { type: string }
+        status:
+          type: string
+          enum: [running, completed, failed, cancelled, terminated, timeout]
+        input: {}
+        output: {}
+        errorMessage: { type: string, nullable: true }
+        startedAt: { type: string, format: date-time }
+        finishedAt: { type: string, format: date-time, nullable: true }

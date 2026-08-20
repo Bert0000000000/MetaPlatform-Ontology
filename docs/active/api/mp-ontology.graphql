@@ -1,0 +1,158 @@
+# mp-ontology GraphQL Schema
+
+> 配套 PRD：docs/active/prd/mp-ontology.md
+> 入口：`/ontology/v1/graphql`
+
+scalar UUID
+scalar DateTime
+scalar JSON
+
+enum KernelType {
+  ENTITY
+  RELATION
+  ATTRIBUTE
+  EVENT
+  STATE
+  ACTION
+  ROLE
+  POLICY
+  WORKFLOW
+  DOCUMENT
+  TAG
+  COMMENT
+}
+
+type ObjectType {
+  id: UUID!
+  name: String!
+  displayName: String!
+  kernelType: KernelType!
+  description: String
+  schema: JSON!
+  version: Int!
+  isPublic: Boolean!
+  createdAt: DateTime!
+}
+
+type Attribute {
+  name: String!
+  displayName: String!
+  type: String!
+  required: Boolean!
+  indexed: Boolean!
+  description: String
+}
+
+type Relation {
+  id: UUID!
+  name: String!
+  fromType: ObjectType!
+  toType: ObjectType!
+  cardinality: RelationCardinality!
+}
+
+enum RelationCardinality {
+  ONE_TO_ONE
+  ONE_TO_MANY
+  MANY_TO_ONE
+  MANY_TO_MANY
+}
+
+type Entity {
+  id: UUID!
+  tenantId: UUID!
+  typeName: String!
+  attributes: JSON!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: UUID
+  updatedBy: UUID
+}
+
+type EntityConnection {
+  edges: [EntityEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type EntityEdge {
+  cursor: String!
+  node: Entity!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Query {
+  """列出所有 ObjectType"""
+  objectTypes(publicOnly: Boolean = false): [ObjectType!]!
+
+  """按 name 查询 ObjectType"""
+  objectType(name: String!): ObjectType
+
+  """查询实体（按类型 + 过滤条件）"""
+  entities(
+    typeName: String!
+    filter: JSON
+    cursor: String
+    limit: Int = 50
+  ): EntityConnection!
+
+  """按 ID 查询实体"""
+  entity(id: UUID!): Entity
+
+  """查询实体的关系（出边）"""
+  outgoingRelations(
+    entityId: UUID!
+    relationType: String
+  ): [Entity!]!
+
+  """查询实体的关系（入边）"""
+  incomingRelations(
+    entityId: UUID!
+    relationType: String
+  ): [Entity!]!
+}
+
+type Mutation {
+  """注册 ObjectType"""
+  registerObjectType(input: RegisterObjectTypeInput!): ObjectType!
+
+  """创建实体"""
+  createEntity(
+    typeName: String!
+    attributes: JSON!
+  ): Entity!
+
+  """更新实体（必须传全 attributes，原子覆盖）"""
+  updateEntity(id: UUID!, attributes: JSON!): Entity!
+
+  """删除实体（软删）"""
+  deleteEntity(id: UUID!): Boolean!
+
+  """建立关系"""
+  createRelation(
+    fromId: UUID!
+    toId: UUID!
+    relationType: String!
+    attributes: JSON
+  ): Relation!
+}
+
+input RegisterObjectTypeInput {
+  name: String!
+  displayName: String!
+  kernelType: KernelType!
+  description: String
+  schema: JSON!
+  isPublic: Boolean = false
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

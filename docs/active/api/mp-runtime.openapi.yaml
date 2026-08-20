@@ -1,0 +1,64 @@
+openapi: 3.1.0
+info:
+  title: MetaPlatform v6.0 - mp-runtime (Edge Functions)
+  version: 6.0.0
+  description: |
+    Edge Functions 标准调用协议。所有业务 Edge Function 统一通过 Kong 网关路由。
+    配套 PRD：docs/active/prd/mp-runtime.md
+
+servers:
+  - url: https://api.mp-platform.local/functions/v1
+
+security:
+  - bearerAuth: []
+
+paths:
+  /{functionName}:
+    parameters:
+      - name: functionName
+        in: path
+        required: true
+        schema: { type: string }
+        description: |
+          Edge Function 名，格式 `<app>/<function>`，
+          例如 `orders/create-order`、`customers/list`。
+    post:
+      summary: 调用 Edge Function
+      operationId: invokeFunction
+      parameters:
+        - name: X-Idempotency-Key
+          in: header
+          schema: { type: string }
+          description: 幂等键。重复请求返回相同结果。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {}
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {}
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '429':
+          description: Rate Limited
+          headers:
+            X-RateLimit-Remaining:
+              schema: { type: integer }
+            Retry-After:
+              schema: { type: integer }
+        '500':
+          description: Internal Server Error
+        '503':
+          description: Function Unavailable
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }

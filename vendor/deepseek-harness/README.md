@@ -1,43 +1,59 @@
-# vendor/deepseek-harness/README.md
-# PRD: docs/active/prd/dsh-60-packages.md §4.1
-# Batch: MP-V6-DSH-01
-# 实际 dsh 源码不在本仓库 (vendor 模式按需 clone)
+# DeepSeek Harness
 
-## Vendor 流程
+English | [中文](README.zh.md)
 
-```bash
-# 在 CI / 用户宿主机执行:
-git clone https://github.com/deepseek-ai/deepseek-harness.git vendor/deepseek-harness
-cd vendor/deepseek-harness
-git checkout <SHA>  # pin 版本, 详见 dsh-image-spec PRD §6
-pnpm install --frozen-lockfile --prod --ignore-scripts
+DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
+
+It uses an architecture where **everything is a plugin**, and is powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://github.com/cordiverse/paper).
+
+## Developer preview
+
+DeepSeek Harness is currently in _developer preview_ and is iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+
+## Run
+
+### Run from `npm`
+
+Install `Node.js`, then run:
+
+```sh
+npx @deepseek-ai/dsh web
 ```
 
-## Workspace 集成
+The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it in the default browser for a local launch. An SSH launch only prints the host URL because the SSH client or editor owns the local forwarded address. Pass `--no-open` to run the server without opening a browser. See [Web UI guide](docs/user/guide/index.md).
 
-`pnpm-workspace.yaml` 已声明 `vendor/deepseek-harness/apps/*` 和 `vendor/deepseek-harness/packages/*`。
-dsh 的 60 个 Cordis 包通过 pnpm workspaces 暴露给本仓库的其他包使用。
+### Run from source
 
-## Pin 版本策略
+To run from a repository checkout:
 
-- 主版本: `v6.0.x` (与 MetaPlatform v6.0 对齐)
-- commit SHA: 由 `dsh-image-spec.md` §6 镜像标签决定 (`mp/dsh-web:v6.0.0-<sha>`)
-- 升级: 每月评估, 大版本升级必须新开 ADR
-
-## CI 验证
-
-vendor 目录通过 .gitignore 排除 (避免污染 git), 但 `pnpm install` 验证 60 个包 build 通过:
-
-```bash
-pnpm install --frozen-lockfile
-pnpm -r --filter "@dsh/*" run build  # 如果 dsh 包有 build 脚本
+```sh
+git clone https://github.com/deepseek-ai/deepseek-harness.git
+cd deepseek-harness
+pnpm install
+pnpm run build
+pnpm dsh web
 ```
 
-## 安全
+`pnpm run build` prepares the repository artifacts. `pnpm dsh web` uses those built artifacts without rebuilding.
 
-dsh 源码来自 GitHub; 用 `git checkout <SHA>` 锁定 commit, 不跟随 main。
-SHA 由 AI 团队在每次升级时更新, ADR 记录决策。
+## Community and support
 
----
+- Feel free to submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
+- Add the [`dsh-plugin`](https://github.com/topics/dsh-plugin) topic to your plugin repository for discoverability.
+- Join <a href="https://discord.gg/Ycq5dCaS4">DeepSeek Harness Discord community</a>.
 
-*本目录不直接 commit 源码. CI / 宿主机按需 clone.*
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Development
+
+Start with the [development guide](docs/development.md) and [architecture documentation](docs/architecture.md).
+
+For agents, follow [AGENTS.md](AGENTS.md).
+
+## License
+
+[MIT](LICENSE)
+
+Third-party dependencies and their licenses are disclosed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

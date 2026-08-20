@@ -1,0 +1,138 @@
+# mp-platform GraphQL Schema
+
+> 配套 PRD：docs/active/prd/mp-platform.md
+> 入口：`/platform/v1/graphql`
+
+scalar UUID
+scalar DateTime
+scalar JSON
+
+directive @auth(requires: [Role!]!) on FIELD_DEFINITION
+directive @tenantScoped on FIELD_DEFINITION
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+type Tenant {
+  id: UUID!
+  slug: String!
+  name: String!
+  status: TenantStatus!
+  metadata: JSON
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  userCount: Int!
+  storageBytes: Float!
+}
+
+type User {
+  id: UUID!
+  tenantId: UUID!
+  email: String!
+  displayName: String
+  role: Role!
+  metadata: JSON
+  createdAt: DateTime!
+  lastLoginAt: DateTime
+}
+
+type MenuItem {
+  key: String!
+  label: String!
+  icon: String
+  path: String
+  children: [MenuItem!]
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type UserEdge {
+  cursor: String!
+  node: User!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Query {
+  """当前用户可访问的所有租户"""
+  myTenants: [Tenant!]! @auth(requires: [])
+
+  """按 ID 查询租户"""
+  tenant(id: UUID!): Tenant @auth(requires: [MEMBER])
+
+  """列出租户用户"""
+  users(
+    tenantId: UUID!
+    role: Role
+    cursor: String
+    limit: Int = 50
+  ): UserConnection! @auth(requires: [ADMIN])
+
+  """按角色返回菜单"""
+  menu(role: Role!): [MenuItem!]! @auth(requires: [])
+
+  """获取租户 feature flag"""
+  featureFlags(tenantId: UUID!): JSON! @auth(requires: [MEMBER])
+
+  """查询租户迁移状态"""
+  migrationStatus(tenantId: UUID!): JSON! @auth(requires: [ADMIN])
+}
+
+type Mutation {
+  """创建租户（仅 OWNER）"""
+  createTenant(input: CreateTenantInput!): Tenant! @auth(requires: [OWNER])
+
+  """更新租户"""
+  updateTenant(id: UUID!, input: UpdateTenantInput!): Tenant! @auth(requires: [ADMIN])
+
+  """修改用户角色"""
+  updateUserRole(userId: UUID!, role: Role!): User! @auth(requires: [ADMIN])
+
+  """邀请用户加入租户"""
+  inviteUser(email: String!, role: Role!, tenantId: UUID!): User! @auth(requires: [ADMIN])
+
+  """设置 feature flag"""
+  setFeatureFlag(tenantId: UUID!, key: String!, value: JSON!): Boolean! @auth(requires: [ADMIN])
+
+  """触发租户切流量（v3 → v6）"""
+  migrateTenant(tenantId: UUID!, completed: Boolean!): Boolean! @auth(requires: [ADMIN])
+
+  """归档租户"""
+  archiveTenant(tenantId: UUID!): Boolean! @auth(requires: [OWNER])
+}
+
+input CreateTenantInput {
+  slug: String!
+  name: String!
+  metadata: JSON
+}
+
+input UpdateTenantInput {
+  name: String
+  status: TenantStatus
+  metadata: JSON
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

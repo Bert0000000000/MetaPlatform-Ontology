@@ -1,0 +1,319 @@
+openapi: 3.1.0
+info:
+  title: MetaPlatform v6.0 - mp-platform API
+  version: 6.0.0
+  description: |
+    业务平台 API：租户管理、用户管理、菜单、feature flag、切流量。
+    配套 PRD：docs/active/prd/mp-platform.md
+  contact:
+    name: 平台团队
+    email: platform@mp-platform.local
+
+servers:
+  - url: https://api.mp-platform.local/platform/v1
+    description: 生产
+  - url: https://api.staging.mp-platform.local/platform/v1
+    description: Staging
+  - url: https://api.dev.mp-platform.local/platform/v1
+    description: Dev
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: tenants
+    description: 租户管理
+  - name: users
+    description: 用户管理
+  - name: menu
+    description: 动态菜单
+  - name: feature-flags
+    description: Feature Flag
+  - name: migration
+    description: v3 → v6 切流量
+
+paths:
+  /tenants:
+    get:
+      summary: 列出当前用户可访问的租户
+      operationId: listMyTenants
+      tags: [tenants]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Tenant' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: 创建租户（仅 owner 角色）
+      operationId: createTenant
+      tags: [tenants]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateTenantInput' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tenant' }
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /tenants/{tenantId}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      summary: 获取租户详情
+      operationId: getTenant
+      tags: [tenants]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tenant' }
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      summary: 更新租户
+      operationId: updateTenant
+      tags: [tenants]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateTenantInput' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Tenant' }
+
+  /users:
+    get:
+      summary: 列出租户用户
+      operationId: listUsers
+      tags: [users]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: cursor
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/User' }
+                  nextCursor: { type: string, nullable: true }
+
+  /menu:
+    get:
+      summary: 获取当前角色的菜单
+      operationId: getMenu
+      tags: [menu]
+      parameters:
+        - name: role
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [owner, admin, member, guest]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/MenuItem' }
+
+  /feature-flags/{tenantId}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    get:
+      summary: 获取租户所有 feature flag
+      operationId: getFeatureFlags
+      tags: [feature-flags]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /feature-flags/{tenantId}/{key}:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+      - name: key
+        in: path
+        required: true
+        schema: { type: string }
+    put:
+      summary: 设置 feature flag
+      operationId: setFeatureFlag
+      tags: [feature-flags]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value: {}
+              required: [value]
+      responses:
+        '200':
+          description: OK
+
+  /tenants/{tenantId}/migrate:
+    parameters:
+      - $ref: '#/components/parameters/TenantId'
+    post:
+      summary: 切流量（v3 → v6）
+      operationId: migrateTenant
+      tags: [migration]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                completed: { type: boolean }
+              required: [completed]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tenantId: { type: string, format: uuid }
+                  migrationCompleted: { type: boolean }
+                  updatedAt: { type: string, format: date-time }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    TenantId:
+      name: tenantId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Tenant:
+      type: object
+      required: [id, slug, name, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        status:
+          type: string
+          enum: [active, suspended, archived]
+        metadata: { type: object, additionalProperties: true }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
+    CreateTenantInput:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string, minLength: 2, maxLength: 64 }
+        name: { type: string, minLength: 1, maxLength: 256 }
+        metadata: { type: object }
+
+    UpdateTenantInput:
+      type: object
+      properties:
+        name: { type: string }
+        status: { type: string, enum: [active, suspended, archived] }
+        metadata: { type: object }
+
+    User:
+      type: object
+      required: [id, tenantId, email, role]
+      properties:
+        id: { type: string, format: uuid }
+        tenantId: { type: string, format: uuid }
+        email: { type: string, format: email }
+        displayName: { type: string, nullable: true }
+        role:
+          type: string
+          enum: [owner, admin, member, guest]
+        metadata: { type: object }
+
+    MenuItem:
+      type: object
+      required: [key, label]
+      properties:
+        key: { type: string }
+        label: { type: string }
+        icon: { type: string }
+        path: { type: string }
+        children:
+          type: array
+          items: { $ref: '#/components/schemas/MenuItem' }
+
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        details: { type: object }
+        traceId: { type: string }

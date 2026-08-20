@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: MetaPlatform v6.0 - mp-hitl-hub API
+  version: 6.0.0
+  description: HITL（Human-in-the-Loop）联动中枢 API。
+  配套 PRD：docs/active/prd/mp-hitl-hub.md
+
+servers:
+  - url: https://api.mp-platform.local/hitl/v1
+
+security:
+  - bearerAuth: []
+
+paths:
+  /requests:
+    post:
+      summary: 发起 HITL 请求
+      operationId: createHitlRequest
+      tags: [requests]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateHitlRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HitlRequest' }
+
+  /requests/{requestId}:
+    parameters:
+      - name: requestId
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: 查询 HITL 状态
+      operationId: getHitlRequest
+      tags: [requests]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HitlRequest' }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+
+  schemas:
+    HitlType:
+      type: string
+      enum: [workflow_saas, workflow_dsh, tool_dsh, action_confirm]
+
+    HitlStatus:
+      type: string
+      enum: [pending, approved, rejected, timeout]
+
+    CreateHitlRequest:
+      type: object
+      required: [type, tenantId, approvers, timeoutSeconds]
+      properties:
+        type: { $ref: '#/components/schemas/HitlType' }
+        tenantId: { type: string, format: uuid }
+        workflowId: { type: string, description: 'Required for workflow_* types' }
+        approvers:
+          type: array
+          items: { type: string, format: uuid }
+        context: { type: object }
+        timeoutSeconds:
+          type: integer
+          minimum: 60
+          maximum: 2592000
+          default: 604800
+
+    HitlRequest:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        tenantId: { type: string, format: uuid }
+        type: { $ref: '#/components/schemas/HitlType' }
+        workflowId: { type: string, nullable: true }
+        approvers:
+          type: array
+          items: { type: string, format: uuid }
+        context: { type: object }
+        status: { $ref: '#/components/schemas/HitlStatus' }
+        decision:
+          type: object
+          nullable: true
+          properties:
+            actor: { type: string, format: uuid }
+            comment: { type: string }
+            decidedAt: { type: string, format: date-time }
+        timeoutAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        decidedAt: { type: string, format: date-time, nullable: true }
+        approveUrl:
+          type: string
+          description: 'For workflow_saas, deep link to SaaS approval'

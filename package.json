@@ -25,6 +25,7 @@
     "loop:run-once": "bash scripts/loop/run-once.sh"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.10.0",
     "@typescript-eslint/eslint-plugin": "^8.18.0",
     "@typescript-eslint/parser": "^8.18.0",
@@ -38,10 +39,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.0",
+    "@temporalio/activity": "^1.11.0",
     "@temporalio/client": "^1.11.0",
     "@temporalio/worker": "^1.11.0",
     "@temporalio/workflow": "^1.11.0",
-    "@temporalio/activity": "^1.11.0",
     "pg": "^8.13.1",
     "yaml": "^2.6.0",
     "zod": "^3.24.1"
