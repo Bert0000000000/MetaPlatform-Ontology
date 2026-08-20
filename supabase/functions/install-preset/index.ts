@@ -54,8 +54,8 @@ serve(async (req) => {
         .schema('mp_preset_registry')
         .from('presets')
         .select('id, current_version, name')
-        .eq('tenant_id', auth.tenantId)
         .eq('slug', body.preset_slug)
+        .or('tenant_id.is.null,tenant_id.eq.' + auth.tenantId)
         .maybeSingle();
       if (psErr || !preset) {
         return new Response(JSON.stringify({ error: 'preset not found: ' + body.preset_slug }), {
