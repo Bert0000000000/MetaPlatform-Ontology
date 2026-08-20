@@ -112,12 +112,12 @@ function jsonResponse(body: unknown, status: number): Response {
 }
 
 // -----------------------------------------------------------------------------
-// recordExecution — Issue #15 Loop 1/3
+// recordExecution — Issue #15 Loop 2/3
 // -----------------------------------------------------------------------------
-// 双写:
-//   1. mp_sandbox.executions (structured record, tenant RLS, queryable by mp-audit)
-//   2. public.record_execution RPC → audit_log (semantic SANDBOX_* action — Loop 2 删)
-// 失败不抛 — 沙箱不能因为审计失败而拒绝用户执行.
+// 单写 mp_sandbox.executions; audit_log 通过 tg_mp_sandbox_executions_audit
+// 触发器自动落表 (action=INSERT/UPDATE/DELETE).
+// Loop 1/3 时代通过 SECURITY DEFINER RPC 写 audit_log semantic SANDBOX_*
+// action, Loop 2/3 删 RPC 后, semantic action 仍能从 mp_sandbox.executions.action 列查询.
 async function recordExecution(args: {
   tenantId: string;
   actorId: string;
@@ -140,50 +140,26 @@ async function recordExecution(args: {
   );
   const meta = args.metadata ?? {};
 
-  // 1) mp_sandbox.executions INSERT
-  try {
-    const { error: insErr } = await sb.schema('mp_sandbox').from('executions').insert({
-      tenant_id: args.tenantId,
-      actor_id: args.actorId,
-      action: args.action,
-      language: args.language,
-      code_sha256: args.codeSha,
-      code_bytes: args.codeBytes,
-      timeout_ms: args.timeoutMs,
-      network: args.network,
-      exit_code: args.exitCode,
-      duration_ms: args.durationMs,
-      stdout_bytes: args.stdoutBytes,
-      stderr_bytes: args.stderrBytes,
-      mode: args.mode,
-      metadata: meta,
-    });
-    if (insErr) console.error('[mp-sandbox] executions insert failed:', insErr.message);
-  } catch (ex) {
-    console.error('[mp-sandbox] executions insert exception:', String(ex));
+  const { error: insErr } = await sb.schema('mp_sandbox').from('executions').insert({
+    tenant_id: args.tenantId,
+    actor_id: args.actorId,
+    action: args.action,
+    language: args.language,
+    code_sha256: args.codeSha,
+    code_bytes: args.codeBytes,
+    timeout_ms: args.timeoutMs,
+    network: args.network,
+    exit_code: args.exitCode,
+    duration_ms: args.durationMs,
+    stdout_bytes: args.stdoutBytes,
+    stderr_bytes: args.stderrBytes,
+    mode: args.mode,
+    metadata: meta,
+  });
+  if (insErr) {
+    console.error('[mp-sandbox] executions insert failed:', insErr.message);
   }
-
-  // 2) public.record_execution RPC → audit_log semantic SANDBOX_* action
-  try {
-    const { error: rpcErr } = await sb.schema('mp_sandbox').rpc('record_execution', {
-      p_tenant_id: args.tenantId,
-      p_actor_id: args.actorId,
-      p_action: args.action,
-      p_language: args.language,
-      p_code_sha256: args.codeSha,
-      p_code_bytes: args.codeBytes,
-      p_timeout_ms: args.timeoutMs,
-      p_network: args.network,
-      p_exit_code: args.exitCode,
-      p_duration_ms: args.durationMs,
-      p_stdout_bytes: args.stdoutBytes,
-      p_stderr_bytes: args.stderrBytes,
-      p_metadata: meta,
-    });
-    if (rpcErr) console.error('[mp-sandbox] audit rpc failed:', rpcErr.message);
-  } catch (ex) {
-    console.error('[mp-sandbox] audit rpc exception:', String(ex));
-  }
+  // audit_log 由 tg_audit 触发器自动落表 — 不再调 RPC
 }
 
 async function sha256Hex(text: string): Promise<string> {

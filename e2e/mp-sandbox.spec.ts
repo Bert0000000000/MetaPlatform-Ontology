@@ -87,11 +87,12 @@ test.describe('mp-sandbox Edge Function PoC', () => {
     expect(typeof body.exit_code).toBe('number');
     expect(typeof body.duration_ms).toBe('number');
 
-    // audit_log 应写一条 SANDBOX_EXECUTE
+    // Loop 2/3: audit_log 由 tg_mp_sandbox_executions_audit 触发器自动写入
+    // (action='INSERT', new_values.action='SANDBOX_EXECUTE' 保留 semantic 信息)
     const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
     await c.connect();
     const audit = await c.query(
-      "SELECT count(*)::int AS n FROM public.audit_log WHERE tenant_id = $1 AND action = 'SANDBOX_EXECUTE' AND schema_name = 'mp_sandbox'",
+      "SELECT count(*)::int AS n FROM public.audit_log WHERE tenant_id = $1 AND schema_name = 'mp_sandbox' AND action = 'INSERT' AND new_values->>'action' = 'SANDBOX_EXECUTE'",
       [tenantA]
     );
     expect(audit.rows[0].n).toBeGreaterThanOrEqual(1);
@@ -110,11 +111,11 @@ test.describe('mp-sandbox Edge Function PoC', () => {
     expect(body.pattern_matched).toBeTruthy();
     expect(body.message).toBeTruthy();
 
-    // audit_log 应写一条 SANDBOX_DENIED
+    // Loop 2/3: audit_log 由 trigger 写入 (new_values.action='SANDBOX_DENIED')
     const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
     await c.connect();
     const audit = await c.query(
-      "SELECT count(*)::int AS n FROM public.audit_log WHERE tenant_id = $1 AND action = 'SANDBOX_DENIED' AND schema_name = 'mp_sandbox'",
+      "SELECT count(*)::int AS n FROM public.audit_log WHERE tenant_id = $1 AND schema_name = 'mp_sandbox' AND action = 'INSERT' AND new_values->>'action' = 'SANDBOX_DENIED'",
       [tenantA]
     );
     expect(audit.rows[0].n).toBeGreaterThanOrEqual(1);
@@ -133,11 +134,11 @@ test.describe('mp-sandbox Edge Function PoC', () => {
     expect(body.error).toBe('timeout');
     expect(body.message).toContain('500ms');
 
-    // audit_log 应写一条 SANDBOX_TIMEOUT
+    // Loop 2/3: audit_log 由 trigger 写入 (new_values.action='SANDBOX_TIMEOUT')
     const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
     await c.connect();
     const audit = await c.query(
-      "SELECT count(*)::int AS n FROM public.audit_log WHERE tenant_id = $1 AND action = 'SANDBOX_TIMEOUT' AND schema_name = 'mp_sandbox'",
+      "SELECT count(*)::int AS n FROM public.audit_log WHERE tenant_id = $1 AND schema_name = 'mp_sandbox' AND action = 'INSERT' AND new_values->>'action' = 'SANDBOX_TIMEOUT'",
       [tenantA]
     );
     expect(audit.rows[0].n).toBeGreaterThanOrEqual(1);
