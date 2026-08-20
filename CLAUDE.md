@@ -137,6 +137,7 @@ PR 标题必须包含 Batch ID：`feat(foundation): MP-V6-FOUNDATION-01 #N descr
 | 类型 | 路径 | 谁负责 |
 |---|---|---|
 | 技术 spec | `docs/active/specs/2026-08-19-mp-v6-*.md` | 架构组 |
+| **PRD（模块需求文档）** | **`docs/active/prd/*.md`** | **Batch Owner（启动 Batch 前完成）** |
 | Batch 任务文档 | `docs/active/batch/MP-V6-*.md` | 各 Batch Owner |
 | ADR | `docs/active/decisions/ADR-NNNN-*.md` | 架构组 |
 | CI/CD workflow | `docs/active/workflows/*.yml` | SRE |
@@ -158,6 +159,7 @@ PR 标题必须包含 Batch ID：`feat(foundation): MP-V6-FOUNDATION-01 #N descr
 - evidence 文档写完（CI gate `evidence-check` 会校验）
 - 8 项 CI gate 全部通过
 - 遇到问题先查 spec，**不要凭直觉决策**
+- **每个 Batch 启动前必须先有对应模块的 PRD**（`docs/active/prd/<batch>-<module>.md`），PR 内容必须包含 PRD 链接；**没有 PRD 的 Batch 不准合并**
 
 ### 必不做 ❌
 
