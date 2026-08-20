@@ -76,39 +76,63 @@ test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (
     expect(context.pages().length).toBe(before);
   });
 
-  test('3. click 应用中心 → full-bleed iframe overlay (in-page tab switch, dsh kept mounted)', async ({ page, context }) => {
+  test('3. click 应用中心 → tab strip + iframe (in-page tab switch, dsh kept mounted)', async ({ page, context }) => {
     await page.goto(DSH_BASE);
     await page.waitForFunction(
       () => document.body.getAttribute('data-mp-v6-topbar-mounted') === '1',
       { timeout: 10_000 },
     );
 
-    // Baseline: dsh's #root is visible, no iframe overlay.
-    const rootVisibleBefore = await page.locator('#root').isVisible();
-    const wrapBefore = await page.locator('#mp-v6-tab-wrap').count();
-    expect(rootVisibleBefore).toBe(true);
-    expect(wrapBefore).toBe(0);
+    // Baseline: no tab strip + no iframe overlay.
+    const stripBefore = await page.locator('#mp-v6-tab-strip').count();
+    const iframeBefore = await page.locator('#mp-v6-tab-iframe').count();
+    expect(stripBefore).toBe(0);
+    expect(iframeBefore).toBe(0);
 
     await page.locator('#mp-v6-topbar a[data-menu-id="mp-app-center"]').click();
 
-    // Tab switch: dsh stays mounted (hidden), iframe overlay opens.
-    await page.waitForSelector('#mp-v6-tab-wrap', { timeout: 3_000 });
-    expect(await page.locator('#mp-v6-tab-wrap').isVisible()).toBe(true);
+    // Tab strip + iframe appear (no new browser tab).
+    await page.waitForSelector('#mp-v6-tab-strip', { timeout: 3_000 });
+    await page.waitForSelector('#mp-v6-tab-iframe', { timeout: 3_000 });
+    expect(await page.locator('#mp-v6-tab-strip').isVisible()).toBe(true);
     expect(await page.locator('#mp-v6-tab-iframe').count()).toBe(1);
 
-    // dsh's #root is hidden but still in the DOM (state preserved).
-    const rootEl = await page.locator('#root').elementHandle();
-    const rootDisplay = await rootEl?.evaluate((el) => (el as HTMLElement).style.display);
-    expect(rootDisplay).toBe('none');
-
-    // NO new browser tab opened (this is the key behaviour change).
+    // dsh's #root is untouched.
     expect(context.pages().length).toBe(1);
 
-    // Close button restores dsh (revert #root display, remove wrap).
-    await page.locator('#mp-v6-tab-wrap button').click();
-    await page.waitForSelector('#mp-v6-tab-wrap', { state: 'detached', timeout: 2_000 });
-    const rootAfter = await page.locator('#root').isVisible();
-    expect(rootAfter).toBe(true);
+    // Active state: the clicked menu item is marked.
+    await page.waitForSelector(
+      '#mp-v6-topbar a[data-menu-id="mp-app-center"][data-active="1"]',
+      { state: 'attached', timeout: 2_000 },
+    );
+  });
+
+  test('5. clicking the strip × button removes both (back to native dsh)', async ({ page }) => {
+    await page.goto(DSH_BASE);
+    await page.waitForFunction(
+      () => document.body.getAttribute('data-mp-v6-topbar-mounted') === '1',
+      { timeout: 10_000 },
+    );
+
+    // Open 应用中心 → mount strip + iframe.
+    await page.locator('#mp-v6-topbar a[data-menu-id="mp-app-center"]').click();
+    await page.waitForSelector('#mp-v6-tab-strip', { timeout: 3_000 });
+
+    // Strip × button removes BOTH the strip and the iframe.
+    await page.locator('#mp-v6-tab-strip button').click();
+    await page.waitForSelector('#mp-v6-tab-strip', { state: 'detached', timeout: 3_000 });
+    expect(await page.locator('#mp-v6-tab-strip').count()).toBe(0);
+    expect(await page.locator('#mp-v6-tab-iframe').count()).toBe(0);
+
+    // Active state now re-computed from the dsh URL (which is still /),
+    // so AI 助手 becomes active again.
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector('#mp-v6-topbar a[data-menu-id="mp-ai-assistant"]') as HTMLElement | null;
+        return el ? el.getAttribute('data-active') === '1' : false;
+      },
+      { timeout: 3_000 },
+    );
   });
 
   test('4. active state follows current path (one per path)', async ({ page }) => {
@@ -133,31 +157,31 @@ test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (
     }
   });
 
-  test('5. active state stays in sync with tab close (overlay removed → dsh still on /)', async ({ page }) => {
+  test('4. active state stays in sync with tab strip (mount/close)', async ({ page }) => {
     await page.goto(DSH_BASE);
     await page.waitForFunction(
       () => document.body.getAttribute('data-mp-v6-topbar-mounted') === '1',
       { timeout: 10_000 },
     );
+
     // Initially AI 助手 active (matchPath='/').
     await page.waitForSelector(
       '#mp-v6-topbar a[data-menu-id="mp-ai-assistant"][data-active="1"]',
       { timeout: 3_000 },
     );
 
-    // Open a tab and close it (simulates full round-trip).
+    // Open 应用中心 → mount strip → re-compute active → 应用中心 is now active.
     await page.locator('#mp-v6-topbar a[data-menu-id="mp-app-center"]').click();
-    await page.waitForSelector('#mp-v6-tab-wrap', { timeout: 3_000 });
-    await page.locator('#mp-v6-tab-wrap button').click();
-    await page.waitForSelector('#mp-v6-tab-wrap', { state: 'detached', timeout: 3_000 });
+    await page.waitForSelector(
+      '#mp-v6-topbar a[data-menu-id="mp-app-center"][data-active="1"]',
+      { state: 'attached', timeout: 3_000 },
+    );
 
-    // After closing, the active state should be reset based on the
-    // current dsh path ('/'), so AI 助手 becomes active again.
-    await page.waitForFunction(
-      () => {
-        const el = document.querySelector('#mp-v6-topbar a[data-menu-id="mp-ai-assistant"]') as HTMLElement | null;
-        return el ? el.getAttribute('data-active') === '1' : false;
-      },
+    // Close the strip → AI 助手 becomes active again (path still '/').
+    await page.locator('#mp-v6-tab-strip button').click();
+    await page.waitForSelector('#mp-v6-tab-strip', { state: 'detached', timeout: 3_000 });
+    await page.waitForSelector(
+      '#mp-v6-topbar a[data-menu-id="mp-ai-assistant"][data-active="1"]',
       { timeout: 3_000 },
     );
   });
