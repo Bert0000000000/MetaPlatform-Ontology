@@ -30,7 +30,7 @@ export default defineConfig({
   projects: [
     {
       name: 'supabase-api',
-      testMatch: /e2e\/(supabase|edge-functions)\.spec\.ts/,
+      testMatch: /e2e\/(supabase|edge-functions|list-presets)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
