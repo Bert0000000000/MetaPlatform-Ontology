@@ -4,9 +4,10 @@
     {
       "name": "dsh-web",
       "runtimeExecutable": "dsh",
-      "runtimeArgs": ["web", "--host", "127.0.0.1", "--port", "5180", "--no-open"],
+      "runtimeArgs": ["web", "--host", "127.0.0.1", "--no-open"],
       "port": 5180,
-      "url": "http://127.0.0.1:5180"
+      "url": "http://127.0.0.1:5180",
+      "autoPort": true
     }
   ]
 }
