@@ -119,9 +119,9 @@ test.describe('Edge Functions', () => {
     const body = await r.json();
     expect(body.triage.priority).toBe('urgent');
 
-    // 验证 hitl_request 被创建 (urgent → HITL)
+    // 验证 hitl_request 被创建 (urgent → HITL, 新 schema 用 payload 列)
     const hitl = await pgClient.query(
-      'SELECT count(*)::int AS n FROM public.hitl_requests WHERE tenant_id = $1 AND context->>\'ticket_id\' = $2',
+      "SELECT count(*)::int AS n FROM public.hitl_requests WHERE tenant_id = $1 AND payload->>'ticket_id' = $2",
       [tenantA, ticket.id]
     );
     expect(hitl.rows[0].n).toBe(1);

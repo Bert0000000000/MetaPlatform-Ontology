@@ -66,19 +66,20 @@ serve(async (req) => {
         category: triageResult.category,
       }).eq("id", body.ticket_id);
     } else if (triageResult.priority === 'urgent' || triageResult.priority === 'high') {
-      // 高优先级: 调 HITL Hub tool_dsh, 等用户确认
+      // 高优先级: 调 HITL Hub tool_dsh, 等用户确认 (新 schema: payload / approver_ids / deadline_at / requester_id)
       await supabase.from("hitl_requests").insert({
         tenant_id: auth.tenantId,
         type: 'tool_dsh',
         status: 'pending',
         title: `高优工单分诊: ${ticket.ticket_number}`,
-        context: {
+        requester_id: auth.userId,
+        payload: {
           ticket_id: body.ticket_id,
           suggested_priority: triageResult.priority,
           rationale: triageResult.rationale,
         },
-        approver_user_ids: [auth.userId],
-        timeout_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),  // 1h
+        approver_ids: [auth.userId],
+        deadline_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),  // 1h
       });
     }
 
