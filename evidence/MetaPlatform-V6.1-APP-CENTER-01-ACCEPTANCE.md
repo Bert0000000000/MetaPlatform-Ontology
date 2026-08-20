@@ -5,6 +5,7 @@
 > **关联 Batch**：[MetaPlatform.1-APP-CENTER-01.md](../active/batch/MetaPlatform.1-APP-CENTER-01.md)
 > **关联 PRD**：[mp-skill-marketplace.md](../active/prd/mp-skill-marketplace.md), [ADR-0062-v6.1-app-center.md](../active/decisions/ADR-0062-v6.1-app-center.md)
 > **关联 Issue**：#1-#5 (全部 closed)
+> **当前 E2E**：56/56 PASS (0 fail)
 
 ---
 
