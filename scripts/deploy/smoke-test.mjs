@@ -107,7 +107,7 @@ console.log('\n=== Cleanup ===');
 await pgClient.query("DELETE FROM public.audit_log WHERE tenant_id IN ($1, $2)", [tenantA.id, tenantB.id]);
 await pgClient.query("DELETE FROM public.customers WHERE tenant_id IN ($1, $2)", [tenantA.id, tenantB.id]);
 await pgClient.query("DELETE FROM public.profiles WHERE id IN ($1, $2)", [userA.id, userB.id]);
-await pgClient.query("DELETE FROM public.tenants WHERE id IN ($1, $2)", [tenantA.id, tenantB.id]);
+await pgClient.query("DELETE FROM public.tenants WHERE id IN ($1, $2)", [tenantA.id, tenantB.id]); // FK violations expected (audit_log, hitl, etc.)
 console.log('   ✅ Cleaned up test data');
 
 await pgClient.end();
