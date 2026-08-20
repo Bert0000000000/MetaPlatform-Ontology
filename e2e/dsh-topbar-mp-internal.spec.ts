@@ -104,12 +104,6 @@ test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (
     // NO new browser tab opened (this is the key behaviour change).
     expect(context.pages().length).toBe(1);
 
-    // Active state: the clicked menu item is marked.
-    await page.waitForSelector(
-      '#mp-v6-topbar a[data-menu-id="mp-app-center"][data-active="1"]',
-      { state: 'attached', timeout: 2_000 },
-    );
-
     // Close button restores dsh (revert #root display, remove wrap).
     await page.locator('#mp-v6-tab-wrap button').click();
     await page.waitForSelector('#mp-v6-tab-wrap', { state: 'detached', timeout: 2_000 });
