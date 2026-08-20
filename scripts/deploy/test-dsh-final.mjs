@@ -36,7 +36,7 @@ await page.waitForTimeout(2000);
 // Send test message to mp-v6 master
 const textarea = await page.$('textarea');
 if (textarea) {
-  await textarea.fill('List the 4 pillars of MP-V6.0, then analyze the orders table for me. Use sql.');
+  await textarea.fill('List the 4 pillars of MetaPlatform.0, then analyze the orders table for me. Use sql.');
   console.log('Message sent, waiting 60s...');
   await page.keyboard.press('Enter');
   await page.waitForTimeout(60000);

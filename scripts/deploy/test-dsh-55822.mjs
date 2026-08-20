@@ -46,7 +46,7 @@ await page.waitForTimeout(2000);
 // Send test message
 const textarea = await page.$('textarea');
 if (textarea) {
-  await textarea.fill('Tell me the 4 pillars of MP-V6.0, then analyze the orders table for me.');
+  await textarea.fill('Tell me the 4 pillars of MetaPlatform.0, then analyze the orders table for me.');
   console.log('Message typed, sending...');
   await page.keyboard.press('Enter');
   await page.waitForTimeout(5000);  // first 5s for LLM to start

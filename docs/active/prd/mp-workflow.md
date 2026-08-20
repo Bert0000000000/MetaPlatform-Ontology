@@ -100,7 +100,7 @@ ALTER TABLE mp_workflow.* ENABLE ROW LEVEL SECURITY;
 
 | 依赖 | 来源 |
 |---|---|
-| [temporal-cluster](temporal-cluster.md) + [temporal-worker-sdk](temporal-worker-sdk.md) | MP-V6-TEMPORAL-01 |
+| [temporal-cluster](temporal-cluster.md) + [temporal-worker-sdk](temporal-worker-sdk.md) | MetaPlatform-TEMPORAL-01 |
 | [mp-hitl-hub](mp-hitl-hub.md) | 自家 |
 | [mp-runtime](mp-runtime.md) | 自家 |
 

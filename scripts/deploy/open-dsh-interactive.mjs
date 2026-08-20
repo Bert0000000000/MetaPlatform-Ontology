@@ -48,7 +48,7 @@ await page.waitForTimeout(1000);
 console.log('\n=== 5. Send test message to mp-v6 agent ===');
 const textarea = await page.$('textarea');
 if (textarea) {
-  const prompt = 'List the 4 pillars of MP-V6.0 in one line each, and tell me which one is most critical for tenant isolation.';
+  const prompt = 'List the 4 pillars of MetaPlatform.0 in one line each, and tell me which one is most critical for tenant isolation.';
   await textarea.fill(prompt);
   console.log('  Typed:', prompt);
   await page.screenshot({ path: 'e2e-screenshots/webui-04-message-typed.png', fullPage: false });

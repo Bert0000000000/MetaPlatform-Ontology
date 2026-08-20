@@ -1,4 +1,4 @@
-# MP-V6 Loop 迭代进度（基于 module-planning.md 4 阶段）
+# MetaPlatform Loop 迭代进度（基于 module-planning.md 4 阶段）
 
 > **最后更新**：2026-08-20
 > **CronCreate**：`mp-v6-loop` (10min cadence, enabled)
@@ -14,43 +14,43 @@ Phase 3.5 (业务迁移, Sprint 3) ███████████████
 v6.1 must (3 项)               ████████████████████ 100%  done
 v6.1 partial (2 项)            ░░░░░░░░░░░░░░░░░░░░   0%  pending
 19 apps                        █████████░░░░░░░░░░░░ 47% (9/19 done)
-MP-V6-DEPLOY-01                 ██████░░░░░░░░░░░░░░░ 30% (skeleton)
+MetaPlatform-DEPLOY-01                 ██████░░░░░░░░░░░░░░░ 30% (skeleton)
 ```
 
 ## Phase 1 (Sprint 0) — 基础设施 ✅
-- [x] MP-V6-FOUNDATION-01: K8s 3 套 + Supabase 8 能力 + RLS + NetworkPolicy + DR
-- [x] MP-V6-TEMPORAL-01: Temporal Cluster + Worker
-- [x] MP-V6-OBSERVABILITY-01: OTel + Tempo + Prometheus + Loki + Grafana
-- [x] MP-V6-DSH-DOCKER-01: dsh Docker 多阶段 build (deferred to host build)
-- [x] MP-V6-MIGRATION-01: v6.0→v6.1 ETL 8 scripts + can_proceed 门控
+- [x] MetaPlatform-FOUNDATION-01: K8s 3 套 + Supabase 8 能力 + RLS + NetworkPolicy + DR
+- [x] MetaPlatform-TEMPORAL-01: Temporal Cluster + Worker
+- [x] MetaPlatform-OBSERVABILITY-01: OTel + Tempo + Prometheus + Loki + Grafana
+- [x] MetaPlatform-DSH-DOCKER-01: dsh Docker 多阶段 build (deferred to host build)
+- [x] MetaPlatform-MIGRATION-01: v6.0→v6.1 ETL 8 scripts + can_proceed 门控
 
 ## Phase 2 (Sprint 1) — 核心引擎 ✅
-- [x] MP-V6-AUTH-01: JWT custom claims + tRPC-style JWT verifier
-- [x] MP-V6-DSH-01: dsh 9 数字员工 preset + subagent dispatch
-- [x] MP-V6-HITL-HUB-01: 4 类 HITL + 5 大机制 (multi-level, freeze, polling, reminder, ctx)
-- [x] MP-V6-ONTOLOGY-GEN-01: ontology-curator + apply-ontology-change + HITL review
+- [x] MetaPlatform-AUTH-01: JWT custom claims + tRPC-style JWT verifier
+- [x] MetaPlatform-DSH-01: dsh 9 数字员工 preset + subagent dispatch
+- [x] MetaPlatform-HITL-HUB-01: 4 类 HITL + 5 大机制 (multi-level, freeze, polling, reminder, ctx)
+- [x] MetaPlatform-ONTOLOGY-GEN-01: ontology-curator + apply-ontology-change + HITL review
 
 ## Phase 3 (Sprint 2) — 业务能力 ✅
-- [x] MP-V6-EDGE-FN-01: 14+ Edge Functions (orders/customers/contracts/invoices/HITL/RAG/...)
-- [x] MP-V6-LLM-01: Provider Manager + token meter + circuit breaker
-- [x] MP-V6-RAG-01: RAGFlow + GraphRAG dual engine
-- [x] MP-V6-APPROVAL-01: 钉钉 / 飞书 / 企微 SaaS adapters + 多级升级
-- [x] MP-V6-EVENTS-01: 12+ trigger router + 5 pg_cron + event_queue + DLQ
+- [x] MetaPlatform-EDGE-FN-01: 14+ Edge Functions (orders/customers/contracts/invoices/HITL/RAG/...)
+- [x] MetaPlatform-LLM-01: Provider Manager + token meter + circuit breaker
+- [x] MetaPlatform-RAG-01: RAGFlow + GraphRAG dual engine
+- [x] MetaPlatform-APPROVAL-01: 钉钉 / 飞书 / 企微 SaaS adapters + 多级升级
+- [x] MetaPlatform-EVENTS-01: 12+ trigger router + 5 pg_cron + event_queue + DLQ
 
 ## Phase 3.5 (Sprint 3) — 业务迁移 ✅
-- [x] MP-V6-DEPLOY-01: ApplicationSet + Image Updater (k8s apply 待 host)
-- [x] MP-V6-DOMAIN-MIGRATE-01: 17 域 12+ Edge Function
-- [x] MP-V6-LONG-TASK-01: 5 大机制完整版 + LongTaskClient SDK + 监控
-- [x] MP-V6-V6.1-PREP: 6 ADR + 路线图
+- [x] MetaPlatform-DEPLOY-01: ApplicationSet + Image Updater (k8s apply 待 host)
+- [x] MetaPlatform-DOMAIN-MIGRATE-01: 17 域 12+ Edge Function
+- [x] MetaPlatform-LONG-TASK-01: 5 大机制完整版 + LongTaskClient SDK + 监控
+- [x] MetaPlatform-V6.1-PREP: 6 ADR + 路线图
 
 ## v6.1 must (3 项) ✅
-- [x] MP-V6.1-SAML-SSO-01: SAML 2.0 SSO (saml-metadata EF + 2 表 + RPC + cron)
-- [x] MP-V6.1-SCHEMA-VERSION-01: 多版本 ontology (ontology_object_type_versions)
-- [x] MP-V6.1-COMPASS-01: 业务智能仪表盘 (dashboards + dashboard_widgets + MV)
+- [x] MetaPlatform.1-SAML-SSO-01: SAML 2.0 SSO (saml-metadata EF + 2 表 + RPC + cron)
+- [x] MetaPlatform.1-SCHEMA-VERSION-01: 多版本 ontology (ontology_object_type_versions)
+- [x] MetaPlatform.1-COMPASS-01: 业务智能仪表盘 (dashboards + dashboard_widgets + MV)
 
 ## v6.1 partial (2 项) — pending
-- [ ] MP-V6.1-APP-CENTER-01 (4w) — Issue #1-#5 已开，5 loop 在跑
-- [ ] MP-V6.1-MULTIMODAL-RAG-POC (6w) — 待启动
+- [ ] MetaPlatform.1-APP-CENTER-01 (4w) — Issue #1-#5 已开，5 loop 在跑
+- [ ] MetaPlatform.1-MULTIMODAL-RAG-POC (6w) — 待启动
 
 ## 19 apps 进度 — 9/19 done (47%)
 | # | App | 状态 |

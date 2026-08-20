@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820400000_create_video_embeddings.sql
 -- PRD: docs/active/decisions/ADR-0065-v6.1-multimodal-rag.md
--- Batch: MP-V6.1-MULTIMODAL-RAG-02 (PoC Phase 2: video embedding via BLIP-2 frame-by-frame)
+-- Batch: MetaPlatform.1-MULTIMODAL-RAG-02 (PoC Phase 2: video embedding via BLIP-2 frame-by-frame)
 -- Phase 2: video_embeddings (linked keyframes) + insert_video_embedding RPC + search_video_frames RPC
 -- IMPORTANT: do not modify image_embeddings (Phase 1). Phase 2 reuses image_embeddings for per-frame rows.
 

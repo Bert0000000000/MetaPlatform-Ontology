@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820150000_create_auth_custom_claims_hook.sql
 -- PRD: docs/active/prd/auth-jwt-rls.md §4.1
--- Batch: MP-V6-AUTH-01
+-- Batch: MetaPlatform-AUTH-01
 -- JWT custom_access_token_hook: 注入 tenant_id + role claims
 
 CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)

@@ -1,5 +1,5 @@
 // e2e/list-presets.spec.ts
-// MP-V6 Loop 2/5: list-presets Edge Function
+// MetaPlatform Loop 2/5: list-presets Edge Function
 
 import { test, expect } from '@playwright/test';
 

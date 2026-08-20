@@ -1,7 +1,7 @@
 # PRD：foundation-dr-backup
 
 > **模块**：MetaPlatform v6.0 基础设施层 — 灾备与备份
-> **对应 Batch**：[MP-V6-FOUNDATION-01](../batch/MP-V6-FOUNDATION-01.md)
+> **对应 Batch**：[MetaPlatform-FOUNDATION-01](../batch/MetaPlatform-FOUNDATION-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：SRE + DBA
 > **日期**：2026-08-20
@@ -367,7 +367,7 @@ signoff:
 | AC6 | RPO 实测 ≤ 5 分钟（演练报告）| 演练报告 |
 | AC7 | RTO 实测 ≤ 30 分钟（演练报告）| 演练报告 |
 | AC8 | 备份监控 + 告警规则上线 | Prometheus 规则 + Alertmanager |
-| AC9 | evidence/MP-V6-FOUNDATION-01-ACCEPTANCE.md 完成 | 文件存在 |
+| AC9 | evidence/MetaPlatform-FOUNDATION-01-ACCEPTANCE.md 完成 | 文件存在 |
 
 ## 8. 依赖
 

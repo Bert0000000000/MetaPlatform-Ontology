@@ -1,6 +1,6 @@
 # prometheus/rules/hitl-alerts.yaml
 # PRD: docs/active/prd/long-task-5-mechanisms.md §7
-# Batch: MP-V6-LONG-TASK-01
+# Batch: MetaPlatform-LONG-TASK-01
 # HITL 长任务告警规则
 
 groups:

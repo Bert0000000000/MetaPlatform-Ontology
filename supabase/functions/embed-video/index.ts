@@ -1,5 +1,5 @@
 // supabase/functions/embed-video/index.ts
-// MP-V6.1 Multimodal RAG Phase 2: video keyframe embedding (BLIP-2 mock)
+// MetaPlatform.1 Multimodal RAG Phase 2: video keyframe embedding (BLIP-2 mock)
 // Per ADR-0065: real impl = FastAPI sidecar (BLIP-2 frame-by-frame)
 // PoC: extract N keyframes at `fps` (default 1), insert each frame as:
 //   1) image_embeddings row (Phase 1 reuse — CLIP-ViT-B/32 512-dim zero vector)

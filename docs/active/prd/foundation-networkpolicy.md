@@ -1,7 +1,7 @@
 # PRD：foundation-networkpolicy
 
 > **模块**：MetaPlatform v6.0 基础设施层 — NetworkPolicy 网络隔离
-> **对应 Batch**：[MP-V6-FOUNDATION-01](../batch/MP-V6-FOUNDATION-01.md)
+> **对应 Batch**：[MetaPlatform-FOUNDATION-01](../batch/MetaPlatform-FOUNDATION-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：SRE + 安全
 > **日期**：2026-08-20

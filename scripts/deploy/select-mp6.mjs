@@ -24,7 +24,7 @@ const clickables = await page.evaluate(() => {
     enabled: !e.disabled,
   })).filter(e => e.text.toLowerCase().includes('mp-v6') || e.value === 'mp-v6' || e.name === 'mp-v6' || e.text.toLowerCase().includes('应用') || e.text.toLowerCase().includes('apply')).slice(0, 10);
 });
-console.log('MP-v6 related elements:', JSON.stringify(clickables, null, 2));
+console.log('MetaPlatform related elements:', JSON.stringify(clickables, null, 2));
 
 // Try clicking the radio input with value 'mp-v6'
 const radioMp6 = await page.$('input[value="mp-v6"], input[type="radio"][name*="mp-v6"]');
@@ -51,7 +51,7 @@ await page.waitForTimeout(2000);
 // Now send a test message
 const textarea = await page.$('textarea');
 if (textarea) {
-  await textarea.fill('List the 4 pillars of MP-V6.0 in one line each.');
+  await textarea.fill('List the 4 pillars of MetaPlatform.0 in one line each.');
   await page.screenshot({ path: 'e2e-screenshots/webui-06-typed.png', fullPage: false });
 
   // Try sending

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # scripts/etl/cutover_orchestration.sh
-# PRD: docs/active/prd/etl-validation.md §7 + MP-V6-MIGRATION-01.md §5 Week 3
+# PRD: docs/active/prd/etl-validation.md §7 + MetaPlatform-MIGRATION-01.md §5 Week 3
 # 按租户分批切流量编排
 #
 # 阶段 (ADR-0060 §7.1):

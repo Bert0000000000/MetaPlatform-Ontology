@@ -1,0 +1,11 @@
+import pg from 'pg';
+const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
+await c.connect();
+const r = await c.query("SELECT pg_get_functiondef(oid) AS def FROM pg_proc WHERE proname = 'insert_image_embedding' AND pronamespace='public'::regnamespace");
+console.log('image source:');
+console.log(r.rows[0]?.def);
+console.log('---');
+const r2 = await c.query("SELECT pg_get_functiondef(oid) AS def FROM pg_proc WHERE proname = 'insert_video_embedding' AND pronamespace='public'::regnamespace");
+console.log('video source:');
+console.log(r2.rows[0]?.def);
+await c.end();

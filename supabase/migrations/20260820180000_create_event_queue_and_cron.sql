@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820180000_create_event_queue_and_cron.sql
 -- PRD: docs/active/prd/events-db-webhook.md §4.2 + §4.3
--- Batch: MP-V6-EVENTS-01
+-- Batch: MetaPlatform-EVENTS-01
 -- 事件队列 + 重试 + DLQ + pg_cron worker
 
 -- ============================================================

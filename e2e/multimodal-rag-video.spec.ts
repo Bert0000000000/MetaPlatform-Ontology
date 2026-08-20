@@ -1,5 +1,5 @@
 // e2e/multimodal-rag-video.spec.ts
-// MP-V6.1 Multimodal RAG Phase 2: video embedding via BLIP-2 frame-by-frame (Issue #TBD)
+// MetaPlatform.1 Multimodal RAG Phase 2: video embedding via BLIP-2 frame-by-frame (Issue #TBD)
 // Per ADR-0065 §2/§3 — PoC with mock (real impl = FastAPI sidecar with BLIP-2)
 
 import { test, expect } from '@playwright/test';

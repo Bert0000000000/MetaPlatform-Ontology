@@ -1,7 +1,7 @@
 # PRD：etl-export-v3
 
 > **模块**：v3.0 → v6.0 数据迁移 — 导出阶段
-> **对应 Batch**：[MP-V6-MIGRATION-01](../batch/MP-V6-MIGRATION-01.md)
+> **对应 Batch**：[MetaPlatform-MIGRATION-01](../batch/MetaPlatform-MIGRATION-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：SRE + 后端
 > **日期**：2026-08-20
@@ -473,7 +473,7 @@ s3://mp-etl-staging/v3-export/<YYYYMMDD>/
 | AC5 | 审计日志归档到 Glacier | `aws s3 ls --storage-class GLACIER` |
 | AC6 | v3.0 DB 无任何写入操作（导出后 row count 不变）| DB 校验 |
 | AC7 | 导出过程产生 OTel trace（trace 注入 ETL 脚本）| Grafana Tempo |
-| AC8 | evidence/MP-V6-MIGRATION-01-EXPORT.md 完成 | 文件存在 |
+| AC8 | evidence/MetaPlatform-MIGRATION-01-EXPORT.md 完成 | 文件存在 |
 
 ## 8. 依赖
 
@@ -482,7 +482,7 @@ s3://mp-etl-staging/v3-export/<YYYYMMDD>/
 | v3.0 DB 只读访问 | SRE 申请 | 启动前 |
 | S3 bucket（`mp-etl-staging`） | SRE | 启动前 |
 | v6.0 schema 设计 | Sprint 2 沉淀 | 必须先 |
-| Vault（DB 凭证） | MP-V6-FOUNDATION-01 | 必须先 |
+| Vault（DB 凭证） | MetaPlatform-FOUNDATION-01 | 必须先 |
 
 ## 9. 风险
 

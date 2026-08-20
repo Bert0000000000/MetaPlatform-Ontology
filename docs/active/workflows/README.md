@@ -121,16 +121,16 @@ perf(scope): description
 ### 3.3 PR 标题
 
 ```
-feat(scope): MP-V6-BATCH-NN #N description
+feat(scope): MetaPlatform-BATCH-NN #N description
 ```
 
-**示例**：`feat(foundation): MP-V6-FOUNDATION-01 #1 K8s + Supabase 8 capabilities`
+**示例**：`feat(foundation): MetaPlatform-FOUNDATION-01 #1 K8s + Supabase 8 capabilities`
 
 ---
 
 ## 4. Claude Code loop 启动```bash
 # 单 Batch
-claude --loop .claude/loop-prompt.md --batch MP-V6-FOUNDATION-01# 链式（自动找下一个未完成）
+claude --loop .claude/loop-prompt.md --batch MetaPlatform-FOUNDATION-01# 链式（自动找下一个未完成）
 claude --loop .claude/loop-prompt.md --chain# GitHub Actions 触发
 # 手动：Actions → Claude Code Loop → Run workflow
 ```

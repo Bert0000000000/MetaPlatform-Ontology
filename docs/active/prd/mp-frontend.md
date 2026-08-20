@@ -83,7 +83,7 @@ interface MenuResponse {
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase Auth | MP-V6-FOUNDATION-01 |
+| Supabase Auth | MetaPlatform-FOUNDATION-01 |
 | Semi Design | v6.0 决策（直接用）|
 | 模块联邦 runtime | 自研 |
 

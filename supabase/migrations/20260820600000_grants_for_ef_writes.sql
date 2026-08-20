@@ -1,5 +1,5 @@
 -- supabase/migrations/20260820600000_grants_for_ef_writes.sql
--- Batch: MP-V6-EDGE-FN-01
+-- Batch: MetaPlatform-EDGE-FN-01
 -- Fix: Edge Functions 用 SUPABASE_SERVICE_ROLE_KEY 建 client, PostgREST 收到该 JWT 后
 --      会 `SET ROLE service_role`. 但 service_role 在 public schema 的业务表上
 --      **一条 table 权限都没有** (post-restore-fixes.sql L8 只 GRANT 给 anon/authenticated),

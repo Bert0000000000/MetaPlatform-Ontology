@@ -1,7 +1,7 @@
 /**
  * packages/mp-rag-pipeline/src/fusion.ts
  * PRD: docs/active/prd/rag-dual-engine.md §4.3
- * Batch: MP-V6-RAG-01
+ * Batch: MetaPlatform-RAG-01
  *
  * RAGFlow + GraphRAG 双路融合
  */

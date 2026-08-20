@@ -1,5 +1,5 @@
 // e2e/mp-sandbox.spec.ts
-// MP-V6.1 mp-sandbox Edge Function PoC (Issue #16 tracker, ADR-0069)
+// MetaPlatform.1 mp-sandbox Edge Function PoC (Issue #16 tracker, ADR-0069)
 //
 // 验证 (4 个用例):
 //   1. admin POST execute ('echo hello') -> 200 + 模拟 stdout

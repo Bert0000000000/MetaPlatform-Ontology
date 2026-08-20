@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820200000_create_saml_sso_tables.sql
 -- PRD: docs/active/prd/auth-jwt-rls.md §6.1
--- Batch: MP-V6.1-SAML-SSO-01
+-- Batch: MetaPlatform.1-SAML-SSO-01
 -- v6.1 SAML SSO: per-tenant IdP config + assertion cache
 
 -- ============================================================

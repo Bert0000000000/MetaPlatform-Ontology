@@ -1,5 +1,5 @@
 // e2e/multimodal-rag.spec.ts
-// MP-V6.1 Multimodal RAG PoC (Issue #9)
+// MetaPlatform.1 Multimodal RAG PoC (Issue #9)
 
 import { test, expect } from '@playwright/test';
 import pg from 'pg';

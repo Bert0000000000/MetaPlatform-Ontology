@@ -96,7 +96,7 @@ ALTER TABLE mp_data_catalog.* ENABLE ROW LEVEL SECURITY;
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase PG | MP-V6-FOUNDATION-01 |
+| Supabase PG | MetaPlatform-FOUNDATION-01 |
 | [mp-data-platform](mp-data-platform.md) | 自家（血缘数据源）|
 
 ## 8. 不做

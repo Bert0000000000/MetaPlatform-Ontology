@@ -1,6 +1,6 @@
 // supabase/functions/oauth-dingtalk-callback/index.ts
 // PRD: docs/active/prd/auth-jwt-rls.md §4.3
-// Batch: MP-V6-AUTH-01
+// Batch: MetaPlatform-AUTH-01
 // 钉钉 OAuth 2.0 callback → 创建/绑定 supabase auth user
 
 // @ts-nocheck — Deno runtime

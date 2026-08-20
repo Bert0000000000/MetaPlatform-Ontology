@@ -32,7 +32,7 @@ if [[ ! "$BRANCH" =~ ^feat/mp-v6-(.+)$ ]]; then
 fi
 
 BATCH_ID="${BASH_REMATCH[1]^^}"  # uppercase
-EVIDENCE_FILE="$REPO_ROOT/evidence/MP-V6-${BATCH_ID}-ACCEPTANCE.md"
+EVIDENCE_FILE="$REPO_ROOT/evidence/MetaPlatform-${BATCH_ID}-ACCEPTANCE.md"
 
 echo "📄 Evidence Check — branch: $BRANCH → $EVIDENCE_FILE"
 

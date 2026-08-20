@@ -1,6 +1,6 @@
 # apps/dsh-presets/dashboard-curator/cordis.yml
 # PRD: docs/active/prd/mp-data-product.md (Compass 路线图 v6.1)
-# Batch: MP-V6.1-COMPASS-01
+# Batch: MetaPlatform.1-COMPASS-01
 # 数字员工: dashboard-curator (业务智能仪表盘)
 
 name: dashboard-curator

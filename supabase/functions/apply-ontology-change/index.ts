@@ -1,6 +1,6 @@
 // supabase/functions/apply-ontology-change/index.ts
 // PRD: docs/active/prd/ontology-gen.md §4.2
-// Batch: MP-V6-ONTOLOGY-GEN-01 (full implementation)
+// Batch: MetaPlatform-ONTOLOGY-GEN-01 (full implementation)
 // Edge Function: ontology 变更入口, mode=preview|confirmed → Temporal workflow
 
 // @ts-nocheck — Deno runtime

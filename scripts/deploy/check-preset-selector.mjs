@@ -20,7 +20,7 @@ console.log(JSON.stringify(presetSelector, null, 2));
 
 // Try to find and click the agent preset selector
 try {
-  // Look for any element with text containing 'preset' or any MP-v6 preset name
+  // Look for any element with text containing 'preset' or any MetaPlatform preset name
   const selector = await page.locator('text=/preset|agent|mp-v6/i').first();
   const text = await selector.textContent();
   console.log('Selector element:', text?.slice(0, 200));

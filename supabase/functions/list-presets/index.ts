@@ -1,6 +1,6 @@
 // supabase/functions/list-presets/index.ts
 // PRD: docs/active/decisions/ADR-0062-v6.1-app-center.md
-// Batch: MP-V6.1-APP-CENTER-01
+// Batch: MetaPlatform.1-APP-CENTER-01
 // Loop 2/5: GET /functions/v1/list-presets
 // Public catalog (RLS):
 //   anon: public visibility only

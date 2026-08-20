@@ -8,10 +8,10 @@
 
 启动 MetaPlatform v6.0 开发 Sprint 0 的4 个 P0 Batch：
 
-1. `MP-V6-FOUNDATION-01`（4 周）— 基础设施
-2. `MP-V6-TEMPORAL-01`（3 周）— Temporal 集群
-3. `MP-V6-OBSERVABILITY-01`（2 周）— 可观测层
-4. `MP-V6-DSH-DOCKER-01`（2 周）— dsh 镜像
+1. `MetaPlatform-FOUNDATION-01`（4 周）— 基础设施
+2. `MetaPlatform-TEMPORAL-01`（3 周）— Temporal 集群
+3. `MetaPlatform-OBSERVABILITY-01`（2 周）— 可观测层
+4. `MetaPlatform-DSH-DOCKER-01`（2 周）— dsh 镜像
 
 预计 **10 周串行**（依赖关系）/ **5 周并行**（FOUNDATION 是关键路径）。
 
@@ -196,7 +196,7 @@ gh api repos/$ORG/MetaPlatform-Ontology/actions/workflows | jq '.workflows[].nam
 
 ---
 
-## Step 5：启动第一个 Batch（MP-V6-FOUNDATION-01）
+## Step 5：启动第一个 Batch（MetaPlatform-FOUNDATION-01）
 
 **目标**：用 Claude Code loop 启动第一个 Batch。
 
@@ -210,28 +210,28 @@ ls .claude/loop-prompt.md
 
 # 3. 初始化 Batch
 chmod +x scripts/loop/*.sh
-./scripts/loop/new-batch.sh MP-V6-FOUNDATION-01
+./scripts/loop/new-batch.sh MetaPlatform-FOUNDATION-01
 ```
 
 **输出**：
 ```
 ✅ Batch 初始化完成
 分支：feat/mp-v6-foundation-01
-下一步：claude --loop .claude/loop-prompt.md --batch MP-V6-FOUNDATION-01
+下一步：claude --loop .claude/loop-prompt.md --batch MetaPlatform-FOUNDATION-01
 ```
 
 ```bash
 # 4. 启动 Claude Code loop
-claude --loop .claude/loop-prompt.md --batch MP-V6-FOUNDATION-01
+claude --loop .claude/loop-prompt.md --batch MetaPlatform-FOUNDATION-01
 ```
 
 **Claude Code 会自动**：
 - git checkout 到新分支
-- 按 MP-V6-FOUNDATION-01 任务清单执行 4 周任务
-- 写 evidence/MP-V6-FOUNDATION-01-ACCEPTANCE.md
+- 按 MetaPlatform-FOUNDATION-01 任务清单执行 4 周任务
+- 写 evidence/MetaPlatform-FOUNDATION-01-ACCEPTANCE.md
 - commit + push + 创建 PR
 - 等 CI 8 项 gate + 合并
-- **自动进入下一 Batch**（MP-V6-TEMPORAL-01）
+- **自动进入下一 Batch**（MetaPlatform-TEMPORAL-01）
 
 ---
 
@@ -247,7 +247,7 @@ gh pr list --state open --label "batch"
 gh run list --workflow=ci.yml --limit 5
 
 # 看 evidence 文档
-cat evidence/MP-V6-*-ACCEPTANCE.md | head -50
+cat evidence/MetaPlatform-*-ACCEPTANCE.md | head -50
 
 # 看所有 Batch 进度
 ./scripts/loop/next-batch.sh
@@ -277,7 +277,7 @@ cat evidence/MP-V6-*-ACCEPTANCE.md | head -50
 # 直接 Ctrl+C 或关闭 terminal# 恢复
 cd MetaPlatform-Ontology
 git checkout main && git pull
-claude --loop .claude/loop-prompt.md --batch MP-V6-FOUNDATION-01
+claude --loop .claude/loop-prompt.md --batch MetaPlatform-FOUNDATION-01
 # 它会从断点继续（git 已 commit 过的不会丢）
 
 # 跳过当前 Batch
@@ -300,7 +300,7 @@ claude --loop .claude/loop-prompt.md --next
 | Step 3 | `gh api repos/$ORG/.../protection` | 8 个 required checks |
 | Step 4 | `gh api .../actions/workflows \| jq '.workflows\|length'` | `4` |
 | Step 5 | `gh pr list --state open` | 1 个 PR（FOUNDATION）|
-| Sprint 0 末 | `ls evidence/MP-V6-*-ACCEPTANCE.md` | 4 个 ACCEPTANCE 文件 |
+| Sprint 0 末 | `ls evidence/MetaPlatform-*-ACCEPTANCE.md` | 4 个 ACCEPTANCE 文件 |
 
 ---
 
@@ -309,11 +309,11 @@ claude --loop .claude/loop-prompt.md --next
 当看到以下输出时，Sprint 0 完成：
 
 ```bash
-ls evidence/MP-V6-*-ACCEPTANCE.md
-# MP-V6-FOUNDATION-01-ACCEPTANCE.md
-# MP-V6-TEMPORAL-01-ACCEPTANCE.md
-# MP-V6-OBSERVABILITY-01-ACCEPTANCE.md
-# MP-V6-DSH-DOCKER-01-ACCEPTANCE.md
+ls evidence/MetaPlatform-*-ACCEPTANCE.md
+# MetaPlatform-FOUNDATION-01-ACCEPTANCE.md
+# MetaPlatform-TEMPORAL-01-ACCEPTANCE.md
+# MetaPlatform-OBSERVABILITY-01-ACCEPTANCE.md
+# MetaPlatform-DSH-DOCKER-01-ACCEPTANCE.md
 ```
 
 **Sprint 0 完成 = 4 个 Batch 全部合并到 main + 4 份 evidence 文档**。
@@ -324,8 +324,8 @@ ls evidence/MP-V6-*-ACCEPTANCE.md
 
 **如果遇到任何问题**：
 1. **先看 spec**：`docs/active/specs/*.md` 通常有答案
-2. **看 Batch 文档**：`docs/active/batch/MP-V6-*.md` 有详细任务清单
-3. **看 evidence 检查**：`cat evidence/MP-V6-*.md` 看历史错误
+2. **看 Batch 文档**：`docs/active/batch/MetaPlatform-*.md` 有详细任务清单
+3. **看 evidence 检查**：`cat evidence/MetaPlatform-*.md` 看历史错误
 4. **问用户**（在 Step 里问的）— 如果 secrets 没配置、K8s 集群没准备等
 
 **严格规则**：

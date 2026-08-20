@@ -1,6 +1,6 @@
 # k8s/argoapp/image-updater-config.yaml
 # PRD: docs/active/prd/deploy-gitops.md §4.3
-# Batch: MP-V6-DEPLOY-01
+# Batch: MetaPlatform-DEPLOY-01
 # ArgoCD Image Updater 配置: 自动滚动 mp/* 镜像
 
 apiVersion: v1

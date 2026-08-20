@@ -4,7 +4,7 @@
 > **日期**：2026-08-19  
 > **作者**：Claude (MiniMax-M3) + 用户协作  
 > **关联 ADR**：ADR-0049（v6.0 架构总方案）、ADR-0052（v6.0 后端 TypeScript 化）  
-> **关联 Batch**：MP-V6-MIGRATION-01
+> **关联 Batch**：MetaPlatform-MIGRATION-01
 
 ---
 
@@ -154,7 +154,7 @@ Q4-2027
 
 ---
 
-## 6. ETL 设计（MP-V6-MIGRATION-01）
+## 6. ETL 设计（MetaPlatform-MIGRATION-01）
 
 ### 6.1 工作量
 
@@ -217,7 +217,7 @@ Week 7: 100%（全量）
 
 ```
 1. 选定租户 → 在 v3.0 / v6.0 同时打标
-2. v3.0 服务加 redirect header：X-MP-V6-Pilot: true
+2. v3.0 服务加 redirect header：X-MetaPlatform-Pilot: true
 3. 租户请求带此 header → 路由到 v6.0
 4. 验证 v6.0 正常工作 24h
 5. 租户取消 v3.0 标记 → 全量切 v6.0
@@ -276,7 +276,7 @@ Week 7: 100%（全量）
 - 技术架构 spec：`docs/active/specs/2026-08-19-mp-v6-architecture.md`
 - 应用架构 spec：`docs/active/specs/2026-08-19-mp-v6-application-architecture.md`
 - 模块规划 spec：`docs/active/specs/2026-08-19-mp-v6-module-planning.md`
-- MP-V6-MIGRATION-01 Batch：`docs/active/batch/MP-V6-MIGRATION-01.md`
+- MetaPlatform-MIGRATION-01 Batch：`docs/active/batch/MetaPlatform-MIGRATION-01.md`
 
 ---
 

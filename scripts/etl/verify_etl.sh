@@ -18,7 +18,7 @@ set -euo pipefail
 
 mkdir -p "$REPORT_DIR"
 
-REPORT="$REPORT_DIR/MP-V6-MIGRATION-01-VALIDATION-$(date +%Y-%m-%d).md"
+REPORT="$REPORT_DIR/MetaPlatform-MIGRATION-01-VALIDATION-$(date +%Y-%m-%d).md"
 
 echo "✅ Running ETL validation"
 

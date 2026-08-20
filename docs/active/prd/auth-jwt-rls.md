@@ -1,7 +1,7 @@
 # PRD：auth-jwt-rls
 
 > **模块**：Auth 层（Supabase Auth + JWT claims + RLS baseline + OAuth）
-> **对应 Batch**：[MP-V6-AUTH-01](../batch/MP-V6-AUTH-01.md)
+> **对应 Batch**：[MetaPlatform-AUTH-01](../batch/MetaPlatform-AUTH-01.md)
 > **状态**：Draft v1.0
 > **负责人**：SRE + 后端
 > **日期**：2026-08-20
@@ -138,8 +138,8 @@ export async function verifyAuth(req: Request) {
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase PG | MP-V6-FOUNDATION-01 |
-| Edge Functions runtime | MP-V6-FOUNDATION-01 |
+| Supabase PG | MetaPlatform-FOUNDATION-01 |
+| Edge Functions runtime | MetaPlatform-FOUNDATION-01 |
 | OAuth app 凭证 | SRE 申请（钉钉 / 飞书 / 企微） |
 
 ## 9. 风险
@@ -158,4 +158,4 @@ export async function verifyAuth(req: Request) {
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-AUTH-01 Batch](../batch/MP-V6-AUTH-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-AUTH-01 Batch](../batch/MetaPlatform-AUTH-01.md)*

@@ -1,7 +1,7 @@
 # PRD：otel-collector-config
 
 > **模块**：可观测层 — OTel Collector + 4 个基础 Dashboard + 告警规则
-> **对应 Batch**：[MP-V6-OBSERVABILITY-01](../batch/MP-V6-OBSERVABILITY-01.md)
+> **对应 Batch**：[MetaPlatform-OBSERVABILITY-01](../batch/MetaPlatform-OBSERVABILITY-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：SRE
 > **日期**：2026-08-20
@@ -395,16 +395,16 @@ datasources:
 | AC5 | 通知渠道验证（邮件 / 钉钉 / Slack） | 触发测试告警 |
 | AC6 | 端到端测试：测试应用上报 trace → Grafana 显示 | e2e test |
 | AC7 | 租户隔离：Grafana 按 tenant.id 过滤数据 | 测试 |
-| AC8 | evidence/MP-V6-OBSERVABILITY-01-ACCEPTANCE.md 完成 | 文件存在 |
+| AC8 | evidence/MetaPlatform-OBSERVABILITY-01-ACCEPTANCE.md 完成 | 文件存在 |
 
 ## 8. 依赖
 
 | 依赖 | 来源 | 时序 |
 |---|---|---|
-| `mp-monitoring` namespace | MP-V6-FOUNDATION-01 | 必须先 |
-| StorageClass（PV 供给）| MP-V6-FOUNDATION-01 | 必须先 |
+| `mp-monitoring` namespace | MetaPlatform-FOUNDATION-01 | 必须先 |
+| StorageClass（PV 供给）| MetaPlatform-FOUNDATION-01 | 必须先 |
 | Slack / 钉钉 / 邮件 webhook | SRE 申请 | 启动前 |
-| 第一个测试应用 | MP-V6-FOUNDATION-01 期间的任意服务 | 验证用 |
+| 第一个测试应用 | MetaPlatform-FOUNDATION-01 期间的任意服务 | 验证用 |
 
 ## 9. 风险
 

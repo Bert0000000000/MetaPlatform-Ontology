@@ -118,7 +118,7 @@ ALTER TABLE mp_knowledge.* ENABLE ROW LEVEL SECURITY;
 
 | 依赖 | 来源 |
 |---|---|
-| pgvector | MP-V6-FOUNDATION-01 |
+| pgvector | MetaPlatform-FOUNDATION-01 |
 | DeepSeek embedding | [mp-ai](mp-ai.md) |
 | RAGFlow（外部服务）| 用户部署 |
 | Microsoft GraphRAG（外部）| 用户部署 |

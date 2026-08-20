@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # 初始化新 Batch（创建分支 + worktree）
-# Usage: ./new-batch.sh MP-V6-FOUNDATION-01
+# Usage: ./new-batch.sh MetaPlatform-FOUNDATION-01
 
 set -euo pipefail
 
-BATCH="${1:?Usage: $0 MP-V6-BATCH-NN}"
+BATCH="${1:?Usage: $0 MetaPlatform-BATCH-NN}"
 
 if [ -z "$BATCH" ]; then
-  echo "Usage: $0 MP-V6-BATCH-NN"
+  echo "Usage: $0 MetaPlatform-BATCH-NN"
   exit 1
 fi
 

@@ -1,5 +1,5 @@
 // e2e/mp-platform-web.spec.ts
-// MP-V6 E2E: mp-platform 管理后台 (React + Vite + Semi Design)
+// MetaPlatform E2E: mp-platform 管理后台 (React + Vite + Semi Design)
 //
 // 启动: cd mp-platform/web && bash scripts/dev.sh   (同时跑 admin-api 8081 + Vite 5173)
 // 运行: E2E_BASE_URL=http://127.0.0.1:5173 npx playwright test --project=mp-platform-web mp-platform-web

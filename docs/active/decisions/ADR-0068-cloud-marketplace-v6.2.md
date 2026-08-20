@@ -220,7 +220,7 @@ ALTER TABLE mp_preset_registry.presets
 - **ADR-0063（v6.1 候选）**：[`docs/active/decisions/ADR-0063-v6.1-cloud-marketplace.md`](ADR-0063-v6.1-cloud-marketplace.md)
 - **ADR-0067（v6.0 GA）**：[`docs/active/decisions/ADR-0067-v6.0-ga-and-retrospective.md`](ADR-0067-v6.0-ga-and-retrospective.md)
 - **v6.1 路线图**：[`docs/active/v6.1-roadmap.md`](../v6.1-roadmap.md)
-- **App Center MVP**：[`evidence/MP-V6.1-APP-CENTER-01-ACCEPTANCE.md`](../../../evidence/MP-V6.1-APP-CENTER-01-ACCEPTANCE.md)
+- **App Center MVP**：[`evidence/MetaPlatform.1-APP-CENTER-01-ACCEPTANCE.md`](../../../evidence/MetaPlatform.1-APP-CENTER-01-ACCEPTANCE.md)
 
 ---
 

@@ -1,6 +1,6 @@
 // supabase/functions/ticket-triage/index.ts
 // PRD: docs/active/prd/edge-fn-17-domains.md §4.2
-// Batch: MP-V6-EDGE-FN-01
+// Batch: MetaPlatform-EDGE-FN-01
 // 客服工单自动分诊: 调 dsh support-triage preset 分析
 
 // @ts-nocheck — Deno runtime

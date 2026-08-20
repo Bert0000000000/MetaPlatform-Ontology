@@ -1,4 +1,4 @@
-# MP-V6 E2E Tests (Playwright)
+# MetaPlatform E2E Tests (Playwright)
 
 Playwright end-to-end tests for v6.0 platform. Tests Supabase Auth + RLS + Edge Functions + pg_cron + dsh-web UI.
 

@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820300000_create_multimodal_rag.sql
 -- PRD: docs/active/decisions/ADR-0065-v6.1-multimodal-rag.md
--- Batch: MP-V6.1-MULTIMODAL-RAG-01 (PoC Phase 1: image embedding)
+-- Batch: MetaPlatform.1-MULTIMODAL-RAG-01 (PoC Phase 1: image embedding)
 
 -- 1) image_embeddings table (CLIP 512-dim vectors)
 CREATE TABLE IF NOT EXISTS public.image_embeddings (

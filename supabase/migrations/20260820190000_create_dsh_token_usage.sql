@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820190000_create_dsh_token_usage.sql
 -- PRD: docs/active/prd/llm-providers.md §4.4
--- Batch: MP-V6-LLM-01
+-- Batch: MetaPlatform-LLM-01
 -- dsh token meter (LLM 调用计费 + 用量分析)
 
 CREATE TABLE public.dsh_token_usage (

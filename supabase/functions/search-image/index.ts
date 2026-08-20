@@ -1,5 +1,5 @@
 // supabase/functions/search-image/index.ts
-// MP-V6.1 Multimodal RAG: text -> image search
+// MetaPlatform.1 Multimodal RAG: text -> image search
 // Accepts a CLIP text embedding, returns top-K similar images
 
 // @ts-nocheck — Deno runtime

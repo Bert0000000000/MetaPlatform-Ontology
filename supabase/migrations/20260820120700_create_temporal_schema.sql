@@ -2,10 +2,10 @@
 -- PRD: docs/active/prd/temporal-cluster.md §4.2 + foundation-rls-policy.md §6 (exemption)
 -- Temporal Cluster 复用 Supabase Postgres, 用专用 schema + 专用 user.
 -- Schema 下所有表 DISABLE ROW LEVEL SECURITY (系统账户全权访问).
--- RLS 豁免清单: evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md
+-- RLS 豁免清单: evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md
 
 CREATE SCHEMA IF NOT EXISTS temporal;
-COMMENT ON SCHEMA temporal IS 'Owned by Temporal Cluster. RLS-exempt (system account). 见 evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md';
+COMMENT ON SCHEMA temporal IS 'Owned by Temporal Cluster. RLS-exempt (system account). 见 evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md';
 
 -- 专用 user; 密码由 Vault → ExternalSecret → K8s Secret, 永远不进 git
 -- 这里只声明角色, 密码通过 supabase migration 之外的 init flow 注入

@@ -1,7 +1,7 @@
 /**
  * packages/mp-approval-saas/src/types.ts
  * PRD: docs/active/prd/approval-saas-adapters.md §4.1
- * Batch: MP-V6-APPROVAL-01
+ * Batch: MetaPlatform-APPROVAL-01
  * Common ApprovalAdapter 接口
  */
 

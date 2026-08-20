@@ -1,7 +1,7 @@
 # PRD：dsh-image-spec
 
 > **模块**：dsh Docker 镜像 — 多阶段构建 + Harbor 推送
-> **对应 Batch**：[MP-V6-DSH-DOCKER-01](../batch/MP-V6-DSH-DOCKER-01.md)
+> **对应 Batch**：[MetaPlatform-DSH-DOCKER-01](../batch/MetaPlatform-DSH-DOCKER-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：AI 团队 + SRE
 > **日期**：2026-08-20
@@ -366,13 +366,13 @@ DSH_CONFIG_PATH=/app/config
 | AC6 | tag 触发 build + push + sign | GitHub Actions run |
 | AC7 | 镜像推送到 Harbor 项目 `mp` | `harbor.mp-platform.local/mp/dsh-web` 可见 |
 | AC8 | 镜像能在 K8s 跑（`pnpm dsh web`）| kubectl apply + 服务可达 |
-| AC9 | evidence/MP-V6-DSH-DOCKER-01-ACCEPTANCE.md 完成 | 文件存在 |
+| AC9 | evidence/MetaPlatform-DSH-DOCKER-01-ACCEPTANCE.md 完成 | 文件存在 |
 
 ## 8. 依赖
 
 | 依赖 | 来源 | 时序 |
 |---|---|---|
-| Harbor | MP-V6-FOUNDATION-01（外部依赖）| 必须先 |
+| Harbor | MetaPlatform-FOUNDATION-01（外部依赖）| 必须先 |
 | GitHub Secrets：HARBOR_USERNAME / HARBOR_PASSWORD / COSIGN_PRIVATE_KEY | START.md Step 3 | 必须先 |
 | dsh 源码 | `deepseek-ai/deepseek-harness` | 必须 |
 | Node 22.19+ | 基础工具 | 必须 |

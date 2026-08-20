@@ -1,7 +1,7 @@
 /**
  * packages/mp-temporal-worker-template/src/workflows/ontology.ts
  * PRD: docs/active/prd/ontology-gen.md §4.3
- * Batch: MP-V6-ONTOLOGY-GEN-01
+ * Batch: MetaPlatform-ONTOLOGY-GEN-01
  *
  * previewOntologyChangeWorkflow + applyOntologyChangeWorkflow
  */

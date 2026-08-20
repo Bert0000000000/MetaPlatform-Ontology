@@ -1,5 +1,5 @@
 // e2e/mp-runtime.spec.ts
-// MP-V6-MP-RUNTIME-01: mp-runtime Edge Functions (trigger / status / cancel)
+// MetaPlatform-MP-RUNTIME-01: mp-runtime Edge Functions (trigger / status / cancel)
 
 import { test, expect } from '@playwright/test';
 import pg from 'pg';
@@ -9,7 +9,7 @@ const API = process.env.SUPABASE_API ?? 'http://localhost:54321';
 const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
 
-test.describe('mp-runtime (MP-V6-MP-RUNTIME-01)', () => {
+test.describe('mp-runtime (MetaPlatform-MP-RUNTIME-01)', () => {
   let tenantA: string;
   let tenantB: string;
   let userA: { id: string; email: string };

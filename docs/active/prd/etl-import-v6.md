@@ -1,7 +1,7 @@
 # PRD：etl-import-v6
 
 > **模块**：v3.0 → v6.0 数据迁移 — 导入阶段
-> **对应 Batch**：[MP-V6-MIGRATION-01](../batch/MP-V6-MIGRATION-01.md)
+> **对应 Batch**：[MetaPlatform-MIGRATION-01](../batch/MetaPlatform-MIGRATION-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：后端 + SRE
 > **日期**：2026-08-20
@@ -251,7 +251,7 @@ except s3.exceptions.NoSuchKey:
 
 ### 4.6 切流量策略
 
-按 [MP-V6-MIGRATION-01.md §4](../batch/MP-V6-MIGRATION-01.md) 的 4-6 周计划：
+按 [MetaPlatform-MIGRATION-01.md §4](../batch/MetaPlatform-MIGRATION-01.md) 的 4-6 周计划：
 
 | 周 | 范围 | 监控时长 | 回滚阈值 |
 |---|---|---|---|
@@ -341,14 +341,14 @@ psql "$V6_DB_URL" -f scripts/etl/verify_etl.sql
 | AC6 | 按租户分批切流量：100% 完成 | feature flag 状态 |
 | AC7 | v3.0 标记 deprecated | DNS / LB 配置 |
 | AC8 | 每次切流量 24h 监控无异常 | SRE 日志 |
-| AC9 | evidence/MP-V6-MIGRATION-01-IMPORT.md 完成 | 文件存在 |
+| AC9 | evidence/MetaPlatform-MIGRATION-01-IMPORT.md 完成 | 文件存在 |
 
 ## 8. 依赖
 
 | 依赖 | 来源 | 时序 |
 |---|---|---|
 | [etl-export-v3](etl-export-v3.md) 输出 | Week 1 | 必须先 |
-| Supabase Auth + 业务 schema | MP-V6-FOUNDATION-01 | 必须先 |
+| Supabase Auth + 业务 schema | MetaPlatform-FOUNDATION-01 | 必须先 |
 | feature flag 服务 | mp-platform | 必须先 |
 | Id 映射表持久化 | id_mapping/ 目录 | 必须先 |
 

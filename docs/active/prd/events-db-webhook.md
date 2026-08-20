@@ -1,7 +1,7 @@
 # PRD：events-db-webhook
 
 > **模块**：Database Webhook + pg_cron worker（事件可靠传递层）
-> **对应 Batch**：[MP-V6-EVENTS-01](../batch/MP-V6-EVENTS-01.md)
+> **对应 Batch**：[MetaPlatform-EVENTS-01](../batch/MetaPlatform-EVENTS-01.md)
 > **状态**：Draft v1.0
 > **负责人**：SRE
 > **日期**：2026-08-20
@@ -143,8 +143,8 @@ CREATE INDEX event_queue_pending_idx ON public.event_queue (status, next_retry_a
 | 依赖 | 来源 |
 |---|---|
 | pg_cron extension | Supabase 默认 |
-| Realtime | MP-V6-FOUNDATION-01 ✅ |
-| Supabase Storage (冷存储) | MP-V6-FOUNDATION-01 ✅ |
+| Realtime | MetaPlatform-FOUNDATION-01 ✅ |
+| Supabase Storage (冷存储) | MetaPlatform-FOUNDATION-01 ✅ |
 
 ## 9. 风险
 
@@ -162,4 +162,4 @@ CREATE INDEX event_queue_pending_idx ON public.event_queue (status, next_retry_a
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-EVENTS-01 Batch](../batch/MP-V6-EVENTS-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-EVENTS-01 Batch](../batch/MetaPlatform-EVENTS-01.md)*

@@ -92,7 +92,7 @@ ALTER TABLE mp_data_quality.* ENABLE ROW LEVEL SECURITY;
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase PG | MP-V6-FOUNDATION-01 |
+| Supabase PG | MetaPlatform-FOUNDATION-01 |
 | Slack / 邮件 webhook | 用户 |
 
 ## 8. 不做

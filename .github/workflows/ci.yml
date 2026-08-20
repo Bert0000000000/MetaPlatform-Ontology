@@ -101,7 +101,7 @@ jobs:
           # 提取 Batch ID（feat/mp-v6-<batch-name> → mp-v6-<batch-name>）
           if [[ "$BRANCH" =~ ^feat/mp-v6-(.+)$ ]]; then
             BATCH_ID="${BASH_REMATCH[1]}"
-            EVIDENCE_FILE="evidence/MP-V6-${BATCH_ID^^}-ACCEPTANCE.md"
+            EVIDENCE_FILE="evidence/MetaPlatform-${BATCH_ID^^}-ACCEPTANCE.md"
 
             if [ ! -f "${EVIDENCE_FILE}" ]; then
               echo "::error::evidence/${EVIDENCE_FILE} not found"

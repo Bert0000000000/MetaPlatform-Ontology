@@ -106,7 +106,7 @@ ALTER TABLE mp_skill_marketplace.* ENABLE ROW LEVEL SECURITY;
 | 依赖 | 来源 |
 |---|---|
 | [mp-agent-team](mp-agent-team.md) | 自家 |
-| Supabase Storage（图标 / 附件）| MP-V6-FOUNDATION-01 |
+| Supabase Storage（图标 / 附件）| MetaPlatform-FOUNDATION-01 |
 
 ## 8. 不做
 

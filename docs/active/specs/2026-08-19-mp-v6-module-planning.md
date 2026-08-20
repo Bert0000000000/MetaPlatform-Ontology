@@ -325,10 +325,10 @@ pg_cron 每日 02:00
 | M10 | OTel + Grafana 全栈监控 |
 
 **核心 Batch**：
-- MP-V6-FOUNDATION-01（4 周）
-- MP-V6-TEMPORAL-01（3 周）
-- MP-V6-DSH-DOCKER-01 + MP-V6-DSH-K8S-01（4 周）
-- MP-V6-OBSERVABILITY-01（2 周）
+- MetaPlatform-FOUNDATION-01（4 周）
+- MetaPlatform-TEMPORAL-01（3 周）
+- MetaPlatform-DSH-DOCKER-01 + MetaPlatform-DSH-K8S-01（4 周）
+- MetaPlatform-OBSERVABILITY-01（2 周）
 
 **退出标准**：
 - ✅ Supabase 集群可访问
@@ -356,11 +356,11 @@ pg_cron 每日 02:00
 | M22 | 多级审批超时升级 |
 
 **核心 Batch**：
-- MP-V6-DSH-01（4 周）
-- MP-V6-DSH-POSTGRES-BACKEND-01（3 周）
-- MP-V6-AUTH-01（2 周）
-- MP-V6-HITL-HUB-01（4 周）
-- MP-V6-ONTOLOGY-GEN-01（4 周）
+- MetaPlatform-DSH-01（4 周）
+- MetaPlatform-DSH-POSTGRES-BACKEND-01（3 周）
+- MetaPlatform-AUTH-01（2 周）
+- MetaPlatform-HITL-HUB-01（4 周）
+- MetaPlatform-ONTOLOGY-GEN-01（4 周）
 
 **退出标准**：
 - ✅ 能在 dsh Web 跟 Ontology Explorer 对话
@@ -381,11 +381,11 @@ pg_cron 每日 02:00
 | **M81-M87** | **阈值 + 实时触发（场景 21 + 22）** | 🟠 P1 |
 
 **核心 Batch**：
-- MP-V6-DOMAIN-MIGRATE-01（8 周，先做 4 个 P1 域）
-- MP-V6-EDGE-FN-01（6 周，迁移 17 域到 Edge Functions）
-- MP-V6-TEMPORAL-TS-01（3 周）
-- MP-V6-RAG-01（4 周）
-- **MP-V6-THRESHOLD-01（4 周，阈值 + 实时触发 + 兜底）**
+- MetaPlatform-DOMAIN-MIGRATE-01（8 周，先做 4 个 P1 域）
+- MetaPlatform-EDGE-FN-01（6 周，迁移 17 域到 Edge Functions）
+- MetaPlatform-TEMPORAL-TS-01（3 周）
+- MetaPlatform-RAG-01（4 周）
+- **MetaPlatform-THRESHOLD-01（4 周，阈值 + 实时触发 + 兜底）**
 
 **退出标准**：
 - ✅ Customer / Order / Product / Contract 4 域可上线
@@ -403,8 +403,8 @@ pg_cron 每日 02:00
 | M50 | 数字员工 Marketplace（可选） |
 
 **核心 Batch**：
-- MP-V6-APPROVAL-01（6 周，3 家 SaaS 适配）
-- MP-V6-MARKETPLACE-01（4 周，可选）
+- MetaPlatform-APPROVAL-01（6 周，3 家 SaaS 适配）
+- MetaPlatform-MARKETPLACE-01（4 周，可选）
 
 **退出标准**：
 - ✅ 订单审批走钉钉能跑通

@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820220000_create_compass_dashboards.sql
 -- PRD: docs/active/prd/mp-data-product.md (Compass v6.1)
--- Batch: MP-V6.1-COMPASS-01
+-- Batch: MetaPlatform.1-COMPASS-01
 -- v6.1 Compass: 仪表盘系统 (dsh dashboard-curator preset 配套)
 
 -- ============================================================

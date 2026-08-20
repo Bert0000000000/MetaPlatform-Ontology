@@ -1,7 +1,7 @@
 # PRD：etl-validation
 
 > **模块**：v3.0 → v6.0 数据迁移 — 校验阶段
-> **对应 Batch**：[MP-V6-MIGRATION-01](../batch/MP-V6-MIGRATION-01.md)
+> **对应 Batch**：[MetaPlatform-MIGRATION-01](../batch/MetaPlatform-MIGRATION-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：SRE + DBA
 > **日期**：2026-08-20
@@ -220,7 +220,7 @@ test('L3.4 切流量 feature flag 工作', async () => {
 ### 4.2 校验报告模板
 
 ```markdown
-# evidence/MP-V6-MIGRATION-01-VALIDATION-<env>-<date>.md
+# evidence/MetaPlatform-MIGRATION-01-VALIDATION-<env>-<date>.md
 
 ## 环境
 - v3.0 库：v3-prod-readonly.mp-platform.local
@@ -333,7 +333,7 @@ python3 scripts/etl/can_proceed.py
 ### 6.2 报告位置
 
 ```
-evidence/MP-V6-MIGRATION-01-VALIDATION-<env>-<YYYYMMDD>.md
+evidence/MetaPlatform-MIGRATION-01-VALIDATION-<env>-<YYYYMMDD>.md
 ```
 
 ## 7. 验收标准（AC）

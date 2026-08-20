@@ -1,7 +1,7 @@
 // supabase/functions/mp-sandbox/index.ts
 // PRD: docs/active/prd/mp-sandbox.md
 // ADR:  docs/active/decisions/ADR-0069-mp-sandbox-poc.md
-// Batch: MP-V6.1-MP-SANDBOX-PoC (Issue #16 tracker)
+// Batch: MetaPlatform.1-MP-SANDBOX-PoC (Issue #16 tracker)
 //
 // 安全代码执行沙箱 (PoC)
 //

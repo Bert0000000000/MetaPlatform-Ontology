@@ -1,7 +1,7 @@
 # PRD：foundation-supabase-schema
 
 > **模块**：MetaPlatform v6.0 基础设施层 — Supabase 公共 schema
-> **对应 Batch**：[MP-V6-FOUNDATION-01](../batch/MP-V6-FOUNDATION-01.md)
+> **对应 Batch**：[MetaPlatform-FOUNDATION-01](../batch/MetaPlatform-FOUNDATION-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：SRE + DBA
 > **日期**：2026-08-20
@@ -262,7 +262,7 @@ supabase db push              # 应用迁移（GitOps 模式）
 
 - ❌ **多 region 复制**：单 region
 - ❌ **行级加密**：v6.0 透明加密 + 字段级加密留给 v6.1
-- ❌ **数据湖 / OLAP 出口**：v6.0 不出 mp-data 边界，ETL 在 MP-V6-MIGRATION-01 之后
+- ❌ **数据湖 / OLAP 出口**：v6.0 不出 mp-data 边界，ETL 在 MetaPlatform-MIGRATION-01 之后
 - ❌ **第三方 schema（mp-ai / mp-knowledge 等）**：由各自 Batch 实现
 
 ---

@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820210000_create_schema_versioning.sql
 -- PRD: docs/active/prd/ontology-gen.md §4.4
--- Batch: MP-V6.1-SCHEMA-VERSION-01
+-- Batch: MetaPlatform.1-SCHEMA-VERSION-01
 -- v6.1 Schema Versioning: 多版本 ontology_object_types + 版本切换
 
 -- ============================================================

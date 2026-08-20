@@ -1,5 +1,5 @@
 // e2e/supabase-auth.spec.ts
-// MP-V6 E2E: Supabase Auth + RLS 跨租户隔离验证
+// MetaPlatform E2E: Supabase Auth + RLS 跨租户隔离验证
 //
 // 验证:
 //   1. signup + login 流程

@@ -1,5 +1,5 @@
 // e2e/publish-preset.spec.ts
-// MP-V6 Loop 3/5: publish-preset Edge Function
+// MetaPlatform Loop 3/5: publish-preset Edge Function
 
 import { test, expect } from '@playwright/test';
 import pg from 'pg';

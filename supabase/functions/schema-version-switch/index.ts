@@ -1,6 +1,6 @@
 # supabase/functions/schema-version-switch/index.ts
 // PRD: docs/active/prd/ontology-gen.md §4.4
-// Batch: MP-V6.1-SCHEMA-VERSION-01
+// Batch: MetaPlatform.1-SCHEMA-VERSION-01
 // Edge Function: 切换 ontology 活跃版本
 
 // @ts-nocheck — Deno runtime

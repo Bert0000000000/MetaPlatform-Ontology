@@ -1,7 +1,7 @@
 /**
  * apps/web/src/components/OntologyDiff/OntologyDiffViewer.tsx
  * PRD: docs/active/prd/ontology-gen.md §4.4
- * Batch: MP-V6-ONTOLOGY-GEN-01
+ * Batch: MetaPlatform-ONTOLOGY-GEN-01
  *
  * 渲染 ontology 变更 diff (JSON format), 用 Semi Design Table 高亮 added/removed/modified
  */

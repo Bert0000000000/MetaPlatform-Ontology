@@ -1,5 +1,5 @@
 // e2e/uninstall-preset.spec.ts
-// MP-V6 Loop 5/5: uninstall-preset Edge Function (per Issue #5)
+// MetaPlatform Loop 5/5: uninstall-preset Edge Function (per Issue #5)
 // Test: uninstall, list active installs, status transition
 
 import { test, expect } from '@playwright/test';

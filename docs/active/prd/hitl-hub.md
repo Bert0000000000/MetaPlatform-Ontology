@@ -1,7 +1,7 @@
 # PRD：hitl-hub
 
 > **模块**：HITL Hub 联动中枢（4 种 HITL 类型 + 长任务 5 大机制）
-> **对应 Batch**：[MP-V6-HITL-HUB-01](../batch/MP-V6-HITL-HUB-01.md)
+> **对应 Batch**：[MetaPlatform-HITL-HUB-01](../batch/MetaPlatform-HITL-HUB-01.md)
 > **状态**：Draft v1.0
 > **负责人**：SRE + 后端
 > **日期**：2026-08-20
@@ -135,9 +135,9 @@ supabase.channel(`hitl:${tenantId}`)
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase PG + RLS | MP-V6-FOUNDATION-01 ✅ |
-| Realtime | MP-V6-FOUNDATION-01 ✅ |
-| Temporal Worker | MP-V6-TEMPORAL-01 ✅ |
+| Supabase PG + RLS | MetaPlatform-FOUNDATION-01 ✅ |
+| Realtime | MetaPlatform-FOUNDATION-01 ✅ |
+| Temporal Worker | MetaPlatform-TEMPORAL-01 ✅ |
 | 钉钉/飞书/企微 app 凭证 | SRE 申请 |
 
 ## 9. 风险
@@ -157,4 +157,4 @@ supabase.channel(`hitl:${tenantId}`)
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-HITL-HUB-01 Batch](../batch/MP-V6-HITL-HUB-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-HITL-HUB-01 Batch](../batch/MetaPlatform-HITL-HUB-01.md)*

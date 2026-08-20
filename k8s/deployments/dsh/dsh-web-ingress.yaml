@@ -1,6 +1,6 @@
 # k8s/deployments/dsh/dsh-web-ingress.yaml
 # PRD: docs/active/prd/dsh-60-packages.md §6.3
-# Batch: MP-V6-DSH-01
+# Batch: MetaPlatform-DSH-01
 # dsh-web Ingress (TLS via cert-manager)
 
 apiVersion: networking.k8s.io/v1

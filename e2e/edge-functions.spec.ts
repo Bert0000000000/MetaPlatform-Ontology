@@ -1,5 +1,5 @@
 // e2e/edge-functions.spec.ts
-// MP-V6 E2E: Edge Functions 端到端测试
+// MetaPlatform E2E: Edge Functions 端到端测试
 //
 // 验证:
 //   1. create-customer dedup (同 email 返回同一 record)

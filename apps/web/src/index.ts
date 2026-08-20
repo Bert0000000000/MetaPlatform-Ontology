@@ -6,7 +6,7 @@
  * dsh-web / mate-studio / admin-web micro-frontends.
  *
  * NOTE: This is the Phase A scaffold. Full implementation lands in
- * MP-V6-DSH-DOCKER-01 + MP-V6-AUTH-01 batches.
+ * MetaPlatform-DSH-DOCKER-01 + MetaPlatform-AUTH-01 batches.
  */
 
 export interface AppConfig {

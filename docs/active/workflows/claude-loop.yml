@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       batch:
-        description: 'Batch ID (e.g. MP-V6-FOUNDATION-01)'
+        description: 'Batch ID (e.g. MetaPlatform-FOUNDATION-01)'
         required: true
       branch_base:
         description: 'Base branch to branch from'

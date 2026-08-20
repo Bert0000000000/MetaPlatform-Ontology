@@ -1,5 +1,5 @@
 // e2e/install-preset.spec.ts
-// MP-V6 Loop 4/5: install-preset Edge Function
+// MetaPlatform Loop 4/5: install-preset Edge Function
 
 import { test, expect } from '@playwright/test';
 import pg from 'pg';

@@ -1,6 +1,6 @@
 // supabase/functions/saml-metadata/index.ts
 // PRD: docs/active/prd/auth-jwt-rls.md §6.1
-// Batch: MP-V6.1-SAML-SSO-01
+// Batch: MetaPlatform.1-SAML-SSO-01
 // Edge Function: SAML IdP metadata 解析 + SP metadata 生成
 //
 // 路由:

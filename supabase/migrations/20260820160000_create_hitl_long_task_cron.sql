@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820160000_create_hitl_long_task_cron.sql
 -- PRD: docs/active/prd/hitl-hub.md §4.2
--- Batch: MP-V6-HITL-HUB-01
+-- Batch: MetaPlatform-HITL-HUB-01
 -- 长任务 5 大机制 — pg_cron 定时任务
 
 -- 启用 pg_cron (Supabase 默认已安装)

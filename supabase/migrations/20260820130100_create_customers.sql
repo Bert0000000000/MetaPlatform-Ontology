@@ -4,7 +4,7 @@
 CREATE TABLE public.customers (
     id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id       uuid NOT NULL REFERENCES public.tenants(id),
-    external_id     text,                          -- v3.0 迁过来的客户 ID (MP-V6-MIGRATION-01)
+    external_id     text,                          -- v3.0 迁过来的客户 ID (MetaPlatform-MIGRATION-01)
     name            text NOT NULL,
     contact_email   text,
     contact_phone   text,

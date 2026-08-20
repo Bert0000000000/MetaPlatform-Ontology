@@ -1,5 +1,5 @@
 // e2e/mp-knowledge.spec.ts
-// MP-V6 mp-knowledge PoC (Issue #15) — orchestration layer E2E
+// MetaPlatform mp-knowledge PoC (Issue #15) — orchestration layer E2E
 //
 // Coverage:
 //   1. basic search -> 200 + results array
