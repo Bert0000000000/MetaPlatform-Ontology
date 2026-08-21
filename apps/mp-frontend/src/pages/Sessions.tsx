@@ -1,6 +1,7 @@
 // src/pages/Sessions.tsx — M15 dsh Sessions
 import React, { useEffect, useState } from 'react';
-import { Spin, Table, Card, Tag, Statistic, Row, Col } from '@douyinfe/semi-ui';
+import { Spin, Table, Card, Tag, Row, Col } from '@douyinfe/semi-ui';
+import Stat from '../components/Stat';
 import PageHeader from '../components/PageHeader';
 import { authedFetch } from '../lib/api';
 
@@ -58,9 +59,9 @@ export default function Sessions() {
     <div>
       <PageHeader title="M15 dsh Sessions" description="Postgres backend · K8s 多副本共享" onRefresh={load} />
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col span={8}><Card><Statistic title="Active" value={active} valueStyle={{ color: 'green' }} /></Card></Col>
-        <Col span={8}><Card><Statistic title="Completed" value={completed} valueStyle={{ color: 'grey' }} /></Card></Col>
-        <Col span={8}><Card><Statistic title="Failed" value={failed} valueStyle={{ color: failed > 0 ? 'red' : 'green' }} /></Card></Col>
+        <Col span={8}><Card><Stat title="Active" value={active} valueStyle={{ color: 'green' }} /></Card></Col>
+        <Col span={8}><Card><Stat title="Completed" value={completed} valueStyle={{ color: 'grey' }} /></Card></Col>
+        <Col span={8}><Card><Stat title="Failed" value={failed} valueStyle={{ color: failed > 0 ? 'red' : 'green' }} /></Card></Col>
       </Row>
       <Card>
         <Table columns={columns} dataSource={rows} rowKey="id" pagination={false} />

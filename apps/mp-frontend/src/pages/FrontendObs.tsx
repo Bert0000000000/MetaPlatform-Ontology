@@ -1,6 +1,7 @@
 // src/pages/FrontendObs.tsx — mp-frontend-obs (Loop 1/3)
 import React, { useEffect, useState } from 'react';
-import { Spin, Table, Card, Tag, Statistic, Row, Col } from '@douyinfe/semi-ui';
+import { Spin, Table, Card, Tag, Row, Col } from '@douyinfe/semi-ui';
+import Stat from '../components/Stat';
 import PageHeader from '../components/PageHeader';
 import { authedFetch } from '../lib/api';
 
@@ -53,9 +54,9 @@ export default function FrontendObs() {
     <div>
       <PageHeader title="mp-frontend-obs" description="前端埋点 (page_view / click / error / performance)" onRefresh={load} />
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col span={8}><Card><Statistic title="Page Views" value={pv} valueStyle={{ color: 'green' }} /></Card></Col>
-        <Col span={8}><Card><Statistic title="Errors" value={err} valueStyle={{ color: err > 0 ? 'red' : 'green' }} /></Card></Col>
-        <Col span={8}><Card><Statistic title="Sessions" value={sessions} /></Card></Col>
+        <Col span={8}><Card><Stat title="Page Views" value={pv} valueStyle={{ color: 'green' }} /></Card></Col>
+        <Col span={8}><Card><Stat title="Errors" value={err} valueStyle={{ color: err > 0 ? 'red' : 'green' }} /></Card></Col>
+        <Col span={8}><Card><Stat title="Sessions" value={sessions} /></Card></Col>
       </Row>
       <Card>
         <Table columns={columns} dataSource={rows} rowKey="id" pagination={false} />

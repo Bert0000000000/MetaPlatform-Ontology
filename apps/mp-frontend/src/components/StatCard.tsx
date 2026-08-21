@@ -1,6 +1,7 @@
 // src/components/StatCard.tsx — Semi Design Statistic card
 import React from 'react';
-import { Card, Statistic } from '@douyinfe/semi-ui';
+import { Card } from '@douyinfe/semi-ui';
+import Stat from './Stat';
 
 export interface StatCardProps {
   title: string;
@@ -12,11 +13,11 @@ export interface StatCardProps {
 export default function StatCard({ title, value, description, color }: StatCardProps) {
   return (
     <Card>
-      <Statistic.title style={{ color: 'var(--semi-color-text-2)', fontSize: 12 }}>
+      <Stat.title style={{ color: 'var(--semi-color-text-2)', fontSize: 12 }}>
         {title}
-      </Statistic.title>
+      </Stat.title>
       <div style={{ marginTop: 8 }}>
-        <Statistic
+        <Stat
           value={value}
           valueStyle={{
             color: color ? `var(--semi-color-${color})` : undefined,

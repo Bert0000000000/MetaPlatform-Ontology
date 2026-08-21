@@ -1,8 +1,10 @@
 // src/pages/HITL.tsx — M13 HITL Hub
 import React, { useEffect, useState } from 'react';
-import { Spin, Table, Card, Tag, Statistic, Row, Col } from '@douyinfe/semi-ui';
+import { Spin, Table, Card, Tag, Row, Col, Badge } from '@douyinfe/semi-ui';
+import Stat from '../components/Stat';
 import PageHeader from '../components/PageHeader';
 import { authedFetch } from '../lib/api';
+import { subscribeTable } from '../lib/realtime';
 
 interface HITLRow {
   id: string;
@@ -46,6 +48,15 @@ export default function HITL() {
 
   useEffect(() => { load(); }, []);
 
+  // M40 Loop 3/3: Realtime 订阅 hitl_requests INSERT/UPDATE → 自动刷新
+  useEffect(() => {
+    const sub = subscribeTable('hitl_requests', () => {
+      // Realtime event: 触发后台重 load
+      load();
+    });
+    return () => sub.unsubscribe();
+  }, []);
+
   if (loading) return <Spin />;
 
   const pending = rows.filter((r) => r.status === 'pending').length;
@@ -68,10 +79,16 @@ export default function HITL() {
     <div>
       <PageHeader title="M13 HITL Hub" description="4 类型联动中枢 + 多级升级" onRefresh={load} />
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col span={6}><Card><Statistic title="Pending" value={pending} valueStyle={{ color: pending > 0 ? 'orange' : 'green' }} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Approved" value={approved} valueStyle={{ color: 'green' }} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Rejected" value={rejected} valueStyle={{ color: 'red' }} /></Card></Col>
-        <Col span={6}><Card><Statistic title="Avg Decision (s)" value={avgMs} /></Card></Col>
+        <Col span={6}><Card>
+          <Stat
+            title={<>Pending <Badge count={pending} type={pending > 0 ? 'warning' : 'success'} overflowCount={99} /></>}
+            value={pending}
+            valueStyle={{ color: pending > 0 ? 'orange' : 'green' }}
+          />
+        </Card></Col>
+        <Col span={6}><Card><Stat title="Approved" value={approved} valueStyle={{ color: 'green' }} /></Card></Col>
+        <Col span={6}><Card><Stat title="Rejected" value={rejected} valueStyle={{ color: 'red' }} /></Card></Col>
+        <Col span={6}><Card><Stat title="Avg Decision (s)" value={avgMs} /></Card></Col>
       </Row>
       <Card>
         <Table columns={columns} dataSource={rows} rowKey="id" pagination={false} />

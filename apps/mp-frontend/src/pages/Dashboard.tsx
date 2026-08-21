@@ -24,7 +24,7 @@ export default function Dashboard() {
 
   if (loading) return <Spin />;
 
-  const d = data?.rows?.[0] ?? { n: 0 };
+  const d = json?.rows?.[0] ?? { n: 0 };
   return (
     <div>
       <PageHeader

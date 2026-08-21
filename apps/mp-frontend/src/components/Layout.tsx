@@ -1,7 +1,7 @@
 // src/components/Layout.tsx — Semi Design Sider + Header + Content + Footer
 import React, { useState } from 'react';
 import { Layout as SemiLayout, Nav, Avatar, Badge } from '@douyinfe/semi-ui';
-import { IconHome, IconBranch, IconHandshake, IconRobot, IconShield, IconPulse, IconFile, IconServer, IconUser, IconGrid2, IconLayers } from '@douyinfe/semi-icons';
+import { IconHome, IconBranch, IconHandle, IconAppCenter, IconShield, IconPulse, IconFile, IconServer, IconUser, IconGridRectangle, IconLayers } from '@douyinfe/semi-icons';
 import { Link, useLocation } from 'react-router-dom';
 
 const { Sider, Header, Content, Footer } = SemiLayout;
@@ -9,8 +9,8 @@ const { Sider, Header, Content, Footer } = SemiLayout;
 const navItems = [
   { key: '/', label: 'Dashboard', icon: <IconHome /> },
   { key: '/admin/ontology', label: 'Ontology', icon: <IconBranch /> },
-  { key: '/admin/hitl', label: 'HITL Hub', icon: <IconHandshake /> },
-  { key: '/admin/sessions', label: 'dsh Sessions', icon: <IconRobot /> },
+  { key: '/admin/hitl', label: 'HITL Hub', icon: <IconHandle /> },
+  { key: '/admin/sessions', label: 'dsh Sessions', icon: <IconAppCenter /> },
   { key: '/admin/sandbox', label: 'mp-sandbox', icon: <IconShield /> },
   { key: '/admin/monitoring', label: '系统监控', icon: <IconPulse /> },
   { key: '/admin/audit', label: 'mp-audit', icon: <IconFile /> },

@@ -83,19 +83,24 @@ export default function Ontology() {
     { title: 'status', dataIndex: 'status', render: (v: string) => <Tag color={v === 'active' ? 'green' : 'grey'}>{v}</Tag> },
   ];
 
+  // 后端多次 seed 会导致 rid 重复, rowKey 用 rid+created_at 保证唯一
+  const objRowKey = (r: ObjectType) => `${r.rid}@${r.created_at}`;
+  const relRowKey = (r: RelationType) => `${r.rid}@${r.created_at}`;
+  const actRowKey = (r: ActionType) => `${r.rid}@${r.created_at}`;
+
   return (
     <div>
       <PageHeader title="M11 Ontology Kernel" description="3 表核心: ObjectType / RelationType / ActionType" onRefresh={load} />
       <Card>
         <Tabs type="line">
           <Tabs.TabPane tab={`ObjectType (${objs.length})`} itemKey="object">
-            <Table columns={objColumns} dataSource={objs} rowKey="rid" pagination={false} />
+            <Table columns={objColumns} dataSource={objs} rowKey={objRowKey} pagination={false} />
           </Tabs.TabPane>
           <Tabs.TabPane tab={`RelationType (${rels.length})`} itemKey="relation">
-            <Table columns={relColumns} dataSource={rels} rowKey="rid" pagination={false} />
+            <Table columns={relColumns} dataSource={rels} rowKey={relRowKey} pagination={false} />
           </Tabs.TabPane>
           <Tabs.TabPane tab={`ActionType (${acts.length})`} itemKey="action">
-            <Table columns={actColumns} dataSource={acts} rowKey="rid" pagination={false} />
+            <Table columns={actColumns} dataSource={acts} rowKey={actRowKey} pagination={false} />
           </Tabs.TabPane>
         </Tabs>
       </Card>

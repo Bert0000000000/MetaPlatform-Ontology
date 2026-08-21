@@ -1,8 +1,10 @@
 // src/pages/Runtime.tsx — mp-runtime 业务运行时
 import React, { useEffect, useState } from 'react';
-import { Spin, Table, Card, Tag, Statistic, Row, Col } from '@douyinfe/semi-ui';
+import { Spin, Table, Card, Tag, Row, Col, Badge } from '@douyinfe/semi-ui';
+import Stat from '../components/Stat';
 import PageHeader from '../components/PageHeader';
 import { authedFetch } from '../lib/api';
+import { subscribeTable } from '../lib/realtime';
 
 interface SessionByStatus {
   status: string;
@@ -25,6 +27,14 @@ export default function Runtime() {
   };
 
   useEffect(() => { load(); }, []);
+
+  // M40 Loop 3/3: Realtime 订阅 dsh_session_headers → 自动刷新
+  useEffect(() => {
+    const sub = subscribeTable('dsh_session_headers', () => {
+      load();
+    });
+    return () => sub.unsubscribe();
+  }, []);
 
   if (loading) return <Spin />;
 
@@ -52,9 +62,14 @@ export default function Runtime() {
     <div>
       <PageHeader title="mp-runtime" description="dsh Session 状态分布 · M15 Postgres backend" onRefresh={load} />
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col span={8}><Card><Statistic title="Total" value={total} /></Card></Col>
-        <Col span={8}><Card><Statistic title="Active" value={active} valueStyle={{ color: 'green' }} /></Card></Col>
-        <Col span={8}><Card><Statistic title="Failed" value={failed} valueStyle={{ color: failed > 0 ? 'red' : 'green' }} /></Card></Col>
+        <Col span={8}><Card>
+          <Stat
+            title={<>Total <Badge count={total} overflowCount={9999} /></>}
+            value={total}
+          />
+        </Card></Col>
+        <Col span={8}><Card><Stat title="Active" value={active} valueStyle={{ color: 'green' }} /></Card></Col>
+        <Col span={8}><Card><Stat title="Failed" value={failed} valueStyle={{ color: failed > 0 ? 'red' : 'green' }} /></Card></Col>
       </Row>
       <Card>
         <Table columns={columns} dataSource={byStatus} rowKey="status" pagination={false} />

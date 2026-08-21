@@ -11,8 +11,8 @@
 // 生产配置: 通过 env OTEL_EXPORTER_OTLP_ENDPOINT 指向 OTel Collector (http://otel-collector:4318/v1/traces)
 // 本地 dev: 默认 console exporter (打印 trace_id 到 Deno.stdout)
 
-const OTEL_ENDPOINT = Deno.env.get('OTEL_EXPORTER_OTLP_ENDPOINT') ?? '';
-const SERVICE_NAME = Deno.env.get('OTEL_SERVICE_NAME') ?? 'mp-edge-runtime';
+const OTEL_ENDPOINT = (typeof process !== 'undefined' && process.env?.OTEL_EXPORTER_OTLP_ENDPOINT) || (typeof Deno !== 'undefined' && (Deno as any).env?.get?.('OTEL_EXPORTER_OTLP_ENDPOINT')) || '';
+const SERVICE_NAME = (typeof process !== 'undefined' && process.env?.OTEL_SERVICE_NAME) || (typeof Deno !== 'undefined' && (Deno as any).env?.get?.('OTEL_SERVICE_NAME')) || 'mp-frontend';
 
 export interface SpanContext {
   trace_id: string;
@@ -139,7 +139,7 @@ export async function flushSpans(): Promise<{ count: number; exported: boolean; 
   }
 }
 
-// 定时 flush (每 10s)
+// 定时 flush (每 10s) - Deno runtime only (browser 不需要 setInterval, React 组件自行 flush)
 if (typeof Deno !== 'undefined') {
   setInterval(() => {
     flushSpans().catch(() => { /* noop */ });
