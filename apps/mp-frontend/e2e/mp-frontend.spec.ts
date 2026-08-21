@@ -9,23 +9,18 @@ test.describe('mp-frontend (React + Vite + Semi Design 19)', () => {
     await expect(page.locator('text=/Tenants/i').first()).toBeVisible();
   });
 
-  test('2. Sider 显示 10 个 nav 入口', async ({ page }) => {
+  test('2. Sider 显示 4 个一级模块 (SubNav)', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('text=Dashboard').first()).toBeVisible();
-    await expect(page.locator('text=Ontology').first()).toBeVisible();
-    await expect(page.locator('text=HITL Hub').first()).toBeVisible();
-    await expect(page.locator('text=dsh Sessions').first()).toBeVisible();
-    await expect(page.locator('text=mp-sandbox').first()).toBeVisible();
-    await expect(page.locator('text=系统监控').first()).toBeVisible();
-    await expect(page.locator('text=mp-audit').first()).toBeVisible();
-    await expect(page.locator('text=frontend-obs').first()).toBeVisible();
-    await expect(page.locator('text=mp-runtime').first()).toBeVisible();
-    await expect(page.locator('text=Tenants').first()).toBeVisible();
+    await expect(page.locator('text=Ontology 本体平台').first()).toBeVisible();
+    await expect(page.locator('text=云市场').first()).toBeVisible();
+    await expect(page.locator('text=应用中心').first()).toBeVisible();
+    await expect(page.locator('text=运营管理').first()).toBeVisible();
   });
 
-  test('3. /admin/ontology 加载 M11 页', async ({ page }) => {
+  test('3. /admin/ontology 重定向到 /admin/ontology/objects (ObjectType)', async ({ page }) => {
     await page.goto('/admin/ontology');
-    await expect(page.locator('text=M11 Ontology Kernel').first()).toBeVisible();
+    await page.waitForURL(/\/admin\/ontology\/objects/, { timeout: 5000 });
+    await expect(page.locator('h3:has-text("ObjectType")').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('4. /admin/hitl 加载 HITL 页', async ({ page }) => {
@@ -80,10 +75,10 @@ test.describe('mp-frontend (React + Vite + Semi Design 19)', () => {
     await expect(page.locator('text=总 preset').first()).toBeVisible({ timeout: 10000 });
   });
 
-  test('12. 未知路由 / → 重定向到 /', async ({ page }) => {
+  test('12. 未知路由 /random-xyz → 重定向到 /admin/dashboard', async ({ page }) => {
     await page.goto('/random-xyz');
-    await page.waitForURL('/', { timeout: 3000 });
-    expect(page.url()).toMatch(/\/$/);
+    await page.waitForURL(/\/admin\/dashboard/, { timeout: 5000 });
+    expect(page.url()).toMatch(/\/admin\/dashboard/);
   });
 
   test('13. Semi Design Sider 加载 (semi-sider class)', async ({ page }) => {
