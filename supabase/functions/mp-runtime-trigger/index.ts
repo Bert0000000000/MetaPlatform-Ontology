@@ -1,6 +1,10 @@
 // supabase/functions/mp-runtime-trigger/index.ts
 // PRD: docs/active/prd/mp-runtime.md §3
+<<<<<<< Updated upstream
 // Batch: MetaPlatform-MP-RUNTIME-01
+=======
+// Batch: MP-V6-MP-RUNTIME-01
+>>>>>>> Stashed changes
 // POST /functions/v1/mp-runtime-trigger
 // 触发一个 mp-runtime session: 校验 function 注册表, 创建 session row (status='queued')
 

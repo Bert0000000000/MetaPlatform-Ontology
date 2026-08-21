@@ -1,6 +1,10 @@
 -- supabase/migrations/20260820400000_create_mp_runtime_tables.sql
 -- PRD: docs/active/prd/mp-runtime.md §4
+<<<<<<< Updated upstream
 -- Batch: MetaPlatform-MP-RUNTIME-01
+=======
+-- Batch: MP-V6-MP-RUNTIME-01
+>>>>>>> Stashed changes
 -- mp-runtime schema: business runtime Edge Function registry + session tracking
 -- Idempotent: safe to re-apply after supabase restart
 

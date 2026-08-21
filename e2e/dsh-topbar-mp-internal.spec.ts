@@ -22,7 +22,7 @@ const ACTIVE_ON = {
   'mp-platform-admin':     '/admin',
 } as const;
 
-test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (4 menus)', () => {
+test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (5 menus)', () => {
   test('1. topbar mounts 4 menus in order: Ontology Copilot / 云市场 / 应用中心 / Ontology 本体平台', async ({ page }) => {
     await page.goto(DSH_BASE);
     await page.waitForFunction(
@@ -35,7 +35,7 @@ test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (
     await expect(topbar).toHaveAttribute('data-mp-v6-plugin', 'topbar');
 
     const items = topbar.locator('a[data-menu-id]');
-    await expect(items).toHaveCount(4);
+    await expect(items).toHaveCount(5);
 
     const ids = await items.evaluateAll((els) =>
       els.map((el) => (el as HTMLElement).getAttribute('data-menu-id')),
@@ -45,10 +45,11 @@ test.describe('MetaPlatform dsh-web topbar — SPA-internal nav + tab feedback (
       'mp-marketplace',
       'mp-app-center',
       'mp-platform-admin',
+      'mp-frontend',
     ]);
 
     // Per menu, the visible label must match the new copy.
-    const expected = ['Ontology Copilot', '云市场', '应用中心', 'Ontology 本体平台'];
+    const expected = ['Ontology Copilot', '云市场', '应用中心', '运营管理', 'Ontology 本体平台'];
     const labels = await items.allInnerTexts();
     expect(labels).toEqual(expected);
   });

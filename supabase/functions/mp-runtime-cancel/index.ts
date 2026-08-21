@@ -1,6 +1,10 @@
 // supabase/functions/mp-runtime-cancel/index.ts
 // PRD: docs/active/prd/mp-runtime.md §3
+<<<<<<< Updated upstream
 // Batch: MetaPlatform-MP-RUNTIME-01
+=======
+// Batch: MP-V6-MP-RUNTIME-01
+>>>>>>> Stashed changes
 // POST /functions/v1/mp-runtime-cancel
 // 取消一个 mp-runtime session (manual RLS: tenant_id == auth.tenantId)
 

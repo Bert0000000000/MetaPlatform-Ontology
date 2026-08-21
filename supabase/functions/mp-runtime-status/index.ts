@@ -1,6 +1,10 @@
 // supabase/functions/mp-runtime-status/index.ts
 // PRD: docs/active/prd/mp-runtime.md §3
+<<<<<<< Updated upstream
 // Batch: MetaPlatform-MP-RUNTIME-01
+=======
+// Batch: MP-V6-MP-RUNTIME-01
+>>>>>>> Stashed changes
 // GET /functions/v1/mp-runtime-status?session_id=<uuid>
 // 读取一个 mp-runtime session 的当前状态 (manual RLS: tenant_id == auth.tenantId)
 
