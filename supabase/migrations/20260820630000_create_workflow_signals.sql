@@ -113,5 +113,5 @@ COMMENT ON FUNCTION public.tg_hitl_to_workflow_signal() IS
     'M13 HITL Hub ↔ Temporal: hitl_requests UPDATE → INSERT workflow_signals (status=approved/rejected, workflow_id 非空). ON CONFLICT 幂等: 重新决策时覆盖 payload + 重置 pending.';
 
 CREATE TRIGGER tg_hitl_requests_to_workflow_signal
-    AFTER UPDATE ON public.hitl_requests
+    AFTER INSERT OR UPDATE ON public.hitl_requests
     FOR EACH ROW EXECUTE FUNCTION public.tg_hitl_to_workflow_signal();
