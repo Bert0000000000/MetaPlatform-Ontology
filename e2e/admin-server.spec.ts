@@ -49,4 +49,43 @@ test.describe('admin-server smoke (port 8080)', () => {
     expect(html).toContain('/admin/sandbox');
     expect(html).toContain('mp-sandbox 执行');
   });
+
+  // Loop K: M11 Ontology / HITL / dsh Sessions UI
+  test('6. /admin/ontology shows M11 kernel stats + recent', async ({ page }) => {
+    const r = await page.request.get(`${ADMIN}/admin/ontology`);
+    expect(r.status()).toBe(200);
+    const html = await r.text();
+    expect(html).toContain('M11 Ontology Kernel');
+    expect(html).toContain('ObjectType');
+    expect(html).toContain('RelationType');
+    expect(html).toContain('ActionType');
+    expect(html).toContain('最近 ObjectType');
+  });
+
+  test('7. /admin/hitl shows HITL Hub stats + workflow_signals', async ({ page }) => {
+    const r = await page.request.get(`${ADMIN}/admin/hitl`);
+    expect(r.status()).toBe(200);
+    const html = await r.text();
+    expect(html).toContain('HITL Hub');
+    expect(html).toContain('Pending');
+    expect(html).toContain('workflow_saas');
+    expect(html).toContain('escalate-hitl');
+  });
+
+  test('8. /admin/sessions shows M15 dsh session stats', async ({ page }) => {
+    const r = await page.request.get(`${ADMIN}/admin/sessions`);
+    expect(r.status()).toBe(200);
+    const html = await r.text();
+    expect(html).toContain('dsh Session Postgres Backend');
+    expect(html).toContain('dsh-session-create');
+    expect(html).toContain('dsh-session-cleanup');
+  });
+
+  test('9. /admin includes all new nav links', async ({ page }) => {
+    const r = await page.request.get(`${ADMIN}/`);
+    const html = await r.text();
+    expect(html).toContain('/admin/ontology');
+    expect(html).toContain('/admin/hitl');
+    expect(html).toContain('/admin/sessions');
+  });
 });

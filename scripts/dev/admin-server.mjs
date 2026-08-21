@@ -74,6 +74,9 @@ const server = http.createServer(async (req, res) => {
           <li><a href="/admin/presets">Presets</a></li>
           <li><a href="/admin/cron">Cron Jobs</a></li>
           <li><a href="/admin/sandbox">🛡️ mp-sandbox 执行</a></li>
+          <li><a href="/admin/ontology">🧬 Ontology Kernel</a></li>
+          <li><a href="/admin/hitl">⚖️ HITL Hub</a></li>
+          <li><a href="/admin/sessions">🤖 dsh Sessions</a></li>
         </ul>
       </div>`;
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -127,6 +130,75 @@ const server = http.createServer(async (req, res) => {
       '<div class="card"><h2>最近 50 次执行</h2>' + renderTable(recent.rows, recentCols) + '</div>' +
       '<div class="card"><h2>说明</h2>' +
       '<p>数据来源: <code>mp_sandbox.executions</code> 表 (Issue #15 Loop 1/3 创建). audit_log 由 tg_audit 触发器自动写入 (Loop 2/3 删 RPC).</p>' +
+      '<ul><li><a href="/admin">← 返回 Dashboard</a></li></ul></div>'
+    ));
+  } else if (req.url === '/admin/ontology') {
+    // Loop K: M11 Ontology Kernel dashboard — 3 表统计 + 最近创建
+    const [objStats, relStats, actStats, recentObj, recentRel, recentAct] = await Promise.all([
+      c.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_object_types"),
+      c.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_relation_types"),
+      c.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_action_types"),
+      c.query("SELECT rid, name, status, link_types, action_types, created_at FROM public.ontology_object_types ORDER BY created_at DESC LIMIT 10"),
+      c.query("SELECT rid, name, from_type, to_type, cardinality, status, created_at FROM public.ontology_relation_types ORDER BY created_at DESC LIMIT 10"),
+      c.query("SELECT rid, name, target_type, permission, workflow_name, hitl_type, status, created_at FROM public.ontology_action_types ORDER BY created_at DESC LIMIT 10"),
+    ]);
+    const o = objStats.rows[0];
+    const r = relStats.rows[0];
+    const a = actStats.rows[0];
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(html(
+      '<div class="card"><h2>🧬 M11 Ontology Kernel — 3 类型统计</h2>' +
+      '<p>ObjectType: <b>' + o.active + '</b> active / ' + o.total + ' total &nbsp; ' +
+      'RelationType: <b>' + r.active + '</b> active / ' + r.total + ' total &nbsp; ' +
+      'ActionType: <b>' + a.active + '</b> active / ' + a.total + ' total</p>' +
+      '</div>' +
+      '<div class="card"><h2>最近 ObjectType (10)</h2>' + renderTable(recentObj.rows, ['rid', 'name', 'status', 'link_types', 'action_types', 'created_at']) + '</div>' +
+      '<div class="card"><h2>最近 RelationType (10)</h2>' + renderTable(recentRel.rows, ['rid', 'name', 'from_type', 'to_type', 'cardinality', 'status', 'created_at']) + '</div>' +
+      '<div class="card"><h2>最近 ActionType (10)</h2>' + renderTable(recentAct.rows, ['rid', 'name', 'target_type', 'permission', 'workflow_name', 'hitl_type', 'status', 'created_at']) + '</div>' +
+      '<div class="card"><h2>说明</h2>' +
+      '<p>数据来源: <code>public.ontology_*</code> 表 (Loop 1/3+2/3 创建). CRUD EF: list-ontology-types / get-ontology-type / create-ontology-type.</p>' +
+      '<ul><li><a href="/admin">← 返回 Dashboard</a></li></ul></div>'
+    ));
+  } else if (req.url === '/admin/hitl') {
+    // Loop K: HITL Hub dashboard — pending + 最近决策 + workflow_signals 队列
+    const [pending, decided, signals, recent] = await Promise.all([
+      c.query("SELECT count(*)::int AS n FROM public.hitl_requests WHERE status = 'pending'"),
+      c.query("SELECT count(*)::int AS n FROM public.hitl_requests WHERE status IN ('approved','rejected','expired','cancelled') AND decided_at > now() - interval '24 hours'"),
+      c.query("SELECT status, count(*)::int AS n FROM public.workflow_signals GROUP BY status"),
+      c.query("SELECT id, type, status, title, escalation_level, deadline_at, decided_at, created_at FROM public.hitl_requests ORDER BY created_at DESC LIMIT 20"),
+    ]);
+    const sigs = signals.rows;
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(html(
+      '<div class="card"><h2>⚖️ HITL Hub — 4 类型联动中枢</h2>' +
+      '<p>Pending: <b>' + pending.rows[0].n + '</b> &nbsp; ' +
+      'Decided (近 24h): <b>' + decided.rows[0].n + '</b> &nbsp; ' +
+      'Workflow Signals: ' + sigs.map(s => s.status + '=' + s.n).join(' / ') + '</p>' +
+      '</div>' +
+      '<div class="card"><h2>最近 HITL Request (20)</h2>' + renderTable(recent.rows, ['created_at', 'type', 'status', 'escalation_level', 'title', 'deadline_at', 'decided_at']) + '</div>' +
+      '<div class="card"><h2>说明</h2>' +
+      '<p>数据来源: <code>public.hitl_requests</code> + <code>public.workflow_signals</code> (Loop 1/3+2/3 创建). 4 类型: workflow_saas / workflow_dsh / tool_dsh / action_confirm.</p>' +
+      '<p>多级审批: escalate-hitl EF (level+1, deadline 阶梯 24h*level). expire-overdue-hitl EF (pg_cron */5 * * * *).</p>' +
+      '<ul><li><a href="/admin">← 返回 Dashboard</a></li></ul></div>'
+    ));
+  } else if (req.url === '/admin/sessions') {
+    // Loop K: M15 dsh session Postgres backend dashboard
+    const [summary, active, recent] = await Promise.all([
+      c.query("SELECT active_count, completed_count, failed_count, last_active_at FROM public.dsh_session_summary ORDER BY last_active_at DESC NULLS LAST LIMIT 10"),
+      c.query("SELECT tenant_id, count(*)::int AS active FROM public.dsh_session_headers WHERE status IN ('running','waiting_tool','waiting_hitl','waiting_external') GROUP BY tenant_id ORDER BY active DESC LIMIT 10"),
+      c.query("SELECT id, tenant_id, agent_preset, status, version, updated_at, completed_at FROM public.dsh_session_headers ORDER BY updated_at DESC LIMIT 20"),
+    ]);
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(html(
+      '<div class="card"><h2>🤖 M15 dsh Session Postgres Backend (K8s 多副本共享)</h2>' +
+      '<p>总览 (per-tenant): ' + summary.rows.map(s => 'active=' + s.active_count + '/done=' + s.completed_count + '/fail=' + s.failed_count).join(' | ') + '</p>' +
+      '</div>' +
+      '<div class="card"><h2>活跃 session (per-tenant, 10)</h2>' + renderTable(active.rows, ['tenant_id', 'active']) + '</div>' +
+      '<div class="card"><h2>最近 session (20)</h2>' + renderTable(recent.rows, ['updated_at', 'tenant_id', 'agent_preset', 'status', 'version', 'completed_at']) + '</div>' +
+      '<div class="card"><h2>说明</h2>' +
+      '<p>数据来源: <code>public.dsh_session_headers</code> + <code>public.dsh_session_events</code> (M15 ADR-0055).</p>' +
+      '<p>EF: dsh-session-create / dsh-session-append-events (seq contiguous 校验) / dsh-session-load (按 seq 顺序重放).</p>' +
+      '<p>pg_cron dsh-session-cleanup: 每日 02:00 清理 completed/failed/cancelled 超 30 天的 session.</p>' +
       '<ul><li><a href="/admin">← 返回 Dashboard</a></li></ul></div>'
     ));
   } else if (req.url === '/app-center') {
