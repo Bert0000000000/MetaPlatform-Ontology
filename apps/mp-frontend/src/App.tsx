@@ -1,4 +1,4 @@
-// src/App.tsx — Semi Design Layout + 10 页路由
+// src/App.tsx — Semi Design Layout + 11 页路由 (含前端埋点)
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -13,8 +13,10 @@ import FrontendObs from './pages/FrontendObs';
 import Runtime from './pages/Runtime';
 import Tenants from './pages/Tenants';
 import Marketplace from './pages/Marketplace';
+import { useFrontendObs } from './lib/frontend-obs';
 
-export default function App() {
+function ObsApp() {
+  useFrontendObs();
   return (
     <Layout>
       <Routes>
@@ -33,4 +35,8 @@ export default function App() {
       </Routes>
     </Layout>
   );
+}
+
+export default function App() {
+  return <ObsApp />;
 }
