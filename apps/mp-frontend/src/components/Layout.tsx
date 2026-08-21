@@ -15,6 +15,7 @@ const navItems = [
   { key: '/admin/monitoring', label: '系统监控', icon: <IconPulse /> },
   { key: '/admin/audit', label: 'mp-audit', icon: <IconFile /> },
   { key: '/admin/frontend-obs', label: 'frontend-obs', icon: <IconLayers /> },
+  { key: '/admin/marketplace', label: 'Marketplace', icon: <IconAppCenter /> },
   { key: '/admin/runtime', label: 'mp-runtime', icon: <IconServer /> },
   { key: '/admin/tenants', label: 'Tenants', icon: <IconUser /> },
 ];

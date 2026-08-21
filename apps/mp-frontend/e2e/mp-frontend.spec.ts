@@ -71,7 +71,13 @@ test.describe('mp-frontend (React + Vite + Semi Design 19)', () => {
 
   test('11. /admin/tenants 加载 Tenants 页', async ({ page }) => {
     await page.goto('/admin/tenants');
-    await expect(page.locator('text=Tenants').first()).toBeVisible();
+    await expect(page.locator('text=Tenants').first()).toBeVisible({ timeout: 10000 });
+  });
+
+  test('15. /admin/marketplace 加载 mp-skill-marketplace 页', async ({ page }) => {
+    await page.goto('/admin/marketplace');
+    await expect(page.locator('text=M05 mp-skill-marketplace').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=总 preset').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('12. 未知路由 / → 重定向到 /', async ({ page }) => {

@@ -1,4 +1,4 @@
-// src/App.tsx — Semi Design Layout + 9 页路由
+// src/App.tsx — Semi Design Layout + 10 页路由
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
@@ -12,6 +12,7 @@ import Audit from './pages/Audit';
 import FrontendObs from './pages/FrontendObs';
 import Runtime from './pages/Runtime';
 import Tenants from './pages/Tenants';
+import Marketplace from './pages/Marketplace';
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/admin/frontend-obs" element={<FrontendObs />} />
         <Route path="/admin/runtime" element={<Runtime />} />
         <Route path="/admin/tenants" element={<Tenants />} />
+        <Route path="/admin/marketplace" element={<Marketplace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
