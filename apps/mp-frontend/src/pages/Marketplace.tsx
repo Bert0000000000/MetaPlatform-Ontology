@@ -1,9 +1,11 @@
 // src/pages/Marketplace.tsx — M05 mp-skill-marketplace Loop 2/3 (UI 增强)
 import React, { useEffect, useState, useMemo } from 'react';
-import { Spin, Table, Card, Tag, Input, Select, Row, Col } from '@douyinfe/semi-ui';
+import { useSearchParams } from 'react-router-dom';
+import { Table, Card, Tag, Input, Select, Row, Col } from '@douyinfe/semi-ui';
 import Stat from '../components/Stat';
 import PageHeader from '../components/PageHeader';
 import { authedFetch } from '../lib/api';
+import MarketplaceUpgrade from './MarketplaceUpgrade';
 
 interface Preset {
   id: string;
@@ -35,6 +37,9 @@ const VISIBILITY_COLORS: Record<string, string> = {
 };
 
 export default function Marketplace() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const upgrading = searchParams.get('upgrading') === 'true';
+
   const [presets, setPresets] = useState<Preset[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -44,7 +49,7 @@ export default function Marketplace() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await authedFetch('/rest/v1/mp_preset_registry.presets?select=id,slug,name,category,visibility,current_version,downloads_count,maintainer_id,description,created_at&order=downloads_count.desc&limit=100') as Preset[];
+      const r = await authedFetch('/rest/v1/presets?select=id,slug,name,category,visibility,current_version,downloads_count,maintainer_id,description,created_at&order=downloads_count.desc&limit=100') as Preset[];
       setPresets(r);
     } finally {
       setLoading(false);
@@ -65,7 +70,27 @@ export default function Marketplace() {
     return f;
   }, [presets, search, category, sortBy]);
 
-  if (loading) return <Spin />;
+  // 1. URL ?upgrading=true → 全屏升级视图 (覆盖 loading/empty/data)
+  if (upgrading) {
+    return (
+      <MarketplaceUpgrade
+        mode="upgrading"
+        startedAt={new Date(Date.now() - 12 * 60 * 1000).toISOString()}
+        estimatedSeconds={1800}
+        onRetry={() => {
+          const next = new URLSearchParams(searchParams);
+          next.delete('upgrading');
+          setSearchParams(next, { replace: true });
+        }}
+      />
+    );
+  }
+
+  // 2. Loading (复用同一组件)
+  if (loading) return <MarketplaceUpgrade mode="loading" />;
+
+  // 3. Empty (复用同一组件)
+  if (presets.length === 0) return <MarketplaceUpgrade mode="empty" />;
 
   const columns = [
     { title: 'slug', dataIndex: 'slug', render: (v: string) => <code>{v}</code> },
@@ -147,7 +172,7 @@ export default function Marketplace() {
           dataSource={filtered}
           rowKey="id"
           pagination={false}
-          empty={loading ? <Spin /> : <div style={{ padding: 40, textAlign: 'center', color: 'var(--semi-color-text-2)' }}>无 preset 数据</div>}
+          empty={<div style={{ padding: 40, textAlign: 'center', color: 'var(--semi-color-text-2)' }}>无 preset 数据</div>}
         />
       </Card>
     </div>
