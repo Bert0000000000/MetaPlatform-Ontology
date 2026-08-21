@@ -8,7 +8,7 @@
 
 ## 1. 概述
 
-`mp-frontend` 是 v6.0 唯一的 Web 入口壳。基于 **Semi Design** + React 18 + TypeScript + Vite，作为所有业务应用（mp-platform、mp-monitoring 等）的容器，通过模块联邦（Module Federation）按需加载子应用，避免大单体。
+`mp-frontend` 是 v6.0 唯一的 Web 入口壳。基于 **Semi Design 19** + React 19 + TypeScript + Vite，作为所有业务应用（mp-platform、mp-monitoring 等）的容器，通过模块联邦（Module Federation）按需加载子应用，避免大单体。
 
 ## 2. 核心功能
 

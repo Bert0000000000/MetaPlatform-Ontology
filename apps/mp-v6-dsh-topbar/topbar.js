@@ -4,7 +4,7 @@
 //   - Ontology Copilot    → 触发 dsh chat panel (CustomEvent 'dsh:open-chat')
 //   - 云市场              → http://localhost:8080/marketplace   (SPA internal nav, same tab)
 //   - 应用中心            → http://localhost:8080/marketplace   (SPA internal nav, same tab)
-//   - Ontology 本体平台   → http://localhost:8080/admin         (SPA internal nav, same tab)
+//   - Ontology 本体平台   → http://localhost:5174              (mp-frontend React+Vite SPA)
 //
 // 用 vanilla DOM (不引入 React): dsh 用 zustand/cordis 但顶栏只是固定位 div + 4 个 <a>,
 // 直接 DOM 注入最简单、最稳。脚本在 <head> 以 defer 加载, document.body 一存在就 mount。
@@ -130,7 +130,7 @@
     {
       id: 'mp-platform-admin',
       label: 'Ontology 本体平台',
-      href: 'http://localhost:8080/admin',
+      href: 'http://localhost:5174',
       kind: 'link',
       matchPath: '/admin',
     },

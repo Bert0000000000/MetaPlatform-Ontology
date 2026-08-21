@@ -38,5 +38,11 @@ export default defineConfig({
       testMatch: /e2e\/(dsh-web|dsh-topbar-mp|dsh-topbar-mp-internal)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5173' },
     },
+    {
+      name: 'mp-frontend-ui',
+      testDir: './apps/mp-frontend/e2e',
+      testMatch: /\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5174' },
+    },
   ],
 });
