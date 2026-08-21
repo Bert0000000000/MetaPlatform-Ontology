@@ -1,5 +1,5 @@
 // src/lib/api.ts — 通用 API 客户端 (Supabase Edge Functions + OTel trace propagation)
-import { newSpanContext, traceparentHeader } from '../../../observability/otel.js';
+import { newSpanContext, traceparentHeader } from './otel';
 
 const SUPABASE_URL = 'http://127.0.0.1:54321';
 const SUPABASE_ANON_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
