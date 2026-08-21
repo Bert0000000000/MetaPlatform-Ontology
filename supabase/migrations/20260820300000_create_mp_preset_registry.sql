@@ -1,5 +1,5 @@
 -- supabase/migrations/20260820300000_create_mp_preset_registry.sql
--- Loop 1/5 of MP-V6.1-APP-CENTER-01
+-- Loop 1/5 of MetaPlatform.1-APP-CENTER-01
 -- PRD: docs/active/prd/mp-skill-marketplace.md
 -- v6.1 App Center: 3 tables (presets + versions + installs) + RLS + pg_cron cleanup
 
@@ -229,11 +229,11 @@ SELECT cron.schedule(
 );
 
 -- ============================================================
--- Seed: 9 MP-v6 master + sub-role presets (per 4w cycle)
+-- Seed: 9 MetaPlatform master + sub-role presets (per 4w cycle)
 -- ============================================================
 INSERT INTO mp_preset_registry.presets (tenant_id, name, slug, category, description, visibility, tags, current_version)
 VALUES
-    (NULL, 'mp-v6 master', 'mp-v6-master', 'custom', 'MP-v6 数字员工 master preset (8 sub-roles via dsh subagent dispatch)', 'public', ARRAY['mp-v6', 'master', 'orchestrator'], NULL),
+    (NULL, 'mp-v6 master', 'mp-v6-master', 'custom', 'MetaPlatform 数字员工 master preset (8 sub-roles via dsh subagent dispatch)', 'public', ARRAY['mp-v6', 'master', 'orchestrator'], NULL),
     (NULL, 'support-triage', 'support-triage', 'support', '工单分诊 + HITL 升级 (high/urgent)', 'public', ARRAY['support', 'tickets', 'hitl'], NULL),
     (NULL, 'knowledge-curator', 'knowledge-curator', 'knowledge', '4 支柱架构 + 9 namespace + 19 apps + 8 CI gate 知识库', 'public', ARRAY['knowledge', 'architecture', 'rfc'], NULL),
     (NULL, 'ontology-curator', 'ontology-curator', 'ontology', '12 Ontology Kernel 设计 + apply-ontology-change Edge Function', 'public', ARRAY['ontology', 'schema', 'object-type'], NULL),

@@ -1,0 +1,10 @@
+import pg from 'pg';
+const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
+await c.connect();
+const r = await c.query("SELECT n.nspname AS schema, t.typname, t.typnamespace::regnamespace AS schema_name FROM pg_type t JOIN pg_namespace n ON t.typnamespace = n.oid WHERE t.typname = 'vector'");
+console.log('vector type schemas:', r.rows);
+const r2 = await c.query("SELECT extname, extnamespace::regnamespace AS schema_name FROM pg_extension WHERE extname = 'vector'");
+console.log('pgvector extension:', r2.rows);
+const r3 = await c.query("SHOW search_path");
+console.log('search_path:', r3.rows);
+await c.end();

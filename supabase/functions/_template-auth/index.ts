@@ -1,6 +1,6 @@
 // supabase/functions/_template-auth/index.ts
 // PRD: docs/active/prd/auth-jwt-rls.md §6.2
-// Batch: MP-V6-AUTH-01
+// Batch: MetaPlatform-AUTH-01
 // Edge Function JWT 验证模板 — 业务 Batch 复用
 
 // @ts-nocheck — Deno runtime

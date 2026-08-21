@@ -1,7 +1,7 @@
 # PRD：foundation-k8s-clusters
 
 > **模块**：MetaPlatform v6.0 基础设施层 — K8s 集群
-> **对应 Batch**：[MP-V6-FOUNDATION-01](../batch/MP-V6-FOUNDATION-01.md)
+> **对应 Batch**：[MetaPlatform-FOUNDATION-01](../batch/MetaPlatform-FOUNDATION-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：SRE
 > **日期**：2026-08-20
@@ -154,7 +154,7 @@ variable "vault_addr"    { type = string }   # https://vault.mp-platform.local
 | AC6 | NetworkPolicy default-deny 全部 namespace 生效（详见 [foundation-networkpolicy](foundation-networkpolicy.md)）| `kubectl get networkpolicy -A` |
 | AC7 | ResourceQuota 在每个 namespace 已应用 | `kubectl get resourcequota -A` |
 | AC8 | dev 集群可在 30 分钟内从 IaC 重建 | 演练 + 计时 |
-| AC9 | evidence/MP-V6-FOUNDATION-01-ACCEPTANCE.md 落地且勾选完所有 AC | 文件存在 + AC checkbox |
+| AC9 | evidence/MetaPlatform-FOUNDATION-01-ACCEPTANCE.md 落地且勾选完所有 AC | 文件存在 + AC checkbox |
 
 ## 8. 依赖（Dependencies）
 
@@ -179,7 +179,7 @@ variable "vault_addr"    { type = string }   # https://vault.mp-platform.local
 
 - ❌ **集群联邦 / 多集群调度**（v6.0 各集群独立）
 - ❌ **Service Mesh**（Istio / Linkerd）：v6.0 不引入，Cilium 满足需求
-- ❌ **GPU 节点**（在 MP-V6-MIGRATION-01 后由 mp-sandbox Batch 处理）
+- ❌ **GPU 节点**（在 MetaPlatform-MIGRATION-01 后由 mp-sandbox Batch 处理）
 - ❌ **Windows 节点**（v6.0 全 Linux 容器）
 - ❌ **多 Region**：本 Batch 单 region；多 region 在 v7.0 讨论
 

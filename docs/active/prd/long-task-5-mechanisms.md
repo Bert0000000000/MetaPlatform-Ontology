@@ -1,7 +1,7 @@
 # PRD：long-task-5-mechanisms
 
 > **模块**：1 周+ 长任务 5 大机制完整版
-> **对应 Batch**：[MP-V6-LONG-TASK-01](../batch/MP-V6-LONG-TASK-01.md)
+> **对应 Batch**：[MetaPlatform-LONG-TASK-01](../batch/MetaPlatform-LONG-TASK-01.md)
 > **状态**：Draft v1.0
 > **负责人**：后端 + SRE
 > **日期**：2026-08-20
@@ -112,8 +112,8 @@ await task.create({
 
 | 依赖 | 来源 |
 |---|---|
-| HITL Hub | MP-V6-HITL-HUB-01 ✅ |
-| Approval SaaS | MP-V6-APPROVAL-01 ✅ |
+| HITL Hub | MetaPlatform-HITL-HUB-01 ✅ |
+| Approval SaaS | MetaPlatform-APPROVAL-01 ✅ |
 | pg_cron | Supabase 内置 |
 
 ## 9. 风险
@@ -131,4 +131,4 @@ await task.create({
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-LONG-TASK-01 Batch](../batch/MP-V6-LONG-TASK-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-LONG-TASK-01 Batch](../batch/MetaPlatform-LONG-TASK-01.md)*

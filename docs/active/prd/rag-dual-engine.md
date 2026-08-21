@@ -1,7 +1,7 @@
 # PRD：rag-dual-engine
 
 > **模块**：RAG 双引擎（RAGFlow 文档 RAG + Microsoft GraphRAG KG RAG）
-> **对应 Batch**：[MP-V6-RAG-01](../batch/MP-V6-RAG-01.md)
+> **对应 Batch**：[MetaPlatform-RAG-01](../batch/MetaPlatform-RAG-01.md)
 > **状态**：Draft v1.0
 > **负责人**：AI 团队 + 后端
 > **日期**：2026-08-20
@@ -139,11 +139,11 @@ interface RagResult {
 
 | 依赖 | 来源 |
 |---|---|
-| mp-ai namespace | MP-V6-FOUNDATION-01 ✅ |
-| Supabase Storage | MP-V6-FOUNDATION-01 ✅ |
-| documents 表 | MP-V6-FOUNDATION-01 ✅ |
-| dsh token meter | MP-V6-LLM-01 ✅ |
-| knowledge-curator preset | MP-V6-DSH-01 ✅ |
+| mp-ai namespace | MetaPlatform-FOUNDATION-01 ✅ |
+| Supabase Storage | MetaPlatform-FOUNDATION-01 ✅ |
+| documents 表 | MetaPlatform-FOUNDATION-01 ✅ |
+| dsh token meter | MetaPlatform-LLM-01 ✅ |
+| knowledge-curator preset | MetaPlatform-DSH-01 ✅ |
 
 ## 9. 风险
 
@@ -161,4 +161,4 @@ interface RagResult {
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-RAG-01 Batch](../batch/MP-V6-RAG-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-RAG-01 Batch](../batch/MetaPlatform-RAG-01.md)*

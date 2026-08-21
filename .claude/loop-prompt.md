@@ -1,6 +1,6 @@
 # MetaPlatform v6.0 - Claude Code Loop Prompt
 
-> **用法**：`claude --loop .claude/loop-prompt.md --batch MP-V6-FOUNDATION-01`
+> **用法**：`claude --loop .claude/loop-prompt.md --batch MetaPlatform-FOUNDATION-01`
 >
 > **CronCreate 调度（推荐）**：每 30 分钟触发一次（详见 §15）
 >
@@ -35,10 +35,10 @@ notify:      true                 # 本会话接收每次完成通知
 
 | Round | Batch | 周 | 角色 |
 |---|---|---|---|
-| 1 | `MP-V6-FOUNDATION-01` | 4 | SRE + AI |
-| 2 | `MP-V6-TEMPORAL-01` | 3 | SRE + 后端 |
-| 3 | `MP-V6-OBSERVABILITY-01` | 2 | SRE |
-| 4 | `MP-V6-DSH-DOCKER-01` | 2 | AI + SRE |
+| 1 | `MetaPlatform-FOUNDATION-01` | 4 | SRE + AI |
+| 2 | `MetaPlatform-TEMPORAL-01` | 3 | SRE + 后端 |
+| 3 | `MetaPlatform-OBSERVABILITY-01` | 2 | SRE |
+| 4 | `MetaPlatform-DSH-DOCKER-01` | 2 | AI + SRE |
 
 每个 Round 完成后，**自动开始下一个 Round**，直到 4 个全部完成。
 
@@ -56,10 +56,10 @@ docs/active/decisions/
 └── ADR-0060-discard-v3-data-migration.md       # 数据迁移策略
 
 docs/active/batch/
-├── MP-V6-FOUNDATION-01.md                      # Round 1
-├── MP-V6-TEMPORAL-01.md                        # Round 2
-├── MP-V6-OBSERVABILITY-01.md                   # Round 3
-└── MP-V6-DSH-DOCKER-01.md                      # Round 4
+├── MetaPlatform-FOUNDATION-01.md                      # Round 1
+├── MetaPlatform-TEMPORAL-01.md                        # Round 2
+├── MetaPlatform-OBSERVABILITY-01.md                   # Round 3
+└── MetaPlatform-DSH-DOCKER-01.md                      # Round 4
 
 docs/active/workflows/                          # 4 个 CI workflow
 docs/active/runbooks/                           # archive runbook
@@ -121,7 +121,7 @@ git checkout main && git pull origin main
 
 ### 2.3 严格规则
 
-- ✅ **PR 标题**：`feat(scope): MP-V6-BATCH-NN`
+- ✅ **PR 标题**：`feat(scope): MetaPlatform-BATCH-NN`
 - ✅ **commit 信息**：Conventional Commits（`feat:` / `fix:` / `chore:` / `docs:`）
 - ✅ **squash merge**（保持 main 线性历史）
 - ❌ **不直 push main**
@@ -155,11 +155,11 @@ git checkout main && git pull origin main
 每个 Batch 必须写 `evidence/<batch>-ACCEPTANCE.md`：
 
 ```markdown
-# MP-V6-FOUNDATION-01 - ACCEPTANCE
+# MetaPlatform-FOUNDATION-01 - ACCEPTANCE
 
 > **状态**：Accepted / Pending Acceptance
 > **日期**：2026-XX-XX
-> **关联 Batch**：[docs/active/batch/MP-V6-FOUNDATION-01.md](../batch/MP-V6-FOUNDATION-01.md)
+> **关联 Batch**：[docs/active/batch/MetaPlatform-FOUNDATION-01.md](../batch/MetaPlatform-FOUNDATION-01.md)
 > **关联 spec**：[docs/active/specs/2026-08-19-mp-v6-architecture.md](../../specs/2026-08-19-mp-v6-architecture.md)
 
 ## 验收标准
@@ -201,9 +201,9 @@ git checkout main && git pull origin main
 
 ---
 
-## 5. Round 1：MP-V6-FOUNDATION-01（4 周）
+## 5. Round 1：MetaPlatform-FOUNDATION-01（4 周）
 
-**文件**：`docs/active/batch/MP-V6-FOUNDATION-01.md`
+**文件**：`docs/active/batch/MetaPlatform-FOUNDATION-01.md`
 
 **核心交付**：
 - K8s 集群 3 套（prod / staging / dev）
@@ -249,21 +249,21 @@ git checkout main && git pull origin main
 - [ ] 端到端测试：创建租户 → 登录 → 写入数据 → RLS 隔离生效
 - [ ] 写 deployment runbook
 - [ ] 写 BACKUP_RPO_RTO 文档
-- [ ] evidence/MP-V6-FOUNDATION-01-ACCEPTANCE.md
+- [ ] evidence/MetaPlatform-FOUNDATION-01-ACCEPTANCE.md
 - [ ] 通知下游 Batch 可启动
 
 **完成标志**：
-- `evidence/MP-V6-FOUNDATION-01-ACCEPTANCE.md` 写完
+- `evidence/MetaPlatform-FOUNDATION-01-ACCEPTANCE.md` 写完
 - PR 合并到 main
 - 自动进入 Round 2
 
 ---
 
-## 6. Round 2：MP-V6-TEMPORAL-01（3 周）
+## 6. Round 2：MetaPlatform-TEMPORAL-01（3 周）
 
 **前置**：Round 1 完成（main 已包含 FOUNDATION）
 
-**文件**：`docs/active/batch/MP-V6-TEMPORAL-01.md`
+**文件**：`docs/active/batch/MetaPlatform-TEMPORAL-01.md`
 
 **核心交付**：
 - Temporal Server（gRPC `:7233`）+ Temporal UI（`:8233`）
@@ -295,7 +295,7 @@ git checkout main && git pull origin main
 - [ ] 测试 24h 长任务（wait_condition）
 - [ ] 测试 Activity retry + backoff
 - [ ] 配置 Temporal metrics 上报 OTel
-- [ ] 文档 + evidence/MP-V6-TEMPORAL-01-ACCEPTANCE.md
+- [ ] 文档 + evidence/MetaPlatform-TEMPORAL-01-ACCEPTANCE.md
 - [ ] 通知下游 Batch 可启动
 
 **完成标志**：
@@ -305,11 +305,11 @@ git checkout main && git pull origin main
 
 ---
 
-## 7. Round 3：MP-V6-OBSERVABILITY-01（2 周）
+## 7. Round 3：MetaPlatform-OBSERVABILITY-01（2 周）
 
 **前置**：Round 1 完成（Round 2 可同时进行）
 
-**文件**：`docs/active/batch/MP-V6-OBSERVABILITY-01.md`
+**文件**：`docs/active/batch/MetaPlatform-OBSERVABILITY-01.md`
 
 **核心交付**：
 - OTel Collector + Tempo + Prometheus + Loki + Grafana
@@ -333,7 +333,7 @@ git checkout main && git pull origin main
 - [ ] 配置告警规则（Critical / Warning / Info）
 - [ ] 配置通知渠道（邮件 / 钉钉 / Slack）
 - [ ] 验证：从某个测试应用上报数据 → Grafana 显示
-- [ ] evidence/MP-V6-OBSERVABILITY-01-ACCEPTANCE.md
+- [ ] evidence/MetaPlatform-OBSERVABILITY-01-ACCEPTANCE.md
 
 **完成标志**：
 - evidence 写完
@@ -342,11 +342,11 @@ git checkout main && git pull origin main
 
 ---
 
-## 8. Round 4：MP-V6-DSH-DOCKER-01（2 周）
+## 8. Round 4：MetaPlatform-DSH-DOCKER-01（2 周）
 
 **前置**：Round 1 完成（Harbor 已就绪）
 
-**文件**：`docs/active/batch/MP-V6-DSH-DOCKER-01.md`
+**文件**：`docs/active/batch/MetaPlatform-DSH-DOCKER-01.md`
 
 **核心交付**：
 - dsh Dockerfile 多阶段（deps / build / runtime）
@@ -378,7 +378,7 @@ git checkout main && git pull origin main
 - [ ] 集成 trivy 镜像扫描
 - [ ] 集成 cosign 签名（可选）
 - [ ] 验证：tag 触发后自动 build + push
-- [ ] evidence/MP-V6-DSH-DOCKER-01-ACCEPTANCE.md
+- [ ] evidence/MetaPlatform-DSH-DOCKER-01-ACCEPTANCE.md
 
 **完成标志**：
 - evidence 写完
@@ -391,7 +391,7 @@ git checkout main && git pull origin main
 
 ```bash
 # 最后一步：检查所有 evidence
-ls evidence/MP-V6-*-ACCEPTANCE.md
+ls evidence/MetaPlatform-*-ACCEPTANCE.md
 # 应输出 4 个文件
 ```
 
@@ -402,10 +402,10 @@ Sprint 0 完成总结：
 
 ## 已交付 Batch
 
-- ✅ MP-V6-FOUNDATION-01 — K8s + Supabase 8 能力就绪
-- ✅ MP-V6-TEMPORAL-01 — Temporal Cluster + Worker 就绪
-- ✅ MP-V6-OBSERVABILITY-01 — OTel + Grafana 就绪
-- ✅ MP-V6-DSH-DOCKER-01 — dsh 镜像就绪
+- ✅ MetaPlatform-FOUNDATION-01 — K8s + Supabase 8 能力就绪
+- ✅ MetaPlatform-TEMPORAL-01 — Temporal Cluster + Worker 就绪
+- ✅ MetaPlatform-OBSERVABILITY-01 — OTel + Grafana 就绪
+- ✅ MetaPlatform-DSH-DOCKER-01 — dsh 镜像就绪
 
 ## Sprint 0 状态
 
@@ -415,13 +415,13 @@ Sprint 0 完成总结：
 
 ## 下一步建议启动 Sprint 1
 
-- MP-V6-DSH-01（dsh 60 包集成 + vendor）
-- MP-V6-DSH-POSTGRES-BACKEND-01（自建 session 持久化）
-- MP-V6-AUTH-01（Supabase Auth + RLS）
-- MP-V6-HITL-HUB-01（HITL Hub 4 种类型）
-- MP-V6-ONTOLOGY-GEN-01（本体生成 + 预览）
-- MP-V6-LLM-01（dsh llm-pi-ai 配置）
-- MP-V6-SANDBOX-01（dsh sandbox + K8s Job）
+- MetaPlatform-DSH-01（dsh 60 包集成 + vendor）
+- MetaPlatform-DSH-POSTGRES-BACKEND-01（自建 session 持久化）
+- MetaPlatform-AUTH-01（Supabase Auth + RLS）
+- MetaPlatform-HITL-HUB-01（HITL Hub 4 种类型）
+- MetaPlatform-ONTOLOGY-GEN-01（本体生成 + 预览）
+- MetaPlatform-LLM-01（dsh llm-pi-ai 配置）
+- MetaPlatform-SANDBOX-01（dsh sandbox + K8s Job）
 
 如需继续 Sprint 1，请告诉我「启动 Sprint 1」。
 ```
@@ -573,12 +573,12 @@ git checkout main && git pull
 
 ```bash
 # 1. 确认前置
-ls docs/active/batch/MP-V6-FOUNDATION-01.md
+ls docs/active/batch/MetaPlatform-FOUNDATION-01.md
 ls .claude/loop-prompt.md   # 本文档
 ls .github/workflows/        # 4 个 workflow
 
 # 2. 设置 active batch
-ACTIVE_BATCH="MP-V6-FOUNDATION-01"
+ACTIVE_BATCH="MetaPlatform-FOUNDATION-01"
 
 # 3. 初始化
 ./scripts/loop/new-batch.sh $ACTIVE_BATCH
@@ -617,7 +617,7 @@ cat docs/active/batch/$ACTIVE_BATCH.md
 
 *MetaPlatform v6.0 - Claude Code Loop Prompt 完毕。*
 
-*启动命令*：`claude --loop .claude/loop-prompt.md --batch MP-V6-FOUNDATION-01`
+*启动命令*：`claude --loop .claude/loop-prompt.md --batch MetaPlatform-FOUNDATION-01`
 
 ---
 

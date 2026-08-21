@@ -51,9 +51,9 @@ velero:
         ttl: "2160h"  # 90 天
 
 temporal:
-  enabled: false  # MP-V6-TEMPORAL-01 默认关闭, 该 Batch 完成后开启
+  enabled: false  # MetaPlatform-TEMPORAL-01 默认关闭, 该 Batch 完成后开启
   # 配置见 values-temporal.yaml
 
 observability:
-  enabled: false  # MP-V6-OBSERVABILITY-01 默认关闭
+  enabled: false  # MetaPlatform-OBSERVABILITY-01 默认关闭
   # 配置见 values-observability.yaml

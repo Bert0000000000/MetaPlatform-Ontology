@@ -1,7 +1,7 @@
 # PRD：dsh-60-packages
 
 > **模块**：dsh (DeepSeek Harness) 60 包集成 + 7 个数字员工 preset
-> **对应 Batch**：[MP-V6-DSH-01](../batch/MP-V6-DSH-01.md)
+> **对应 Batch**：[MetaPlatform-DSH-01](../batch/MetaPlatform-DSH-01.md)
 > **状态**：Draft v1.0
 > **负责人**：AI 团队 + SRE
 > **日期**：2026-08-20
@@ -170,10 +170,10 @@ spec:
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase PG | MP-V6-FOUNDATION-01 ✅ |
+| Supabase PG | MetaPlatform-FOUNDATION-01 ✅ |
 | DeepSeek API key | SRE 申请 + Vault |
 | dsh 源码 (vendor) | https://github.com/deepseek-ai/deepseek-harness |
-| Harbor 镜像仓库 | MP-V6-DSH-DOCKER-01 ✅ |
+| Harbor 镜像仓库 | MetaPlatform-DSH-DOCKER-01 ✅ |
 
 ## 9. 风险
 
@@ -192,4 +192,4 @@ spec:
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-DSH-01 Batch](../batch/MP-V6-DSH-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-DSH-01 Batch](../batch/MetaPlatform-DSH-01.md)*

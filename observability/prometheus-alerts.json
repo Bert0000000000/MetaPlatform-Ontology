@@ -1,0 +1,112 @@
+{
+  "groups": [
+    {
+      "name": "mp-app-health",
+      "interval": "1m",
+      "rules": [
+        {
+          "alert": "HighErrorRate",
+          "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) > 0.01",
+          "for": "5m",
+          "labels": {
+            "severity": "critical",
+            "team": "platform"
+          },
+          "annotations": {
+            "summary": "错误率 > 1% 持续 5 分钟"
+          }
+        },
+        {
+          "alert": "P99LatencyHigh",
+          "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 3",
+          "for": "5m",
+          "labels": {
+            "severity": "warning",
+            "team": "platform"
+          },
+          "annotations": {
+            "summary": "P99 > 3s"
+          }
+        },
+        {
+          "alert": "PGConnectionsHigh",
+          "expr": "pg_stat_activity_count > 80",
+          "for": "5m",
+          "labels": {
+            "severity": "warning",
+            "team": "platform"
+          },
+          "annotations": {
+            "summary": "PG 连接 > 80"
+          }
+        }
+      ]
+    },
+    {
+      "name": "mp-hitl",
+      "interval": "1m",
+      "rules": [
+        {
+          "alert": "PendingHITLTooLong",
+          "expr": "SELECT COUNT(*) FROM public.hitl_requests WHERE status = 'pending' AND created_at < now() - interval '24 hours'",
+          "for": "30m",
+          "labels": {
+            "severity": "warning",
+            "team": "platform"
+          },
+          "annotations": {
+            "summary": "Pending HITL > 24h"
+          }
+        }
+      ]
+    },
+    {
+      "name": "mp-temporal",
+      "interval": "1m",
+      "rules": [
+        {
+          "alert": "WorkflowSignalFailed",
+          "expr": "SELECT COUNT(*) FROM public.workflow_signals WHERE status = 'failed' AND updated_at > now() - interval '5 minutes'",
+          "for": "5m",
+          "labels": {
+            "severity": "critical",
+            "team": "platform"
+          },
+          "annotations": {
+            "summary": "Workflow signal 失败率 > 0 (5 min)"
+          }
+        },
+        {
+          "alert": "WorkflowSignalBacklog",
+          "expr": "SELECT COUNT(*) FROM public.workflow_signals WHERE status = 'pending' AND created_at < now() - interval '5 minutes'",
+          "for": "10m",
+          "labels": {
+            "severity": "warning",
+            "team": "platform"
+          },
+          "annotations": {
+            "summary": "Workflow signal 卡 pending > 5 min"
+          }
+        }
+      ]
+    },
+    {
+      "name": "mp-sandbox",
+      "interval": "1m",
+      "rules": [
+        {
+          "alert": "SidecarUnreachable",
+          "expr": "SELECT COUNT(*) FROM public.mp_sandbox.executions WHERE created_at > now() - interval '5 minutes' AND metadata->>'sidecar_reachable' = 'false'",
+          "for": "5m",
+          "labels": {
+            "severity": "critical",
+            "team": "platform"
+          },
+          "annotations": {
+            "summary": "mp-sandbox sidecar 不可达"
+          }
+        }
+      ]
+    }
+  ]
+}

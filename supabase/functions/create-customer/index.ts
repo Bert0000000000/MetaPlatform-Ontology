@@ -1,6 +1,6 @@
 // supabase/functions/create-customer/index.ts
 // PRD: docs/active/prd/domain-migrate-17.md §4.2
-// Batch: MP-V6-DOMAIN-MIGRATE-01
+// Batch: MetaPlatform-DOMAIN-MIGRATE-01
 // 创建客户: dedup by (tenant_id, email), 触发 dsp-webhook
 
 // @ts-nocheck — Deno runtime

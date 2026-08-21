@@ -1175,50 +1175,50 @@ jobs:
 
 | Batch | 周 | 内容 |
 |---|---|---|
-| **MP-V6-FOUNDATION-01** | 4 | Supabase 自托管 + K8s + 监控 |
-| **MP-V6-TEMPORAL-01** | 3 | Temporal 集群部署 + 复用 Supabase PG |
-| **MP-V6-DSH-01** | 4 | dsh 集成 + 60 包接入 + vendor 策略 |
-| **MP-V6-AUTH-01** | 2 | Supabase Auth + RLS + JWT |
-| **MP-V6-DOMAIN-MIGRATE-01** | 8 | 17 域从自有 PG 迁 Supabase PG |
-| **MP-V6-HITL-HUB-01** | 4 | HITL Hub + hitl_requests 表 + 4 种 HITL 类型 |
-| **MP-V6-LLM-01** | 2 | dsh llm-pi-ai 配置 + 多 provider |
-| **MP-V6-RAG-01** | 4 | RAGFlow + GraphRAG 集成 |
-| **MP-V6-APPROVAL-01** | 6 | 第三方审批 SaaS + 多级超时升级 |
-| **MP-V6-REALTIME-01** | 3 | Realtime WS + trigger 派生 |
-| **MP-V6-EVENTS-01** | 2 | Database Webhook + pg_cron worker |
-| **MP-V6-EDGE-FN-01** | 6 | 17 域业务迁移到 Supabase Edge Functions（替代 FastAPI） |
-| **MP-V6-TEMPORAL-TS-01** | 3 | Temporal worker 改 TypeScript SDK（Node 部署） |
-| **MP-V6-OBSERVABILITY-01** | 2 | OTel Collector + Tempo + Prometheus + Loki + Grafana 部署 |
-| **MP-V6-SANDBOX-01** | ~~3~~ | ~~dsh sandbox + Firecracker 双层~~（**v6.0 取消 Firecracker**，只留 dsh sandbox） |
-| **MP-V6-LONG-TASK-01** | 4 | 1 周+ 长任务 5 大机制 |
-| **MP-V6-DSH-DOCKER-01** | 2 | dsh Dockerfile（多阶段）+ GH Actions |
-| **MP-V6-DSH-K8S-01** | 2 | dsh K8s Deployment + HPA + Service + Ingress |
-| **MP-V6-DSH-POSTGRES-BACKEND-01** | 3 | 自建 dsh session persistence Postgres backend（Supabase PG） |
-| **MP-V6-DEPLOY-01** | 2 | Helm chart + ArgoCD |
+| **MetaPlatform-FOUNDATION-01** | 4 | Supabase 自托管 + K8s + 监控 |
+| **MetaPlatform-TEMPORAL-01** | 3 | Temporal 集群部署 + 复用 Supabase PG |
+| **MetaPlatform-DSH-01** | 4 | dsh 集成 + 60 包接入 + vendor 策略 |
+| **MetaPlatform-AUTH-01** | 2 | Supabase Auth + RLS + JWT |
+| **MetaPlatform-DOMAIN-MIGRATE-01** | 8 | 17 域从自有 PG 迁 Supabase PG |
+| **MetaPlatform-HITL-HUB-01** | 4 | HITL Hub + hitl_requests 表 + 4 种 HITL 类型 |
+| **MetaPlatform-LLM-01** | 2 | dsh llm-pi-ai 配置 + 多 provider |
+| **MetaPlatform-RAG-01** | 4 | RAGFlow + GraphRAG 集成 |
+| **MetaPlatform-APPROVAL-01** | 6 | 第三方审批 SaaS + 多级超时升级 |
+| **MetaPlatform-REALTIME-01** | 3 | Realtime WS + trigger 派生 |
+| **MetaPlatform-EVENTS-01** | 2 | Database Webhook + pg_cron worker |
+| **MetaPlatform-EDGE-FN-01** | 6 | 17 域业务迁移到 Supabase Edge Functions（替代 FastAPI） |
+| **MetaPlatform-TEMPORAL-TS-01** | 3 | Temporal worker 改 TypeScript SDK（Node 部署） |
+| **MetaPlatform-OBSERVABILITY-01** | 2 | OTel Collector + Tempo + Prometheus + Loki + Grafana 部署 |
+| **MetaPlatform-SANDBOX-01** | ~~3~~ | ~~dsh sandbox + Firecracker 双层~~（**v6.0 取消 Firecracker**，只留 dsh sandbox） |
+| **MetaPlatform-LONG-TASK-01** | 4 | 1 周+ 长任务 5 大机制 |
+| **MetaPlatform-DSH-DOCKER-01** | 2 | dsh Dockerfile（多阶段）+ GH Actions |
+| **MetaPlatform-DSH-K8S-01** | 2 | dsh K8s Deployment + HPA + Service + Ingress |
+| **MetaPlatform-DSH-POSTGRES-BACKEND-01** | 3 | 自建 dsh session persistence Postgres backend（Supabase PG） |
+| **MetaPlatform-DEPLOY-01** | 2 | Helm chart + ArgoCD |
 
 ### 11.3 依赖关系
 
 ```
-MP-V6-FOUNDATION-01（前置）
-    ├─ MP-V6-TEMPORAL-01
-    │    └─ MP-V6-HITL-HUB-01
-    │         ├─ MP-V6-APPROVAL-01
-    │         └─ MP-V6-LONG-TASK-01
-    ├─ MP-V6-DSH-01
-    │    ├─ MP-V6-DSH-DOCKER-01
-    │    │    └─ MP-V6-DSH-K8S-01
-    │    ├─ MP-V6-DSH-POSTGRES-BACKEND-01
-    │    ├─ MP-V6-LLM-01
-    │    ├─ MP-V6-RAG-01
-    │    └─ MP-V6-SANDBOX-01
-    ├─ MP-V6-AUTH-01
-    │    └─ MP-V6-DOMAIN-MIGRATE-01
-    │         └─ MP-V6-EDGE-FN-01
-    │              └─ MP-V6-TEMPORAL-TS-01
-    ├─ MP-V6-REALTIME-01
-    │    └─ MP-V6-EVENTS-01
-    │         └─ MP-V6-DEPLOY-01（收口）
-    └─ MP-V6-OBSERVABILITY-01
+MetaPlatform-FOUNDATION-01（前置）
+    ├─ MetaPlatform-TEMPORAL-01
+    │    └─ MetaPlatform-HITL-HUB-01
+    │         ├─ MetaPlatform-APPROVAL-01
+    │         └─ MetaPlatform-LONG-TASK-01
+    ├─ MetaPlatform-DSH-01
+    │    ├─ MetaPlatform-DSH-DOCKER-01
+    │    │    └─ MetaPlatform-DSH-K8S-01
+    │    ├─ MetaPlatform-DSH-POSTGRES-BACKEND-01
+    │    ├─ MetaPlatform-LLM-01
+    │    ├─ MetaPlatform-RAG-01
+    │    └─ MetaPlatform-SANDBOX-01
+    ├─ MetaPlatform-AUTH-01
+    │    └─ MetaPlatform-DOMAIN-MIGRATE-01
+    │         └─ MetaPlatform-EDGE-FN-01
+    │              └─ MetaPlatform-TEMPORAL-TS-01
+    ├─ MetaPlatform-REALTIME-01
+    │    └─ MetaPlatform-EVENTS-01
+    │         └─ MetaPlatform-DEPLOY-01（收口）
+    └─ MetaPlatform-OBSERVABILITY-01
 ```
 
 **总 Batch 数**：19 个 | **总工作量**：46 周 ≈ 10.5 个月

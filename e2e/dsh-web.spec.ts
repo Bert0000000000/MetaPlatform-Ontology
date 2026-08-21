@@ -1,5 +1,5 @@
 // e2e/dsh-web.spec.ts
-// MP-V6 E2E: dsh-web UI 测试
+// MetaPlatform E2E: dsh-web UI 测试
 //
 // 启动: DSH_PORT=5173 dsh web --host 127.0.0.1
 // 运行: DSH_BASE_URL=http://127.0.0.1:5173 npx playwright test --project=dsh-web-ui

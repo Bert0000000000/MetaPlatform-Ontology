@@ -4,7 +4,7 @@
 
 ## Batch
 
-- **Batch ID**：`MP-V6-`（必填，从 `docs/active/batch/` 选择）
+- **Batch ID**：`MetaPlatform-`（必填，从 `docs/active/batch/` 选择）
 - **PRD 链接**：`docs/active/prd/-.md`（必填，每个 Batch 启动前必须先有 PRD；CLAUDE.md §8 强约束）
 - **spec 链接**（如适用）：`docs/active/specs/2026-08-19-mp-v6-.md`
 
@@ -29,7 +29,7 @@
 
 ## Evidence
 
-- **Evidence 文件**：`evidence/MP-V6---ACCEPTANCE.md`
+- **Evidence 文件**：`evidence/MetaPlatform---ACCEPTANCE.md`
 - [ ] 已创建 / 更新
 - [ ] 关键章节齐全（验收标准 / 测试结果 / 部署验证）
 

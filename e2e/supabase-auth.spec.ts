@@ -1,5 +1,5 @@
 // e2e/supabase-auth.spec.ts
-// MP-V6 E2E: Supabase Auth + RLS 跨租户隔离验证
+// MetaPlatform E2E: Supabase Auth + RLS 跨租户隔离验证
 //
 // 验证:
 //   1. signup + login 流程
@@ -11,8 +11,9 @@
 import { test, expect, request } from '@playwright/test';
 
 const API = process.env.SUPABASE_API ?? 'http://localhost:54321';
-const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJ...ANON_PLACEHOLDER';
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY ?? 'eyJ...SERVICE_PLACEHOLDER';
+// Supabase local dev defaults (per `supabase status`). Override with SUPABASE_* env vars.
+const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
 
 test.describe('Supabase Auth + RLS', () => {
   let tenantA: string;
@@ -63,8 +64,13 @@ test.describe('Supabase Auth + RLS', () => {
     const { Client } = pg.default ?? pg;
     const pgClient = new Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
     await pgClient.connect();
-    await pgClient.query('DELETE FROM public.audit_log WHERE tenant_id IN ($1, $2) ', [tenantA, tenantB]);
+    // create-customer 真正写入后, customers 会 FK-引用 tenants, 必须先删子表.
+    // audit_log 必须最后删: 删子表本身会经 tg_audit 触发器再写入 audit_log 行.
+    for (const t of ['customers', 'hitl_requests', 'notifications', 'tickets', 'orders']) {
+      try { await pgClient.query(`DELETE FROM public.${t} WHERE tenant_id IN ($1, $2)`, [tenantA, tenantB]); } catch { /* table optional */ }
+    }
     await pgClient.query('DELETE FROM public.profiles WHERE tenant_id IN ($1, $2) ', [tenantA, tenantB]);
+    await pgClient.query('DELETE FROM public.audit_log WHERE tenant_id IN ($1, $2) ', [tenantA, tenantB]);
     await pgClient.query('DELETE FROM public.tenants WHERE id IN ($1, $2) ', [tenantA, tenantB]);
     await pgClient.end();
   });
@@ -123,7 +129,7 @@ test.describe('Supabase Auth + RLS', () => {
         contact_email: `c-a-${Date.now()}@x.com`,
       }),
     });
-    expect(createR.status()).toBe(201);
+    expect(createR.status).toBe(201);
     const customer = await createR.json();
     expect(customer.customer.tenant_id).toBe(tenantA);
 

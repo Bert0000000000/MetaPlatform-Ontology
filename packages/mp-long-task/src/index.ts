@@ -1,7 +1,7 @@
 /**
  * packages/mp-long-task/src/index.ts
  * PRD: docs/active/prd/long-task-5-mechanisms.md §4.3
- * Batch: MP-V6-LONG-TASK-01
+ * Batch: MetaPlatform-LONG-TASK-01
  *
  * 长任务 SDK: 5 大机制完整版入口
  */

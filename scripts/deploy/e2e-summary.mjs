@@ -9,7 +9,7 @@ const j = (await c.query("SELECT count(*)::int AS n FROM cron.job")).rows[0];
 const t2 = (await c.query("SELECT count(*)::int AS n FROM public.tenants")).rows[0];
 const u = (await c.query("SELECT count(*)::int AS n FROM auth.users")).rows[0];
 const a = (await c.query("SELECT count(*)::int AS n FROM public.audit_log")).rows[0];
-console.log('=== MP-V6 Local E2E Final Status ===\n');
+console.log('=== MetaPlatform Local E2E Final Status ===\n');
 console.log(`📊 Public tables:        ${t.n}`);
 console.log(`📊 RLS policies:         ${p.n}`);
 console.log(`📊 Public functions:     ${f.n}`);

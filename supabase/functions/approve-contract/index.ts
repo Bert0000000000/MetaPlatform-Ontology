@@ -1,6 +1,6 @@
 // supabase/functions/approve-contract/index.ts
 // PRD: docs/active/prd/domain-migrate-17.md §4.2
-// Batch: MP-V6-DOMAIN-MIGRATE-01
+// Batch: MetaPlatform-DOMAIN-MIGRATE-01
 // 合同审批: 高额 (>100k) 走 HITL workflow_saas (1 周+), 低额走 workflow_dsh
 
 // @ts-nocheck — Deno runtime

@@ -1,12 +1,13 @@
 // e2e/publish-preset.spec.ts
-// MP-V6 Loop 3/5: publish-preset Edge Function
+// MetaPlatform Loop 3/5: publish-preset Edge Function
 
 import { test, expect } from '@playwright/test';
 import pg from 'pg';
 
 const API = process.env.SUPABASE_API ?? 'http://localhost:54321';
-const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJ...ANON_PLACEHOLDER';
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY ?? 'eyJ...SERVICE_PLACEHOLDER';
+// Supabase local dev defaults (per `supabase status`). Override with SUPABASE_* env vars.
+const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
 
 test.describe('publish-preset (Loop 3/5)', () => {
   let tenantA: string;
@@ -47,6 +48,10 @@ test.describe('publish-preset (Loop 3/5)', () => {
   test.afterAll(async () => {
     const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
     await c.connect();
+    // FK-safe cleanup: child rows (versions → presets) reference tenants, delete them first.
+    try { await c.query("DELETE FROM mp_preset_registry.versions WHERE tenant_id = $1", [tenantA]); } catch (e) { /* ignore */ }
+    try { await c.query("DELETE FROM mp_preset_registry.presets WHERE tenant_id = $1", [tenantA]); } catch (e) { /* ignore */ }
+    try { await c.query("DELETE FROM public.audit_log WHERE tenant_id = $1", [tenantA]); } catch (e) { /* ignore */ }
     await c.query("DELETE FROM public.profiles WHERE id = $1", [userA.id]);
     await c.query("DELETE FROM public.tenants WHERE id = $1", [tenantA]);
     await c.end();

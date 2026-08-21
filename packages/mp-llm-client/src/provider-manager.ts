@@ -1,7 +1,7 @@
 /**
  * packages/mp-llm-client/src/provider-manager.ts
  * PRD: docs/active/prd/llm-providers.md §4.2/§4.3
- * Batch: MP-V6-LLM-01
+ * Batch: MetaPlatform-LLM-01
  *
  * 多 LLM provider 管理: rate limit + circuit breaker + fallback chain
  */

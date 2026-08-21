@@ -1,5 +1,5 @@
 # apps/dsh-presets/code-reviewer/cordis.yml
-# PRD: docs/active/batch/MP-V6-DSH-01.md §3
+# PRD: docs/active/batch/MetaPlatform-DSH-01.md §3
 # 数字员工: code-reviewer (代码审查 + 安全检查 + 性能建议)
 
 name: code-reviewer

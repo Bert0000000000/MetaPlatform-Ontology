@@ -1,6 +1,6 @@
 // supabase/functions/generate-invoice/index.ts
 // PRD: docs/active/prd/domain-migrate-17.md §4.2
-// Batch: MP-V6-DOMAIN-MIGRATE-01
+// Batch: MetaPlatform-DOMAIN-MIGRATE-01
 // 生成发票 PDF + 邮件 + 状态更新 (替代 v3.0 FastAPI InvoiceService)
 
 // @ts-nocheck — Deno runtime

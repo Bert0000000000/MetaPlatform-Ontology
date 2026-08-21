@@ -1,6 +1,6 @@
 # helm/mp-umbrella/charts/observability/Chart.yaml
 # PRD: docs/active/prd/otel-collector-config.md
-# MP-V6-OBSERVABILITY-01
+# MetaPlatform-OBSERVABILITY-01
 
 apiVersion: v2
 name: observability

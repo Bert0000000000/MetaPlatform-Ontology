@@ -292,10 +292,10 @@ COMMENT ON FUNCTION public.tg_inject_tenant() IS
 -- PRD: docs/active/prd/temporal-cluster.md §4.2 + foundation-rls-policy.md §6 (exemption)
 -- Temporal Cluster 复用 Supabase Postgres, 用专用 schema + 专用 user.
 -- Schema 下所有表 DISABLE ROW LEVEL SECURITY (系统账户全权访问).
--- RLS 豁免清单: evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md
+-- RLS 豁免清单: evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md
 
 CREATE SCHEMA IF NOT EXISTS temporal;
-COMMENT ON SCHEMA temporal IS 'Owned by Temporal Cluster. RLS-exempt (system account). 见 evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md';
+COMMENT ON SCHEMA temporal IS 'Owned by Temporal Cluster. RLS-exempt (system account). 见 evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md';
 
 -- 专用 user; 密码由 Vault → ExternalSecret → K8s Secret, 永远不进 git
 -- 这里只声明角色, 密码通过 supabase migration 之外的 init flow 注入
@@ -380,7 +380,7 @@ CREATE VIEW public.orders_active AS
 CREATE TABLE public.customers (
     id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     tenant_id       uuid NOT NULL REFERENCES public.tenants(id),
-    external_id     text,                          -- v3.0 迁过来的客户 ID (MP-V6-MIGRATION-01)
+    external_id     text,                          -- v3.0 迁过来的客户 ID (MetaPlatform-MIGRATION-01)
     name            text NOT NULL,
     contact_email   text,
     contact_phone   text,
@@ -1095,7 +1095,7 @@ SELECT public._policy_tenant_delete('public.hitl_requests'::regclass);
 -- === 20260820150000_create_auth_custom_claims_hook.sql ===
 -- supabase/migrations/20260820150000_create_auth_custom_claims_hook.sql
 -- PRD: docs/active/prd/auth-jwt-rls.md §4.1
--- Batch: MP-V6-AUTH-01
+-- Batch: MetaPlatform-AUTH-01
 -- JWT custom_access_token_hook: 注入 tenant_id + role claims
 
 CREATE OR REPLACE FUNCTION public.custom_access_token_hook(event jsonb)
@@ -1142,7 +1142,7 @@ GRANT EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb) TO supabase_aut
 -- === 20260820160000_create_hitl_long_task_cron.sql ===
 -- supabase/migrations/20260820160000_create_hitl_long_task_cron.sql
 -- PRD: docs/active/prd/hitl-hub.md §4.2
--- Batch: MP-V6-HITL-HUB-01
+-- Batch: MetaPlatform-HITL-HUB-01
 -- 长任务 5 大机制 — pg_cron 定时任务
 
 -- 启用 pg_cron (Supabase 默认已安装)
@@ -1261,7 +1261,7 @@ COMMENT ON TABLE public.hitl_poll_queue IS
 -- === 20260820170000_create_tenant_approval_config_and_escalation.sql ===
 -- supabase/migrations/20260820170000_create_tenant_approval_config_and_escalation.sql
 -- PRD: docs/active/prd/approval-saas-adapters.md §6.1 + §4.2
--- Batch: MP-V6-APPROVAL-01
+-- Batch: MetaPlatform-APPROVAL-01
 -- tenant 配置: primary/fallback SaaS provider + 多级超时升级链
 
 -- tenant 配置表
@@ -1379,7 +1379,7 @@ CREATE POLICY hitl_escalation_events_select ON public.hitl_escalation_events
 -- === 20260820180000_create_event_queue_and_cron.sql ===
 -- supabase/migrations/20260820180000_create_event_queue_and_cron.sql
 -- PRD: docs/active/prd/events-db-webhook.md §4.2 + §4.3
--- Batch: MP-V6-EVENTS-01
+-- Batch: MetaPlatform-EVENTS-01
 -- 事件队列 + 重试 + DLQ + pg_cron worker
 
 -- ============================================================
@@ -1554,7 +1554,7 @@ SELECT cron.schedule(
 -- === 20260820190000_create_dsh_token_usage.sql ===
 -- supabase/migrations/20260820190000_create_dsh_token_usage.sql
 -- PRD: docs/active/prd/llm-providers.md §4.4
--- Batch: MP-V6-LLM-01
+-- Batch: MetaPlatform-LLM-01
 -- dsh token meter (LLM 调用计费 + 用量分析)
 
 CREATE TABLE public.dsh_token_usage (
@@ -1624,7 +1624,7 @@ COMMENT ON TABLE public.llm_pricing IS
 -- === 20260820200000_create_hitl_reminder_cron.sql ===
 -- supabase/migrations/20260820200000_create_hitl_reminder_cron.sql
 -- PRD: docs/active/prd/long-task-5-mechanisms.md §4.2
--- Batch: MP-V6-LONG-TASK-01
+-- Batch: MetaPlatform-LONG-TASK-01
 -- HITL 自动 reminder + context cleanup cron jobs (扩展 hitl_long_task_cron)
 
 -- ============================================================
@@ -1683,7 +1683,7 @@ COMMENT ON TABLE public.hitl_requests IS
 -- === 20260820200000_create_saml_sso_tables.sql ===
 -- supabase/migrations/20260820200000_create_saml_sso_tables.sql
 -- PRD: docs/active/prd/auth-jwt-rls.md §6.1
--- Batch: MP-V6.1-SAML-SSO-01
+-- Batch: MetaPlatform.1-SAML-SSO-01
 -- v6.1 SAML SSO: per-tenant IdP config + assertion cache
 
 -- ============================================================
@@ -1786,7 +1786,7 @@ SELECT cron.schedule(
 -- === 20260820210000_create_schema_versioning.sql ===
 -- supabase/migrations/20260820210000_create_schema_versioning.sql
 -- PRD: docs/active/prd/ontology-gen.md §4.4
--- Batch: MP-V6.1-SCHEMA-VERSION-01
+-- Batch: MetaPlatform.1-SCHEMA-VERSION-01
 -- v6.1 Schema Versioning: 多版本 ontology_object_types + 版本切换
 
 -- ============================================================
@@ -1919,7 +1919,7 @@ SELECT cron.schedule(
 -- === 20260820220000_create_compass_dashboards.sql ===
 -- supabase/migrations/20260820220000_create_compass_dashboards.sql
 -- PRD: docs/active/prd/mp-data-product.md (Compass v6.1)
--- Batch: MP-V6.1-COMPASS-01
+-- Batch: MetaPlatform.1-COMPASS-01
 -- v6.1 Compass: 仪表盘系统 (dsh dashboard-curator preset 配套)
 
 -- ============================================================
@@ -2039,7 +2039,7 @@ SELECT cron.schedule(
 
 -- === 20260820300000_create_mp_preset_registry.sql ===
 -- supabase/migrations/20260820300000_create_mp_preset_registry.sql
--- Loop 1/5 of MP-V6.1-APP-CENTER-01
+-- Loop 1/5 of MetaPlatform.1-APP-CENTER-01
 -- PRD: docs/active/prd/mp-skill-marketplace.md
 -- v6.1 App Center: 3 tables (presets + versions + installs) + RLS + pg_cron cleanup
 
@@ -2269,11 +2269,11 @@ SELECT cron.schedule(
 );
 
 -- ============================================================
--- Seed: 9 MP-v6 master + sub-role presets (per 4w cycle)
+-- Seed: 9 MetaPlatform master + sub-role presets (per 4w cycle)
 -- ============================================================
 INSERT INTO mp_preset_registry.presets (tenant_id, name, slug, category, description, visibility, tags, current_version)
 VALUES
-    (NULL, 'mp-v6 master', 'mp-v6-master', 'custom', 'MP-v6 数字员工 master preset (8 sub-roles via dsh subagent dispatch)', 'public', ARRAY['mp-v6', 'master', 'orchestrator'], NULL),
+    (NULL, 'mp-v6 master', 'mp-v6-master', 'custom', 'MetaPlatform 数字员工 master preset (8 sub-roles via dsh subagent dispatch)', 'public', ARRAY['mp-v6', 'master', 'orchestrator'], NULL),
     (NULL, 'support-triage', 'support-triage', 'support', '工单分诊 + HITL 升级 (high/urgent)', 'public', ARRAY['support', 'tickets', 'hitl'], NULL),
     (NULL, 'knowledge-curator', 'knowledge-curator', 'knowledge', '4 支柱架构 + 9 namespace + 19 apps + 8 CI gate 知识库', 'public', ARRAY['knowledge', 'architecture', 'rfc'], NULL),
     (NULL, 'ontology-curator', 'ontology-curator', 'ontology', '12 Ontology Kernel 设计 + apply-ontology-change Edge Function', 'public', ARRAY['ontology', 'schema', 'object-type'], NULL),

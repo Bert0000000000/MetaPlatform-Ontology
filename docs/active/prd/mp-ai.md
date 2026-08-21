@@ -103,7 +103,7 @@ ALTER TABLE mp_ai.tenant_quota ENABLE ROW LEVEL SECURITY;
 |---|---|
 | DeepSeek API key | Vault |
 | dsh llm-pi-ai provider | dsh 官方包 |
-| OTel | MP-V6-OBSERVABILITY-01 |
+| OTel | MetaPlatform-OBSERVABILITY-01 |
 
 ## 8. 不做
 

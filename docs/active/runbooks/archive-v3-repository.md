@@ -182,7 +182,7 @@ ls .pre-commit-config.yaml  # 应该 "No such file"
 
 ### Q3：v3.0 业务数据怎么导出？
 
-→ 由 **MP-V6-MIGRATION-01 Batch** 处理（Sprint 3 末）：
+→ 由 **MetaPlatform-MIGRATION-01 Batch** 处理（Sprint 3 末）：
 - 4 类数据：用户 / 租户 / 17 域 / 审计日志
 - 一次性 ETL → 导入 v6.0
 

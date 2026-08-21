@@ -1,7 +1,7 @@
 # PRD：llm-providers
 
 > **模块**：dsh LLM provider 详细配置（DeepSeek + OpenAI + Anthropic 多源 + 限流 + circuit breaker + token meter）
-> **对应 Batch**：[MP-V6-LLM-01](../batch/MP-V6-LLM-01.md)
+> **对应 Batch**：[MetaPlatform-LLM-01](../batch/MetaPlatform-LLM-01.md)
 > **状态**：Draft v1.0
 > **负责人**：AI 团队
 > **日期**：2026-08-20
@@ -125,7 +125,7 @@ interface LlmResponse {
 
 | 依赖 | 来源 |
 |---|---|
-| dsh llm-pi-ai | MP-V6-DSH-01 ✅ |
+| dsh llm-pi-ai | MetaPlatform-DSH-01 ✅ |
 | DEEPSEEK_API_KEY | SRE 申请 + Vault |
 | OPENAI_API_KEY (可选) | SRE 申请 |
 | ANTHROPIC_API_KEY (可选) | SRE 申请 |
@@ -146,4 +146,4 @@ interface LlmResponse {
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-LLM-01 Batch](../batch/MP-V6-LLM-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-LLM-01 Batch](../batch/MetaPlatform-LLM-01.md)*

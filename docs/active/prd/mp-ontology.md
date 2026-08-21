@@ -121,7 +121,7 @@ ALTER TABLE mp_ontology.object_types ENABLE ROW LEVEL SECURITY;
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase PG + JSONB | MP-V6-FOUNDATION-01 |
+| Supabase PG + JSONB | MetaPlatform-FOUNDATION-01 |
 | RLS policy 模板 | [foundation-rls-policy](foundation-rls-policy.md) |
 
 ## 8. 不做

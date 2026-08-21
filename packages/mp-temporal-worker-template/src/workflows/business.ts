@@ -1,7 +1,7 @@
 /**
  * packages/mp-temporal-worker-template/src/workflows/business.ts
  * PRD: docs/active/prd/edge-fn-17-domains.md §4.3
- * Batch: MP-V6-EDGE-FN-01
+ * Batch: MetaPlatform-EDGE-FN-01
  *
  * orderApprovalWorkflow + contractApprovalWorkflow + processInvoiceWorkflow
  */

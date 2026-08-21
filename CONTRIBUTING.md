@@ -33,15 +33,15 @@ main (受保护) ← squash merge ← feat/mp-v6-<batch>-<module>
 **body**（可选，72 字符换行，解释 **why** 而不是 what）
 
 **footer**（可选）：
-- `Refs: MP-V6-FOUNDATION-01`
+- `Refs: MetaPlatform-FOUNDATION-01`
 - `Closes: #123`
 - `BREAKING CHANGE: ...`
 
-**PR 标题**必须包含 Batch ID：`feat(foundation): MP-V6-FOUNDATION-01 supabase schema`。
+**PR 标题**必须包含 Batch ID：`feat(foundation): MetaPlatform-FOUNDATION-01 supabase schema`。
 
 ## 3. PR checklist（PR 模板会自动渲染）
 
-- [ ] PR 标题含 Batch ID（如 `MP-V6-FOUNDATION-01`）
+- [ ] PR 标题含 Batch ID（如 `MetaPlatform-FOUNDATION-01`）
 - [ ] PR body 含 PRD 链接（`docs/active/prd/<batch>-<module>.md`）
 - [ ] `evidence/<batch>-ACCEPTANCE.md` 已更新（或首次创建）
 - [ ] 所有 AC 项已勾选（`[x]`）
@@ -77,7 +77,7 @@ pnpm run validate:all
 |---|---|
 | 技术 spec | `docs/active/specs/2026-08-19-mp-v6-*.md` |
 | 模块 PRD | `docs/active/prd/<batch>-<module>.md` |
-| Batch 任务文档 | `docs/active/batch/MP-V6-*.md` |
+| Batch 任务文档 | `docs/active/batch/MetaPlatform-*.md` |
 | ADR | `docs/active/decisions/ADR-NNNN-*.md` |
 | CI/CD workflow | `.github/workflows/*.yml` |
 | Runbook | `runbooks/*.md` |

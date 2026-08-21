@@ -4,7 +4,7 @@
 
 ## 索引
 
-### MP-V6-FOUNDATION-01（4 周，关键路径）✅ 已完成
+### MetaPlatform-FOUNDATION-01（4 周，关键路径）✅ 已完成
 
 | PRD | 模块 | 必读角色 |
 |---|---|---|
@@ -14,26 +14,26 @@
 | [foundation-networkpolicy.md](./foundation-networkpolicy.md) | default-deny + 跨 namespace 白名单 + egress 出公网控制 | SRE / 安全 |
 | [foundation-dr-backup.md](./foundation-dr-backup.md) | PITR / Velero / 异地对象存储 / RPO≤5min RTO≤30min | SRE / DBA |
 
-### MP-V6-TEMPORAL-01（3 周，前置依赖 FOUNDATION）✅ 已完成
+### MetaPlatform-TEMPORAL-01（3 周，前置依赖 FOUNDATION）✅ 已完成
 
 | PRD | 模块 | 必读角色 |
 |---|---|---|
 | [temporal-cluster.md](./temporal-cluster.md) | Temporal Cluster + Postgres schema + namespace 隔离 | SRE / 后端 |
 | [temporal-worker-sdk.md](./temporal-worker-sdk.md) | Node SDK Worker 模板 + HPA + OTel + 多租户 ctx | 后端 |
 
-### MP-V6-OBSERVABILITY-01（2 周，前置依赖 FOUNDATION）✅ 已完成
+### MetaPlatform-OBSERVABILITY-01（2 周，前置依赖 FOUNDATION）✅ 已完成
 
 | PRD | 模块 | 必读角色 |
 |---|---|---|
 | [otel-collector-config.md](./otel-collector-config.md) | OTel Collector + Tempo/Prom/Loki/Grafana + 4 Dashboard + 告警 | SRE |
 
-### MP-V6-DSH-DOCKER-01（2 周，前置依赖 FOUNDATION）✅ 已完成
+### MetaPlatform-DSH-DOCKER-01（2 周，前置依赖 FOUNDATION）✅ 已完成
 
 | PRD | 模块 | 必读角色 |
 |---|---|---|
 | [dsh-image-spec.md](./dsh-image-spec.md) | dsh Docker 镜像（多阶段 / ≤500MB / non-root / trivy / cosign） | AI 团队 / SRE |
 
-### MP-V6-MIGRATION-01（3 周，Sprint 3 末）✅ 已完成
+### MetaPlatform-MIGRATION-01（3 周，Sprint 3 末）✅ 已完成
 
 | PRD | 模块 | 必读角色 |
 |---|---|---|
@@ -60,11 +60,11 @@
 
 | Batch | PRD 数 | 状态 |
 |---|---|---|
-| MP-V6-FOUNDATION-01 | 5 | ✅ |
-| MP-V6-TEMPORAL-01 | 2 | ✅ |
-| MP-V6-OBSERVABILITY-01 | 1 | ✅ |
-| MP-V6-DSH-DOCKER-01 | 1 | ✅ |
-| MP-V6-MIGRATION-01 | 3 | ✅ |
+| MetaPlatform-FOUNDATION-01 | 5 | ✅ |
+| MetaPlatform-TEMPORAL-01 | 2 | ✅ |
+| MetaPlatform-OBSERVABILITY-01 | 1 | ✅ |
+| MetaPlatform-DSH-DOCKER-01 | 1 | ✅ |
+| MetaPlatform-MIGRATION-01 | 3 | ✅ |
 | **Sprint 0 合计** | **12** | **✅ 全部完成** |
 
 ### 与其他文档的关系

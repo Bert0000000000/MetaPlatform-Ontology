@@ -1,10 +1,13 @@
 // e2e/list-presets.spec.ts
-// MP-V6 Loop 2/5: list-presets Edge Function
+// MetaPlatform Loop 2/5: list-presets Edge Function
 
 import { test, expect } from '@playwright/test';
 
 const API = process.env.SUPABASE_API ?? 'http://localhost:54321';
-const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJ...ANON_PLACEHOLDER';
+// Supabase local dev defaults (per `supabase status`). Override with SUPABASE_ANON_KEY env var.
+// 2026-08-20: legacy anon JWT (eyJ...) 不再被 gateway 接受 (UNAUTHORIZED_LEGACY_JWT),
+// 改用新的 publishable key (sb_publishable_*).
+const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
 
 async function callList(query: string) {
   return await fetch(`${API}/functions/v1/list-presets${query}`, {

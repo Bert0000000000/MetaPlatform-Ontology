@@ -1,5 +1,5 @@
 // e2e/edge-functions.spec.ts
-// MP-V6 E2E: Edge Functions 端到端测试
+// MetaPlatform E2E: Edge Functions 端到端测试
 //
 // 验证:
 //   1. create-customer dedup (同 email 返回同一 record)
@@ -12,8 +12,9 @@ import { test, expect } from '@playwright/test';
 import pg from 'pg';
 
 const API = process.env.SUPABASE_API ?? 'http://localhost:54321';
-const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJ...ANON_PLACEHOLDER';
-const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY ?? 'eyJ...SERVICE_PLACEHOLDER';
+// Supabase local dev defaults (per `supabase status`). Override with SUPABASE_* env vars.
+const ANON_KEY = process.env.SUPABASE_ANON_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
 
 test.describe('Edge Functions', () => {
   let tenantA: string;
@@ -118,9 +119,9 @@ test.describe('Edge Functions', () => {
     const body = await r.json();
     expect(body.triage.priority).toBe('urgent');
 
-    // 验证 hitl_request 被创建 (urgent → HITL)
+    // 验证 hitl_request 被创建 (urgent → HITL, 新 schema 用 payload 列)
     const hitl = await pgClient.query(
-      'SELECT count(*)::int AS n FROM public.hitl_requests WHERE tenant_id = $1 AND context->>\'ticket_id\' = $2',
+      "SELECT count(*)::int AS n FROM public.hitl_requests WHERE tenant_id = $1 AND payload->>'ticket_id' = $2",
       [tenantA, ticket.id]
     );
     expect(hitl.rows[0].n).toBe(1);

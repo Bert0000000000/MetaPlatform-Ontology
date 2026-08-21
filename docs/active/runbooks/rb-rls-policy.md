@@ -30,7 +30,7 @@ ORDER BY rowsecurity ASC, schemaname, tablename;
 "
 
 # 2. 看豁免清单
-cat evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md
+cat evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md
 
 # 3. 测试跨租户访问（用 2 个测试账号）
 psql -c "

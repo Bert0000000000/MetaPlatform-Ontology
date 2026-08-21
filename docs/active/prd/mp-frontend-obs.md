@@ -95,7 +95,7 @@ ALTER TABLE mp_frontend_obs.* ENABLE ROW LEVEL SECURITY;
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase PG | MP-V6-FOUNDATION-01 |
+| Supabase PG | MetaPlatform-FOUNDATION-01 |
 | Source map 上传（CI）| 自家 |
 
 ## 8. 不做

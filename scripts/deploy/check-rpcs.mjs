@@ -1,0 +1,13 @@
+import pg from 'pg';
+const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
+await c.connect();
+const r = await c.query("SELECT proname, pg_get_function_arguments(oid) AS args FROM pg_proc WHERE pronamespace = 'public'::regnamespace AND proname LIKE 'insert_%' ORDER BY proname");
+console.log('insert_*:');
+r.rows.forEach(row => console.log(' ', row.proname, '(', row.args, ')'));
+const r2 = await c.query("SELECT proname, pg_get_function_arguments(oid) AS args FROM pg_proc WHERE pronamespace = 'public'::regnamespace AND proname LIKE '%video%' ORDER BY proname");
+console.log('video:');
+r2.rows.forEach(row => console.log(' ', row.proname, '(', row.args, ')'));
+const r3 = await c.query("SELECT proname, pg_get_function_arguments(oid) AS args FROM pg_proc WHERE pronamespace = 'public'::regnamespace AND proname LIKE '%image%' ORDER BY proname");
+console.log('image:');
+r3.rows.forEach(row => console.log(' ', row.proname, '(', row.args, ')'));
+await c.end();

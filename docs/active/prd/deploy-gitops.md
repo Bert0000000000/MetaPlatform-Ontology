@@ -1,7 +1,7 @@
 # PRD：deploy-gitops
 
 > **模块**：ArgoCD GitOps 收口 + Image Updater
-> **对应 Batch**：[MP-V6-DEPLOY-01](../batch/MP-V6-DEPLOY-01.md)
+> **对应 Batch**：[MetaPlatform-DEPLOY-01](../batch/MetaPlatform-DEPLOY-01.md)
 > **状态**：Draft v1.0
 > **负责人**：SRE
 > **日期**：2026-08-20
@@ -138,9 +138,9 @@ CI build 完成 → 触发 ArgoCD refresh (webhook + Annotation)
 
 | 依赖 | 来源 |
 |---|---|
-| umbrella chart | MP-V6-FOUNDATION-01 ✅ |
-| ArgoCD | MP-V6-FOUNDATION-01 ✅ |
-| Harbor | MP-V6-FOUNDATION-01 ✅ |
+| umbrella chart | MetaPlatform-FOUNDATION-01 ✅ |
+| ArgoCD | MetaPlatform-FOUNDATION-01 ✅ |
+| Harbor | MetaPlatform-FOUNDATION-01 ✅ |
 
 ## 9. 风险
 
@@ -158,4 +158,4 @@ CI build 完成 → 触发 ArgoCD refresh (webhook + Annotation)
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-DEPLOY-01 Batch](../batch/MP-V6-DEPLOY-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-DEPLOY-01 Batch](../batch/MetaPlatform-DEPLOY-01.md)*

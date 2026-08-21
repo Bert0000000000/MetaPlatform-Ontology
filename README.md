@@ -1,7 +1,7 @@
 # MetaPlatform-Ontology
 
-> **v6.0** — 以 **DeepSeek Harness (dsh)** 为核心的企业级 AI 平台
-> 基于 **Supabase**（后端）+ **Temporal.io**（业务流程）+ **OTel 可观测栈** 构建，v3.0 完全重启。
+> **v6.0** — 基于 **Ontology 本体论** 构建的企业 **AgentOS**（Agent 操作系统）
+> 以 **DeepSeek Harness (dsh)** 为 AI 编排核心，**Supabase**（后端全栈）+ **Temporal.io**（业务流程）+ **OTel 可观测栈** 构建，v3.0 完全重启。
 >
 > 📄 给 AI 协作者读的入口：[`CLAUDE.md`](./CLAUDE.md)
 > 🚀 从这里开始执行：[`START.md`](./START.md)
@@ -12,7 +12,14 @@
 
 ## 1. 项目目标（Why）
 
-构建一个**可长期演进、可大规模应用、稳定可观测**的企业级 AI 平台，作为承载 19 个内部应用（mp-frontend / mp-runtime / mp-platform / mp-ai / mp-ontology / mp-workflow / mp-data-* / mp-monitoring 等）的统一底座，最终交付给业务团队一个能"开箱即用 + 二次开发"的 AI 中台。
+构建一个**基于 Ontology 本体论**的企业级 **AgentOS**（Agent 操作系统），作为承载 19 个内部应用（mp-frontend / mp-runtime / mp-platform / mp-ai / mp-ontology / mp-workflow / mp-data-* / mp-monitoring 等）的统一底座。
+
+**核心思路**：
+
+- **Ontology 本体论**（抽象层）：把企业里的一切 —— Agent、Skill、Tool、Workflow、Knowledge、User、Tenant、Asset —— 建模成**一等公民的 Entity 与 Relation**，用一套类型系统贯穿前后端 / AI 编排 / 知识库 / 数据资产 / 权限
+- **AgentOS**（运行时层）：在本体之上提供 Agent 的运行时，让 Agent 像 App 一样被**安装、调度、治理、可观测**
+
+最终交付给业务团队一个能"开箱即用 + 二次开发"的 AI 中台。
 
 ### 三个判断决定了 v6.0 必须重启
 
@@ -49,12 +56,13 @@ v3.0 失败的根本原因之一是"13 条硬规则"过度收紧又没自动化�
 
 ---
 
-## 3. v6.0 技术栈（4 大支柱）
+## 3. v6.0 技术栈（4 大支柱 + 本体抽象层）
 
 | 支柱 | 技术 | 取代 |
 |---|---|---|
+| **抽象层（Ontology）** | **mp-ontology** — Entity / Relation / Action / Event 类型系统，所有领域概念必须先建模 | v3.0 散落的"功能模块"定义 |
 | **后端全栈** | **Supabase**（PG + Auth + Realtime + Storage + Edge Functions + PostgREST + Studio + Vector） | FastAPI + Keycloak + Kafka + Redis + MinIO |
-| **AI 编排** | **DeepSeek Harness (dsh)** — Cordis 插件框架，60+ 包统一管理 | 自研 SuperAI + LangChain |
+| **AI 编排（AgentOS 内核）** | **DeepSeek Harness (dsh)** — Cordis 插件框架，60+ 包统一管理 | 自研 SuperAI + LangChain |
 | **业务流程** | **Temporal.io**（gRPC `:7233`，复用 Supabase PG） | Flowable BPMN |
 | **可观测** | **OTel Collector + Tempo + Prometheus + Loki + Grafana** | 自研监控 |
 
@@ -68,6 +76,7 @@ v3.0 失败的根本原因之一是"13 条硬规则"过度收紧又没自动化�
 | 决策 | 内容 |
 |---|---|
 | **ADR-0060** | 完全抛弃 v3.0，只导基础数据 |
+| **Ontology First** | 所有领域概念必须先在 `mp-ontology` 中建模为 Entity / Relation，再被 Agent / Workflow / Knowledge 引用，**禁止散落定义** |
 | **HITL Hub 4 类** | workflow_saas / workflow_dsh / tool_dsh / action_confirm |
 | **dsh 持久化** | 自建 Postgres backend（K8s 多副本 session 共享），不存 JSONL |
 | **dsh Docker** | 多阶段 build（deps / build / runtime），基础镜像 `node:22.19-alpine`，非 root + tini，≤ 500MB |
@@ -82,10 +91,10 @@ v3.0 失败的根本原因之一是"13 条硬规则"过度收紧又没自动化�
 
 | Batch | 状态 | 周 | 关键能力 |
 |---|---|---|---|
-| MP-V6-FOUNDATION-01 | **Pending** | 4 | K8s 3 套 + Supabase 8 能力 + RLS + NetworkPolicy |
-| MP-V6-TEMPORAL-01 | **Pending** | 3 | Temporal Cluster + Worker |
-| MP-V6-OBSERVABILITY-01 | **Pending** | 2 | OTel + Grafana |
-| MP-V6-DSH-DOCKER-01 | **Pending** | 2 | dsh 镜像 |
+| MetaPlatform-FOUNDATION-01 | **Pending** | 4 | K8s 3 套 + Supabase 8 能力 + RLS + NetworkPolicy |
+| MetaPlatform-TEMPORAL-01 | **Pending** | 3 | Temporal Cluster + Worker |
+| MetaPlatform-OBSERVABILITY-01 | **Pending** | 2 | OTel + Grafana |
+| MetaPlatform-DSH-DOCKER-01 | **Pending** | 2 | dsh 镜像 |
 
 预计 **10 周串行**（依赖关系）/ **5 周并行**（FOUNDATION 是关键路径）。
 执行方式见 [`START.md`](./START.md)，自动化靠 [`.claude/loop-prompt.md`](./.claude/loop-prompt.md) + `claude-loop.yml`。
@@ -154,4 +163,4 @@ MetaPlatform-Ontology/
 
 ---
 
-*README v6.0*
+*README v6.1 — 重构为基于 **Ontology 本体论** 的企业 **AgentOS** 定位；§3 技术栈新增"抽象层（Ontology）"行；§4 关键决策新增 **Ontology First**。*

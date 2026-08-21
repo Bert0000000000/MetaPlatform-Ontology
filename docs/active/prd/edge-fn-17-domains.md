@@ -1,7 +1,7 @@
 # PRD：edge-fn-17-domains
 
 > **模块**：17 域业务 Edge Functions (Deno + TypeScript)
-> **对应 Batch**：[MP-V6-EDGE-FN-01](../batch/MP-V6-EDGE-FN-01.md)
+> **对应 Batch**：[MetaPlatform-EDGE-FN-01](../batch/MetaPlatform-EDGE-FN-01.md)
 > **状态**：Draft v1.0
 > **负责人**：后端 + SRE
 > **日期**：2026-08-20
@@ -134,10 +134,10 @@ serve(async (req) => {
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase Auth | MP-V6-AUTH-01 ✅ |
-| HITL Hub | MP-V6-HITL-HUB-01 ✅ |
-| Temporal Worker | MP-V6-TEMPORAL-01 ✅ |
-| 17 域业务表 | MP-V6-FOUNDATION-01 ✅ |
+| Supabase Auth | MetaPlatform-AUTH-01 ✅ |
+| HITL Hub | MetaPlatform-HITL-HUB-01 ✅ |
+| Temporal Worker | MetaPlatform-TEMPORAL-01 ✅ |
+| 17 域业务表 | MetaPlatform-FOUNDATION-01 ✅ |
 
 ## 9. 风险
 
@@ -155,4 +155,4 @@ serve(async (req) => {
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-EDGE-FN-01 Batch](../batch/MP-V6-EDGE-FN-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-EDGE-FN-01 Batch](../batch/MetaPlatform-EDGE-FN-01.md)*

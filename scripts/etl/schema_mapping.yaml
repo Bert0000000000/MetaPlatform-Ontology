@@ -1,5 +1,5 @@
 # scripts/etl/schema_mapping.yaml — 完整 17 域映射
-# PRD: docs/active/prd/etl-export-v3.md §4.5 + etl-import-v6.md §4.4 + MP-V6-MIGRATION-01.md §7
+# PRD: docs/active/prd/etl-export-v3.md §4.5 + etl-import-v6.md §4.4 + MetaPlatform-MIGRATION-01.md §7
 # 完整 17 域 v3.0 → v6.0 字段映射
 
 version: "1.0"

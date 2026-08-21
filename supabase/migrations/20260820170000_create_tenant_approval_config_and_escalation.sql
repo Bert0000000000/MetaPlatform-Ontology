@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820170000_create_tenant_approval_config_and_escalation.sql
 -- PRD: docs/active/prd/approval-saas-adapters.md §6.1 + §4.2
--- Batch: MP-V6-APPROVAL-01
+-- Batch: MetaPlatform-APPROVAL-01
 -- tenant 配置: primary/fallback SaaS provider + 多级超时升级链
 
 -- tenant 配置表

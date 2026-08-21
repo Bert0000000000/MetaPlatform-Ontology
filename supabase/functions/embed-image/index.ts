@@ -1,5 +1,5 @@
 // supabase/functions/embed-image/index.ts
-// MP-V6.1 Multimodal RAG Phase 1: image embedding (CLIP mock)
+// MetaPlatform.1 Multimodal RAG Phase 1: image embedding (CLIP mock)
 // Per ADR-0065: real impl = FastAPI sidecar (CLIP-ViT-B/32)
 // PoC: return 512-dim zero vector + image_hash for dedup
 

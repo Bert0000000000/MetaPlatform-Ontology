@@ -87,7 +87,7 @@ ALTER TABLE mp_data_product.* ENABLE ROW LEVEL SECURITY;
 | 依赖 | 来源 |
 |---|---|
 | [mp-data-platform](mp-data-platform.md) | 自家 |
-| Supabase PG | MP-V6-FOUNDATION-01 |
+| Supabase PG | MetaPlatform-FOUNDATION-01 |
 
 ## 8. 不做
 

@@ -1,6 +1,6 @@
 # helm/mp-umbrella/values-staging.yaml
 # PRD: docs/active/prd/deploy-gitops.md §3
-# Batch: MP-V6-DEPLOY-01
+# Batch: MetaPlatform-DEPLOY-01
 # Staging 环境配置 (中等规模, 用于集成测试)
 
 cert-manager:

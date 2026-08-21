@@ -85,8 +85,8 @@ type Mutation {
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase PG + Auth | MP-V6-FOUNDATION-01 |
-| [foundation-rls-policy](foundation-rls-policy.md) | MP-V6-FOUNDATION-01 |
+| Supabase PG + Auth | MetaPlatform-FOUNDATION-01 |
+| [foundation-rls-policy](foundation-rls-policy.md) | MetaPlatform-FOUNDATION-01 |
 
 ## 8. 不做
 

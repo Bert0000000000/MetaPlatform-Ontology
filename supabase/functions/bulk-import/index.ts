@@ -1,6 +1,6 @@
 // supabase/functions/bulk-import/index.ts
 // PRD: docs/active/prd/edge-fn-17-domains.md §4.2
-// Batch: MP-V6-EDGE-FN-01
+// Batch: MetaPlatform-EDGE-FN-01
 // 批量导入: 用 audit.disable=on 跳过 audit_log (大量写时不写审计)
 // 注: 仅 ETL / 迁移场景使用, 业务批量写仍走 audit
 

@@ -4,14 +4,14 @@ const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
 await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle', timeout: 30000 }).catch(() => {});
 await page.waitForTimeout(5000);
 
-// Check dsh boot manifest for MP-v6 presets
+// Check dsh boot manifest for MetaPlatform presets
 const manifest = await page.evaluate(() => {
   const boot = window.__DSH_BOOT__;
   if (!boot) return null;
   return {
     rev: boot.rev,
     pluginCount: boot.entries?.length,
-    // Look for our 8 MP-v6 presets in plugin IDs
+    // Look for our 8 MetaPlatform presets in plugin IDs
     mpV6Presets: boot.entries?.filter(e =>
       e.id.includes('agent-preset') ||
       e.id.includes('mp-v6') ||

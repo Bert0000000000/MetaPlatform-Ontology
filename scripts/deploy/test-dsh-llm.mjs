@@ -34,7 +34,7 @@ console.log('  Model info:', JSON.stringify(modelText, null, 2));
 console.log('\n=== 2. Type message in textarea ===');
 const textarea = await page.$('textarea');
 if (textarea) {
-  const msg = 'List the 4 pillars of MP-V6 in one line each.';
+  const msg = 'List the 4 pillars of MetaPlatform in one line each.';
   await textarea.fill(msg);
   await page.screenshot({ path: 'e2e-screenshots/04-message-typed.png' });
   console.log('  Typed:', msg);

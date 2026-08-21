@@ -1,5 +1,5 @@
 // playwright.config.ts
-// MP-V6 E2E Test Configuration
+// MetaPlatform E2E Test Configuration
 // - Test supabase (Auth, Edge Functions, RLS) — runs against localhost:54321
 // - Test dsh-web (UI) — runs against localhost:5173 (when dsh-web is up)
 //
@@ -30,13 +30,19 @@ export default defineConfig({
   projects: [
     {
       name: 'supabase-api',
-      testMatch: /e2e\/(supabase|edge-functions|list-presets|publish-preset|install-preset|uninstall-preset|multimodal-rag)\.spec\.ts/,
+      testMatch: /e2e\/(supabase-auth|edge-functions|list-presets|publish-preset|install-preset|uninstall-preset|multimodal-rag|multimodal-rag-video|mp-runtime|mp-knowledge|mp-sandbox|admin-server|hitl-hub|ontology-kernel|ontology-crud|workflow-signals|hitl-escalation|ontology-generation|action-apply|dsh-session|mp-sandbox-execute|temporal-worker|mp-monitoring|temporal-worker-cron|monitoring-dashboards|mp-frontend-obs|mp-otel|mp-frontend|mp-frontend-sidebar|mp-frontend-ontology)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'dsh-web-ui',
-      testMatch: /e2e\/dsh-web\.spec\.ts/,
+      testMatch: /e2e\/(dsh-web|dsh-topbar-mp|dsh-topbar-mp-internal)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5173' },
+    },
+    {
+      name: 'mp-frontend-ui',
+      testDir: './apps/mp-frontend/e2e',
+      testMatch: /\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5174' },
     },
   ],
 });

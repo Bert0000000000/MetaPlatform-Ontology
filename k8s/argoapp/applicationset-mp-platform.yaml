@@ -1,6 +1,6 @@
 # k8s/argoapp/applicationset-mp-platform.yaml
 # PRD: docs/active/prd/deploy-gitops.md §4.1
-# Batch: MP-V6-DEPLOY-01
+# Batch: MetaPlatform-DEPLOY-01
 # ArgoCD ApplicationSet: 一份 yaml 部署 3 集群 (dev / staging / prod)
 
 apiVersion: argoproj.io/v1alpha1

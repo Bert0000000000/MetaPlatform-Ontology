@@ -1,7 +1,7 @@
 # PRD：temporal-cluster
 
 > **模块**：业务 Workflow 编排 — Temporal Cluster + Supabase Postgres 持久化
-> **对应 Batch**：[MP-V6-TEMPORAL-01](../batch/MP-V6-TEMPORAL-01.md)
+> **对应 Batch**：[MetaPlatform-TEMPORAL-01](../batch/MetaPlatform-TEMPORAL-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：SRE + 后端
 > **日期**：2026-08-20
@@ -90,7 +90,7 @@ temporal sql --db-type postgres \
 
 #### 4.2.3 RLS 豁免
 
-`temporal` schema 下所有表必须 `DISABLE ROW LEVEL SECURITY`，并在 `evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md` 中登记豁免理由（理由：Temporal 系统账号必须全权访问）。
+`temporal` schema 下所有表必须 `DISABLE ROW LEVEL SECURITY`，并在 `evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md` 中登记豁免理由（理由：Temporal 系统账号必须全权访问）。
 
 ### 4.3 Temporal namespace 隔离
 
@@ -246,17 +246,17 @@ spec:
 | AC5 | Prometheus metrics 上报成功 | Grafana dashboard 显示数据 |
 | AC6 | 端到端测试：启动 hello world workflow → 完成 | tctl workflow start + result |
 | AC7 | 24h 长任务测试通过（wait_condition） | 单独 workflow 测试 |
-| AC8 | RLS 豁免清单已更新 | `evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md` |
-| AC9 | evidence/MP-V6-TEMPORAL-01-ACCEPTANCE.md 完成 | 文件存在 |
+| AC8 | RLS 豁免清单已更新 | `evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md` |
+| AC9 | evidence/MetaPlatform-TEMPORAL-01-ACCEPTANCE.md 完成 | 文件存在 |
 
 ## 8. 依赖
 
 | 依赖 | 来源 | 时序 |
 |---|---|---|
-| Supabase Postgres | MP-V6-FOUNDATION-01 | 必须先 |
-| `mp-orchestration` namespace | MP-V6-FOUNDATION-01 | 必须先 |
-| OTel Collector | MP-V6-OBSERVABILITY-01 | 弱依赖（metrics 可在 OBS 之前直接 scrape）|
-| Vault | MP-V6-FOUNDATION-01 | 必须先 |
+| Supabase Postgres | MetaPlatform-FOUNDATION-01 | 必须先 |
+| `mp-orchestration` namespace | MetaPlatform-FOUNDATION-01 | 必须先 |
+| OTel Collector | MetaPlatform-OBSERVABILITY-01 | 弱依赖（metrics 可在 OBS 之前直接 scrape）|
+| Vault | MetaPlatform-FOUNDATION-01 | 必须先 |
 
 ## 9. 风险
 

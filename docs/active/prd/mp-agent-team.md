@@ -101,8 +101,8 @@ ALTER TABLE mp_agent_team.* ENABLE ROW LEVEL SECURITY;
 | 依赖 | 来源 |
 |---|---|
 | dsh 框架 | dsh 官方 |
-| Supabase PG | MP-V6-FOUNDATION-01 |
-| [dsh-image-spec](dsh-image-spec.md) | MP-V6-DSH-DOCKER-01 |
+| Supabase PG | MetaPlatform-FOUNDATION-01 |
+| [dsh-image-spec](dsh-image-spec.md) | MetaPlatform-DSH-DOCKER-01 |
 
 ## 8. 不做
 

@@ -1,5 +1,5 @@
 # apps/dsh-presets/data-analyst/cordis.yml
-# PRD: docs/active/batch/MP-V6-DSH-01.md §3
+# PRD: docs/active/batch/MetaPlatform-DSH-01.md §3
 # 数字员工: data-analyst (数据分析 + 报表 + 业务洞察)
 
 name: data-analyst

@@ -1,6 +1,6 @@
 // supabase/functions/rag-query/index.ts
 // PRD: docs/active/prd/rag-dual-engine.md §4.3
-// Batch: MP-V6-RAG-01
+// Batch: MetaPlatform-RAG-01
 // 双路并行检索 + 融合 + dsh llm 生成答案
 
 // @ts-nocheck — Deno runtime

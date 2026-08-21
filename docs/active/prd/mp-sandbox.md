@@ -91,7 +91,7 @@ ALTER TABLE mp_sandbox.executions ENABLE ROW LEVEL SECURITY;
 | 依赖 | 来源 |
 |---|---|
 | dsh sandbox 包 | dsh 官方 |
-| K8s RBAC（Job 创建权限）| MP-V6-FOUNDATION-01 |
+| K8s RBAC（Job 创建权限）| MetaPlatform-FOUNDATION-01 |
 
 ## 8. 不做
 

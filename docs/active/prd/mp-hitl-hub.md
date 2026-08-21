@@ -92,7 +92,7 @@ ALTER TABLE mp_hitl.requests ENABLE ROW LEVEL SECURITY;
 
 | 依赖 | 来源 |
 |---|---|
-| [temporal-worker-sdk](temporal-worker-sdk.md)（workflow_* 类型）| MP-V6-TEMPORAL-01 |
+| [temporal-worker-sdk](temporal-worker-sdk.md)（workflow_* 类型）| MetaPlatform-TEMPORAL-01 |
 | [mp-agent-team](mp-agent-team.md)（dsh_* 类型）| 自家 |
 | 第三方 SaaS 审批 API | 用户接入 |
 | Slack / 邮件 webhook | 用户配置 |

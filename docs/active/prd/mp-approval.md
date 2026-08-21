@@ -96,7 +96,7 @@ ALTER TABLE mp_approval.* ENABLE ROW LEVEL SECURITY;
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase PG | MP-V6-FOUNDATION-01 |
+| Supabase PG | MetaPlatform-FOUNDATION-01 |
 
 ## 8. 不做
 

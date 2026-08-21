@@ -1,7 +1,7 @@
 # PRD：foundation-rls-policy
 
 > **模块**：MetaPlatform v6.0 基础设施层 — RLS 行级安全策略
-> **对应 Batch**：[MP-V6-FOUNDATION-01](../batch/MP-V6-FOUNDATION-01.md)
+> **对应 Batch**：[MetaPlatform-FOUNDATION-01](../batch/MetaPlatform-FOUNDATION-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：架构组 + SRE
 > **日期**：2026-08-20
@@ -258,7 +258,7 @@ SELECT tests.test_rls_select('<table>', '<test_user>', '<expected_rows>');
 | AC2 | 跨租户查询 100% 被拒（端到端测试）| `tests/rls/cross_tenant_test.sql` |
 | AC3 | RLS overhead < 5%（benchmark）| `bench/rls-overhead.sql` 在 staging 跑 |
 | AC4 | CI gate `rls-check` 全绿 | GitHub Actions 历史 |
-| AC5 | 豁免表 100% 在清单中 | `evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md` |
+| AC5 | 豁免表 100% 在清单中 | `evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md` |
 | AC6 | 所有 policy 模板化（无裸写）| 人工 review + grep |
 
 ## 8. 依赖

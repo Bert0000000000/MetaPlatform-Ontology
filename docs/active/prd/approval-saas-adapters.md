@@ -1,7 +1,7 @@
 # PRD：approval-saas-adapters
 
 > **模块**：第三方审批 SaaS 适配层（钉钉 / 飞书 / 企微）
-> **对应 Batch**：[MP-V6-APPROVAL-01](../batch/MP-V6-APPROVAL-01.md)
+> **对应 Batch**：[MetaPlatform-APPROVAL-01](../batch/MetaPlatform-APPROVAL-01.md)
 > **状态**：Draft v1.0
 > **负责人**：SRE + 后端
 > **日期**：2026-08-20
@@ -136,8 +136,8 @@ CREATE TABLE public.tenant_approval_config (
 
 | 依赖 | 来源 |
 |---|---|
-| HITL Hub | MP-V6-HITL-HUB-01 ✅ |
-| Temporal Worker | MP-V6-TEMPORAL-01 ✅ |
+| HITL Hub | MetaPlatform-HITL-HUB-01 ✅ |
+| Temporal Worker | MetaPlatform-TEMPORAL-01 ✅ |
 | 钉钉/飞书/企微 app 凭证 | SRE 申请 |
 
 ## 9. 风险
@@ -156,4 +156,4 @@ CREATE TABLE public.tenant_approval_config (
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-APPROVAL-01 Batch](../batch/MP-V6-APPROVAL-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-APPROVAL-01 Batch](../batch/MetaPlatform-APPROVAL-01.md)*

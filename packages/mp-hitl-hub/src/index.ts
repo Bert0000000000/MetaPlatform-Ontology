@@ -1,7 +1,7 @@
 /**
  * packages/mp-hitl-hub/src/index.ts
  * PRD: docs/active/prd/hitl-hub.md §4.3
- * Batch: MP-V6-HITL-HUB-01
+ * Batch: MetaPlatform-HITL-HUB-01
  *
  * HITL Hub Service SDK — 业务 Batch 调用入口
  */

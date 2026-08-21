@@ -1,7 +1,7 @@
 # PRD：temporal-worker-sdk
 
 > **模块**：业务 Workflow Worker — Node SDK 基础工程 + 部署模式
-> **对应 Batch**：[MP-V6-TEMPORAL-01](../batch/MP-V6-TEMPORAL-01.md)
+> **对应 Batch**：[MetaPlatform-TEMPORAL-01](../batch/MetaPlatform-TEMPORAL-01.md)
 > **状态**：Draft v1.0（待架构组评审）
 > **负责人**：后端
 > **日期**：2026-08-20
@@ -398,15 +398,15 @@ export async function businessWorkflow(input: any) {
 | AC6 | Worker 部署到 `mp-orchestration`，HPA 工作 | `kubectl get hpa` |
 | AC7 | OTel trace 上报到 Tempo | Grafana Tempo 数据源有 span |
 | AC8 | 多租户 RLS 在 Worker 内生效 | 跨租户访问被拒 |
-| AC9 | evidence/MP-V6-TEMPORAL-01-ACCEPTANCE.md 完成 | 文件存在 |
+| AC9 | evidence/MetaPlatform-TEMPORAL-01-ACCEPTANCE.md 完成 | 文件存在 |
 
 ## 8. 依赖
 
 | 依赖 | 来源 | 时序 |
 |---|---|---|
 | Temporal Cluster | [temporal-cluster](temporal-cluster.md) | 必须先 |
-| Supabase PG | MP-V6-FOUNDATION-01 | 必须先 |
-| OTel Collector | MP-V6-OBSERVABILITY-01 | 弱依赖（metrics 上报可后置）|
+| Supabase PG | MetaPlatform-FOUNDATION-01 | 必须先 |
+| OTel Collector | MetaPlatform-OBSERVABILITY-01 | 弱依赖（metrics 上报可后置）|
 | pnpm 10+ / Node 22.19+ | 基础工具 | 必须 |
 
 ## 9. 风险

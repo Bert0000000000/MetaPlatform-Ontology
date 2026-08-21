@@ -49,7 +49,7 @@
 -- ============================================================================
 -- Supabase Postgres 中 service_role 默认 BYPASSRLS = on.
 -- 所以 service_role 自动绕过所有 RLS policy, 不需要额外声明.
--- 文档化记录在 evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md.
+-- 文档化记录在 evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md.
 
 -- ============================================================================
 -- 模板 F: anon 全部禁止 (用于业务表)
@@ -64,6 +64,6 @@
 -- 系统表 / 缓存表如果需要豁免 RLS, 必须遵循:
 -- 1. 表名以 _internal_ / _tmp_ / _cache_ 开头
 -- 2. 表 COMMENT 标注 '[RLS-EXEMPT] 理由'
--- 3. 在 evidence/MP-V6-FOUNDATION-01-RLS-EXEMPTIONS.md 登记 + 双重签字 (架构师 + SRE Lead)
+-- 3. 在 evidence/MetaPlatform-FOUNDATION-01-RLS-EXEMPTIONS.md 登记 + 双重签字 (架构师 + SRE Lead)
 -- 4. ALTER TABLE ... DISABLE ROW LEVEL SECURITY 必须紧跟 CREATE TABLE
 -- 5. CI gate scripts/ci/rls-check.sh 在 _internal_/_tmp_/_cache_ 表上豁免检测

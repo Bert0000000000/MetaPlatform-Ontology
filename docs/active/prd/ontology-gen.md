@@ -1,7 +1,7 @@
 # PRD：ontology-gen
 
 > **模块**：本体生成 + dsh 预览 + HITL 落库
-> **对应 Batch**：[MP-V6-ONTOLOGY-GEN-01](../batch/MP-V6-ONTOLOGY-GEN-01.md)
+> **对应 Batch**：[MetaPlatform-ONTOLOGY-GEN-01](../batch/MetaPlatform-ONTOLOGY-GEN-01.md)
 > **状态**：Draft v1.0
 > **负责人**：AI 团队 + 后端
 > **日期**：2026-08-20
@@ -130,10 +130,10 @@ CREATE TABLE public.pending_object_changes (
 
 | 依赖 | 来源 |
 |---|---|
-| ontology_* 表 | MP-V6-FOUNDATION-01 ✅ |
-| HITL Hub | MP-V6-HITL-HUB-01 ✅ |
-| Temporal Worker | MP-V6-TEMPORAL-01 ✅ |
-| dsh | MP-V6-DSH-01 ✅ |
+| ontology_* 表 | MetaPlatform-FOUNDATION-01 ✅ |
+| HITL Hub | MetaPlatform-HITL-HUB-01 ✅ |
+| Temporal Worker | MetaPlatform-TEMPORAL-01 ✅ |
+| dsh | MetaPlatform-DSH-01 ✅ |
 
 ## 9. 风险
 
@@ -151,4 +151,4 @@ CREATE TABLE public.pending_object_changes (
 
 ---
 
-*PRD v1.0 — 配套 [MP-V6-ONTOLOGY-GEN-01 Batch](../batch/MP-V6-ONTOLOGY-GEN-01.md)*
+*PRD v1.0 — 配套 [MetaPlatform-ONTOLOGY-GEN-01 Batch](../batch/MetaPlatform-ONTOLOGY-GEN-01.md)*

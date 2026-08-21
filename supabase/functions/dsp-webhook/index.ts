@@ -1,6 +1,6 @@
 // supabase/functions/dsp-webhook/index.ts (扩展)
 // PRD: docs/active/prd/events-db-webhook.md §4.1
-// Batch: MP-V6-EVENTS-01
+// Batch: MetaPlatform-EVENTS-01
 // 完整路由: 10+ 表 Database Webhook 接收 + event_queue 写入 + Realtime 广播
 
 // @ts-nocheck — Deno runtime

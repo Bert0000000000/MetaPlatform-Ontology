@@ -1,6 +1,6 @@
 # helm/mp-umbrella/charts/temporal/Chart.yaml
 # PRD: docs/active/prd/temporal-cluster.md
-# Temporal Cluster Helm chart skeleton — MP-V6-TEMPORAL-01
+# Temporal Cluster Helm chart skeleton — MetaPlatform-TEMPORAL-01
 
 apiVersion: v2
 name: temporal

@@ -1,6 +1,6 @@
 -- supabase/migrations/20260820200000_create_hitl_reminder_cron.sql
 -- PRD: docs/active/prd/long-task-5-mechanisms.md §4.2
--- Batch: MP-V6-LONG-TASK-01
+-- Batch: MetaPlatform-LONG-TASK-01
 -- HITL 自动 reminder + context cleanup cron jobs (扩展 hitl_long_task_cron)
 
 -- ============================================================

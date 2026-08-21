@@ -3,6 +3,7 @@
 > **给 Claude Code / Claude 协作者读取的项目上下文**
 >
 > **项目名**：MetaPlatform-Ontology（v6.0 重启）
+> **项目定位**：基于 **Ontology 本体论** 构建的企业 **AgentOS**（Agent 操作系统）
 > **本地路径**：`D:\Hermes\Workspace\10_Projects\MetaPlatform-Ontology`
 > **GitHub**：https://github.com/Bert0000000000/MetaPlatform-Ontology
 > **状态**：Sprint 0 启动期（4 个 P0 Batch 待执行）
@@ -14,10 +15,15 @@
 
 ### 0.1 项目目标（What）
 
-构建一个**可长期演进、可大规模应用、稳定可观测**的企业级 AI 平台，作为承载 19 个内部应用（mp-frontend / mp-runtime / mp-platform / mp-ai / mp-ontology / mp-workflow / mp-data-* / mp-monitoring 等）的统一底座。
+构建一个**基于 Ontology 本体论**的企业级 **AgentOS**，作为承载 19 个内部应用（mp-frontend / mp-runtime / mp-platform / mp-ai / mp-ontology / mp-workflow / mp-data-* / mp-monitoring 等）的统一底座。
+
+**核心思路**：
+- **Ontology 本体论**（抽象层）：把企业里的一切 —— Agent、Skill、Tool、Workflow、Knowledge、User、Tenant、Asset —— 建模成**一等公民的 Entity 与 Relation**，用一套类型系统贯穿前后端 / AI 编排 / 知识库 / 数据资产 / 权限
+- **AgentOS**（运行时层）：在本体之上提供 Agent 的运行时，让 Agent 像 App 一样被**安装、调度、治理、可观测**
 
 最终交付：
-- 一个能"开箱即用"AI 编排 + 知识库 + 工作流能力的 AI 中台
+- 一个能"开箱即用"的 AI 编排 + 知识库 + 工作流能力的 AI 中台
+- 一套贯穿前后端 / AI / 数据 / 权限的本体类型系统
 - 一套统一的工程规范（CI gate / RLS / evidence / Conventional Commits）
 - 一套可以接力给团队 / 后续 AI 协作者的开发方法（loop 自动化）
 
@@ -52,11 +58,40 @@
 
 ## 1. 核心定位
 
-**MetaPlatform-Ontology** 是一个以 **DeepSeek Harness (dsh) 为核心** 的企业级 AI 平台。它不是 v3.0 的延续，而是**完全重启**：
+**MetaPlatform-Ontology** 是一个基于 **Ontology 本体论** 构建的企业 **AgentOS**（Agent 操作系统）。它不是 v3.0 的延续，而是**完全重启**：
 
 - v3.0 的 13 硬规则（V3 治理体系）已**全部抛弃**
 - v3.0 的 Python FastAPI / Kafka / Redis / MinIO / Keycloak / Flowable 全部**不沿用**
 - 唯一保留：**基础数据 ETL**（4 类：用户 / 租户 / 核心业务数据 / 审计日志）
+
+### 1.1 Ontology 本体论：统一抽象层（`mp-ontology`）
+
+整个系统的所有领域概念都必须先在 `mp-ontology` 中建模为 **Entity（实体）** 与 **Relation（关系）**，再被 Agent / Workflow / Knowledge / 权限等模块引用。**禁止散落定义**。
+
+| 本体元素 | 含义 | 在 AgentOS 中的角色 |
+|---|---|---|
+| **Entity（实体）** | 可命名、可类型化的对象 | Agent / Skill / Tool / Workflow / Knowledge / User / Tenant / Asset |
+| **Relation（关系）** | 实体之间的依赖、组合、归属、调用 | Agent↔Skill、Skill↔Tool、Workflow↔Agent、Knowledge↔Entity |
+| **Action（动作）** | 实体可执行的能力 | mp-ai 模型调用 / mp-ontology 本体推理 / mp-sandbox 沙箱执行 |
+| **Event（事件）** | 实体状态变化与可观测信号 | mp-monitoring / mp-audit / mp-frontend-obs |
+
+### 1.2 AgentOS：Agent 的运行时
+
+在 Ontology 之上，AgentOS 提供 Agent 像 App 一样被对待的全套能力：
+
+- **安装 / 注册**：Agent 描述（manifest）注册到 ontology，进入 Agent Registry
+- **调度 / 编排**：DeepSeek Harness (dsh) 在 Temporal 上调度 Agent 生命周期与 HITL 节点
+- **执行 / 沙箱**：mp-sandbox 提供 Firecracker + K8s Job 隔离
+- **记忆 / 数据**：Entity 状态通过 Supabase PG 持久化，mp-knowledge GraphRAG 注入语义检索
+- **治理 / 可观测**：RLS（行级安全）+ OTel + Prometheus + Grafana 全链路追踪
+
+### 1.3 与 v3.0 的范式差异（不是渐进，是切换）
+
+| 维度 | v3.0 | v6.0（Ontology + AgentOS） |
+|---|---|---|
+| 抽象层 | "AI 应用平台"（按功能堆产品） | "Ontology 本体"（按语义统一建模） |
+| 运行时 | 自研 SuperAI + LangChain | AgentOS：dsh + Temporal + Sandbox |
+| Agent 地位 | "功能模块" | **一等公民**（Entity）：可被引用、组合、调度、治理 |
 
 ---
 
@@ -78,6 +113,7 @@
 | 决策 | 内容 |
 |---|---|
 | **ADR-0060** | 完全抛弃 v3.0，只导基础数据 |
+| **Ontology First** | 所有领域概念必须先在 `mp-ontology` 中建模为 Entity / Relation，再被 Agent / Workflow / Knowledge 引用，**禁止散落定义** |
 | **HITL Hub 4 类** | workflow_saas / workflow_dsh / tool_dsh / action_confirm |
 | **dsh 持久化** | 自建 Postgres backend（K8s 多副本 session 共享），不存 JSONL |
 | **dsh Docker** | 多阶段 build（deps / build / runtime），基础镜像 `node:22.19-alpine`，非 root + tini，≤ 500MB |
@@ -92,11 +128,11 @@
 
 | Batch | 状态 | 周 | 关键能力 |
 |---|---|---|---|
-| MP-V6-FOUNDATION-01 | **Pending** | 4 | K8s 3 套 + Supabase 8 能力 + RLS + NetworkPolicy |
-| MP-V6-TEMPORAL-01 | **Pending** | 3 | Temporal Cluster + Worker |
-| MP-V6-OBSERVABILITY-01 | **Pending** | 2 | OTel + Grafana |
-| MP-V6-DSH-DOCKER-01 | **Pending** | 2 | dsh 镜像 |
-| MP-V6-MIGRATION-01 | **Pending** | 8 | 19 个应用迁移（按 6 类分批） |
+| MetaPlatform-FOUNDATION-01 | **Pending** | 4 | K8s 3 套 + Supabase 8 能力 + RLS + NetworkPolicy |
+| MetaPlatform-TEMPORAL-01 | **Pending** | 3 | Temporal Cluster + Worker |
+| MetaPlatform-OBSERVABILITY-01 | **Pending** | 2 | OTel + Grafana |
+| MetaPlatform-DSH-DOCKER-01 | **Pending** | 2 | dsh 镜像 |
+| MetaPlatform-MIGRATION-01 | **Pending** | 8 | 19 个应用迁移（按 6 类分批） |
 
 ---
 
@@ -128,7 +164,7 @@ ci(scope): CI 改动
 perf(scope): 性能优化
 ```
 
-PR 标题必须包含 Batch ID：`feat(foundation): MP-V6-FOUNDATION-01 #N description`。
+PR 标题必须包含 Batch ID：`feat(foundation): MetaPlatform-FOUNDATION-01 #N description`。
 
 ---
 
@@ -138,7 +174,7 @@ PR 标题必须包含 Batch ID：`feat(foundation): MP-V6-FOUNDATION-01 #N descr
 |---|---|---|
 | 技术 spec | `docs/active/specs/2026-08-19-mp-v6-*.md` | 架构组 |
 | **PRD（模块需求文档）** | **`docs/active/prd/*.md`** | **Batch Owner（启动 Batch 前完成）** |
-| Batch 任务文档 | `docs/active/batch/MP-V6-*.md` | 各 Batch Owner |
+| Batch 任务文档 | `docs/active/batch/MetaPlatform-*.md` | 各 Batch Owner |
 | ADR | `docs/active/decisions/ADR-NNNN-*.md` | 架构组 |
 | CI/CD workflow | `docs/active/workflows/*.yml` | SRE |
 | Runbook | `docs/active/runbooks/*.md` | SRE |
@@ -179,7 +215,7 @@ PR 标题必须包含 Batch ID：`feat(foundation): MP-V6-FOUNDATION-01 #N descr
 3. 跑既有 evidence 套件确认基线
 4. 提交风格遵循 Conventional Commits
 5. PR 必须包含 Batch ID 引用 + evidence 文档链接
-6. Sprint 0 完成后，按 `MP-V6-MIGRATION-01.md` 进入 Sprint 3（19 应用迁移）
+6. Sprint 0 完成后，按 `MetaPlatform-MIGRATION-01.md` 进入 Sprint 3（19 应用迁移）
 
 ---
 
@@ -212,4 +248,4 @@ export PATH="$HOME/bin:$HOME/.npm-global/bin:$PATH"
 
 ---
 
-*CLAUDE.md v6.1 — 加入 §0 项目目标/背景、§11 环境与工具*
+*CLAUDE.md v6.2 — 重构为基于 **Ontology 本体论** 的企业 **AgentOS** 定位；新增 §1.1 Ontology 本体论（统一抽象层）/ §1.2 AgentOS 运行时 / §1.3 与 v3.0 范式切换；§3 关键决策新增 **Ontology First**。*

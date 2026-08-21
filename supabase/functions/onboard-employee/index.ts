@@ -1,6 +1,6 @@
 // supabase/functions/onboard-employee/index.ts
 // PRD: docs/active/prd/domain-migrate-17.md §4.2
-// Batch: MP-V6-DOMAIN-MIGRATE-01
+// Batch: MetaPlatform-DOMAIN-MIGRATE-01
 // 员工 on/off-boarding: 创建 profile + 默认 role + 通知
 
 // @ts-nocheck — Deno runtime

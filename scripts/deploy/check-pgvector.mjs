@@ -1,0 +1,10 @@
+import pg from 'pg';
+const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
+await c.connect();
+const r = await c.query("SELECT extname FROM pg_extension WHERE extname IN ('vector','pgvector')");
+console.log('extensions:', r.rows);
+const r2 = await c.query("SELECT column_name, data_type, udt_name FROM information_schema.columns WHERE table_schema='public' AND table_name='video_embeddings' AND column_name='embedding'");
+console.log('video_embeddings.embedding column:', r2.rows);
+const r3 = await c.query("SELECT typname FROM pg_type WHERE typname='vector'");
+console.log('pg_type vector:', r3.rows);
+await c.end();

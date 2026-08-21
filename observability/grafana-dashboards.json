@@ -1,0 +1,432 @@
+{
+  "version": "1.0",
+  "dashboards": [
+    {
+      "id": "mp-app-health",
+      "title": "MetaPlatform · 应用健康",
+      "tags": [
+        "mp",
+        "health",
+        "v6.0"
+      ],
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Total Tenants",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.tenants",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Active Installations",
+          "gridPos": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM mp_preset_registry.installs WHERE status = 'active'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "timeseries",
+          "title": "Audit Log 24h",
+          "gridPos": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 6
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.audit_log WHERE occurred_at > now() - interval '24 hours'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "stat",
+          "title": "pg_cron Active Jobs",
+          "gridPos": {
+            "x": 12,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM cron.job WHERE active = true",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "table",
+          "title": "EF 列表 (with RLS)",
+          "gridPos": {
+            "x": 0,
+            "y": 10,
+            "w": 18,
+            "h": 8
+          },
+          "targets": [
+            {
+              "expr": "SELECT proname AS ef_name, pronamespace FROM pg_proc WHERE pronamespace IN (SELECT oid FROM pg_namespace WHERE nspname LIKE 'pg_temp_%') ORDER BY proname",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mp-digital-employee",
+      "title": "MetaPlatform · 数字员工 (dsh)",
+      "tags": [
+        "mp",
+        "dsh",
+        "M15",
+        "v6.0"
+      ],
+      "refresh": "30s",
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Active Sessions",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.dsh_session_headers WHERE status IN ('running','waiting_tool','waiting_hitl','waiting_external')",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Waiting External",
+          "gridPos": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.dsh_session_headers WHERE status = 'waiting_external'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Completed (24h)",
+          "gridPos": {
+            "x": 12,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.dsh_session_headers WHERE status = 'completed' AND completed_at > now() - interval '24 hours'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "Sessions by Status (24h 趋势)",
+          "gridPos": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 6
+          },
+          "targets": [
+            {
+              "expr": "SELECT date_trunc('hour', updated_at) AS hour, status, COUNT(*) FROM public.dsh_session_headers WHERE updated_at > now() - interval '24 hours' GROUP BY 1, 2 ORDER BY 1",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mp-hitl",
+      "title": "MetaPlatform · HITL Hub",
+      "tags": [
+        "mp",
+        "hitl",
+        "M13",
+        "v6.0"
+      ],
+      "refresh": "30s",
+      "time": {
+        "from": "now-24h",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Pending HITL",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.hitl_requests WHERE status = 'pending'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Avg Decision Time (24h)",
+          "gridPos": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT AVG(EXTRACT(EPOCH FROM (decided_at - created_at)))::int FROM public.hitl_requests WHERE decided_at > now() - interval '24 hours'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Escalation Level ≥ 2",
+          "gridPos": {
+            "x": 12,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.hitl_requests WHERE escalation_level >= 2 AND status = 'pending'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "HITL Decided by Type",
+          "gridPos": {
+            "x": 0,
+            "y": 4,
+            "w": 12,
+            "h": 6
+          },
+          "targets": [
+            {
+              "expr": "SELECT date_trunc('hour', decided_at) AS hour, type, COUNT(*) FROM public.hitl_requests WHERE decided_at > now() - interval '24 hours' GROUP BY 1, 2 ORDER BY 1",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "type": "stat",
+          "title": "Workflow Signals Pending",
+          "gridPos": {
+            "x": 12,
+            "y": 4,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.workflow_signals WHERE status = 'pending'",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mp-temporal",
+      "title": "MetaPlatform · Temporal Workflow",
+      "tags": [
+        "mp",
+        "temporal",
+        "M40",
+        "v6.0"
+      ],
+      "refresh": "1m",
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Signals Pending",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.workflow_signals WHERE status = 'pending'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Signals Sent (24h)",
+          "gridPos": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.workflow_signals WHERE status = 'sent' AND sent_at > now() - interval '24 hours'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 3,
+          "type": "stat",
+          "title": "Signals Failed (24h)",
+          "gridPos": {
+            "x": 12,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.workflow_signals WHERE status = 'failed' AND sent_at > now() - interval '24 hours'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 4,
+          "type": "timeseries",
+          "title": "Worker 处理 throughput",
+          "gridPos": {
+            "x": 0,
+            "y": 4,
+            "w": 18,
+            "h": 6
+          },
+          "targets": [
+            {
+              "expr": "SELECT date_trunc('minute', sent_at) AS minute, COUNT(*) FROM public.workflow_signals WHERE sent_at > now() - interval '1 hour' GROUP BY 1 ORDER BY 1",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mp-rag",
+      "title": "MetaPlatform · RAG 检索",
+      "tags": [
+        "mp",
+        "rag",
+        "M41-M45",
+        "v6.0"
+      ],
+      "refresh": "1m",
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "panels": [
+        {
+          "id": 1,
+          "type": "stat",
+          "title": "Embeddings (24h)",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT COUNT(*) FROM public.image_embeddings WHERE created_at > now() - interval '24 hours'",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "type": "stat",
+          "title": "Avg Embedding Latency",
+          "gridPos": {
+            "x": 6,
+            "y": 0,
+            "w": 6,
+            "h": 4
+          },
+          "targets": [
+            {
+              "expr": "SELECT AVG(EXTRACT(EPOCH FROM (now() - created_at)))::int FROM public.image_embeddings",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

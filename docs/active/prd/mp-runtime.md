@@ -77,9 +77,9 @@ ALTER TABLE mp_runtime.functions ENABLE ROW LEVEL SECURITY;
 
 | 依赖 | 来源 |
 |---|---|
-| Supabase Edge Functions | MP-V6-FOUNDATION-01 |
+| Supabase Edge Functions | MetaPlatform-FOUNDATION-01 |
 | Deno runtime | v6.0 决策 |
-| OTel SDK | MP-V6-OBSERVABILITY-01 |
+| OTel SDK | MetaPlatform-OBSERVABILITY-01 |
 
 ## 8. 不做
 
