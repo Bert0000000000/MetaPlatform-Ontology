@@ -120,4 +120,31 @@ test.describe('admin-server smoke (port 8080) + Semi Design 19', () => {
     const cards = (html.match(/class="mp-stat-card"/g) ?? []).length;
     expect(cards).toBeGreaterThanOrEqual(8);
   });
+
+  // Loop O: M10 mp-monitoring UI
+  test('12. /admin/monitoring shows 5 subsystem health (Semi Tag colors)', async ({ page }) => {
+    const r = await page.request.get(`${ADMIN}/admin/monitoring`);
+    expect(r.status()).toBe(200);
+    const html = await r.text();
+    // 5 subsystem 都应出现
+    expect(html).toContain('postgres');
+    expect(html).toContain('pg_cron');
+    expect(html).toContain('edge_functions');
+    expect(html).toContain('realtime');
+    expect(html).toContain('mp_sandbox_sidecar');
+    // Overall status + summary
+    expect(html).toContain('Overall');
+    expect(html).toContain('Total Latency');
+    // Semi Tag 颜色
+    expect(html).toContain('mp-tag success');
+    expect(html).toContain('mp-tag warning');
+    expect(html).toContain('mp-tag danger');
+  });
+
+  test('13. /admin includes monitoring nav link', async ({ page }) => {
+    const r = await page.request.get(`${ADMIN}/`);
+    const html = await r.text();
+    expect(html).toContain('/admin/monitoring');
+    expect(html).toContain('系统监控');
+  });
 });

@@ -114,6 +114,7 @@ function layout(opts) {
       <a class="mp-nav-item ${activeNav === 'tenants' ? 'active' : ''}" href="/admin/tenants"><i class="semi-icons semi-icon-user mp-nav-icon"></i><span class="mp-nav-text">Tenants</span></a>
       <a class="mp-nav-item ${activeNav === 'audit' ? 'active' : ''}" href="/admin/audit"><i class="semi-icons semi-icon-file mp-nav-icon"></i><span class="mp-nav-text">Audit Log</span></a>
       <a class="mp-nav-item ${activeNav === 'cron' ? 'active' : ''}" href="/admin/cron"><i class="semi-icons semi-icon-clock mp-nav-icon"></i><span class="mp-nav-text">Cron Jobs</span></a>
+      <a class="mp-nav-item ${activeNav === 'monitoring' ? 'active' : ''}" href="/admin/monitoring"><i class="semi-icons semi-icon-pulse mp-nav-icon"></i><span class="mp-nav-text">系统监控</span></a>
     </nav>
   </aside>
   <main class="mp-main">
@@ -330,6 +331,54 @@ const server = http.createServer(async (req, res) => {
       `;
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'M13 HITL Hub', body, activeNav: 'hitl' }));
+    } else if (req.url === '/admin/monitoring') {
+      // M10 Loop 1/3: 调 mp-monitoring-health EF 显示 5 subsystem 状态
+      const ANON_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
+      const SUPABASE_URL = 'http://127.0.0.1:54321';
+      let health = null; let err = null;
+      try {
+        const r = await fetch(`${SUPABASE_URL}/functions/v1/mp-monitoring-health`, {
+          headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${SERVICE_KEY}` },
+        });
+        if (r.ok) health = await r.json();
+        else { err = `HTTP ${r.status}`; }
+      } catch (e) { err = e.message; }
+
+      let body;
+      if (err) {
+        body = card('⚠️ mp-monitoring-health 不可达', `<div style="color:var(--semi-color-danger)">${err}</div><p>EF 需在 /functions/v1 路由注册 (auto on supabase start). 等 5s 再刷新.</p>`);
+      } else {
+        const subs = health.subsystems || [];
+        const subsTable = table(
+          subs.map((s) => ({
+            name: s.name,
+            status: s.status,
+            latency_ms: s.latency_ms,
+            details: JSON.stringify(s.details || {}),
+          })),
+          [
+            { key: 'name', label: 'subsystem' },
+            { key: 'status', label: 'status', render: (v) => tag(v, v === 'healthy' ? 'success' : v === 'degraded' ? 'warning' : v === 'unhealthy' ? 'danger' : 'grey') },
+            { key: 'latency_ms', label: 'latency (ms)' },
+            { key: 'details', label: 'details' },
+          ],
+          { empty: '无 subsystem 数据' },
+        );
+        const s = health.summary || {};
+        body = `
+          <div class="mp-stat-grid">
+            ${stat('Overall', health.overall, { color: health.overall === 'healthy' ? 'success' : health.overall === 'unhealthy' ? 'danger' : 'warning' })}
+            ${stat('Total Latency', health.total_latency_ms + ' ms', { color: 'primary' })}
+            ${stat('Healthy', s.healthy ?? 0, { color: 'success' })}
+            ${stat('Degraded', s.degraded ?? 0, { color: 'warning' })}
+            ${stat('Unhealthy', s.unhealthy ?? 0, { color: 'danger' })}
+          </div>
+          ${card('🩺 M10 mp-monitoring · subsystem 健康', subsTable)}
+          ${card('说明', `<div style="font-size:12px; color:var(--semi-color-text-2)">5 subsystem: postgres (DB) · pg_cron (定时任务) · edge_functions (Deno) · realtime (publication) · mp_sandbox_sidecar (docker). PoC. Loop 2/3 接 OTel + Grafana. <br/>timestamp: <code>${health.timestamp}</code> · version: <code>${health.version}</code></div>`)}
+        `;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(layout({ title: 'M10 系统监控', body, activeNav: 'monitoring' }));
     } else if (req.url === '/admin/sessions') {
       const [summary, activeByTenant, recent] = await Promise.all([
         c.query("SELECT active_count, completed_count, failed_count, last_active_at FROM public.dsh_session_summary ORDER BY last_active_at DESC NULLS LAST LIMIT 10"),
