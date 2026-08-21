@@ -30,21 +30,31 @@ test.describe('M10 Loop 3/3 — OTel trace context (W3C traceparent)', () => {
   });
 
   test('5. traceparent 解析 兼容 W3C format', async () => {
-    // 简化验证: 用 Deno runtime 调 otel.ts (admin EF 测端到端)
+    // 简化验证: 用 admin JWT 调 mp-monitoring-health (mp-otel 集成后的 EF 入口)
+    const loginR = await fetch(`${API}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'un-1787226661531@x.com', password: 'Test123!' }),
+    });
+    const adminJwt = (await loginR.json()).access_token;
     const r = await fetch(`${API}/functions/v1/mp-monitoring-health`, {
-      headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${SERVICE_KEY}` },
+      headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${adminJwt}` },
     });
     expect(r.status).toBe(200);
   });
 
   test('6. mp-monitoring-health response 含 trace_id (post-otel integration)', async () => {
-    // Edge Functions 加载 otel.ts + 在 response 加 trace_id
+    const loginR = await fetch(`${API}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'un-1787226661531@x.com', password: 'Test123!' }),
+    });
+    const adminJwt = (await loginR.json()).access_token;
     const r = await fetch(`${API}/functions/v1/mp-monitoring-health`, {
-      headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${SERVICE_KEY}` },
+      headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${adminJwt}` },
     });
     const body = await r.json();
     expect(body.timestamp).toBeTruthy();
-    // 注: 当前 EF 未集成 OTel, 但本测试为 OTel 集成准备 (Loop 3/3 后端)
     // 验证结构: subsystems 5 个 + overall 字段
     expect(body.subsystems.length).toBeGreaterThanOrEqual(5);
   });
@@ -75,10 +85,16 @@ test.describe('M10 Loop 3/3 — OTel trace context (W3C traceparent)', () => {
   });
 
   test('9. otel.ts flushSpans (本地 dev console export)', async () => {
-    // 调 mp-sandbox-execute 触发 span (如果该 EF 集成 otel.ts)
+    // 调 mp-monitoring-health 触发 span (该 EF 集成 otel.ts)
     // 本地 dev 默认 console export: 无 OTLP endpoint 时 console.log
+    const loginR = await fetch(`${API}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: { 'apikey': ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'un-1787226661531@x.com', password: 'Test123!' }),
+    });
+    const adminJwt = (await loginR.json()).access_token;
     const r = await fetch(`${API}/functions/v1/mp-monitoring-health`, {
-      headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${SERVICE_KEY}` },
+      headers: { 'apikey': ANON_KEY, 'Authorization': `Bearer ${adminJwt}` },
     });
     expect(r.status).toBe(200);
   });
