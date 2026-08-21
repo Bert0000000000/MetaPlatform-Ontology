@@ -6,7 +6,7 @@ import StatCard from '../components/StatCard';
 import { authedFetch } from '../lib/api';
 
 export default function Dashboard() {
-  const [data, setData] = useState<{ rows: Array<{ n: number }> } | null>(null);
+  const [json, setJson] = useState<{ rows: Array<{ n: number }>; trace_id?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -14,7 +14,7 @@ export default function Dashboard() {
     try {
       const json = await authedFetch('/functions/v1/mp-monitoring-health');
       const c = (json.subsystems ?? []).find((s: { name: string }) => s.name === 'postgres')?.details;
-      setData(c ?? null);
+      setJson(json);
     } finally {
       setLoading(false);
     }

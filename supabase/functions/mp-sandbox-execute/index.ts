@@ -19,6 +19,7 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.0";
 import { verifyAuth, AuthError, authErrorResponse } from "../_template-auth/index.ts";
+import { startSpan, endSpan, recordException, newSpanContext, traceparentHeader } from "../../../observability/otel.ts";
 
 interface ExecuteRequest {
   session_id?: string;
@@ -112,6 +113,13 @@ serve(async (req) => {
   if (req.method !== 'POST') {
     return jsonResponse({ error: 'method_not_allowed', message: 'POST only' }, 405);
   }
+  // M10 Loop 3/3: OTel trace context propagation (W3C traceparent)
+  const incomingTp = req.headers.get('traceparent');
+  const otelCtx = newSpanContext(incomingTp);
+  const endDedup = startSpan('mp-sandbox-execute', otelCtx, {
+    'http.method': 'POST',
+    'http.route': '/functions/v1/mp-sandbox-execute',
+  });
   try {
     const auth = await verifyAuth(req);
     if (auth.role !== 'admin' && auth.role !== 'owner') {
