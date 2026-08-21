@@ -2,8 +2,8 @@
 //
 // 在 dsh-web 页面顶部 prepend 一个 44px 高的顶栏, 含 4 个菜单:
 //   - Ontology Copilot    → 触发 dsh chat panel (CustomEvent 'dsh:open-chat')
-//   - 云市场              → http://localhost:8080/marketplace   (SPA internal nav, same tab)
-//   - 应用中心            → http://localhost:8080/marketplace   (SPA internal nav, same tab)
+//   - 云市场              → http://localhost:5174/admin/marketplace (mp-frontend React)   (SPA internal nav, same tab)
+//   - 应用中心            → http://localhost:5174/admin/frontend-obs (mp-frontend React)   (SPA internal nav, same tab)
 //   - Ontology 本体平台   → http://localhost:5174              (mp-frontend React+Vite SPA)
 //   - 运营管理            → http://localhost:8080/admin         (admin-server PoC)
 //
@@ -117,14 +117,14 @@
     {
       id: 'mp-marketplace',
       label: '云市场',
-      href: 'http://localhost:8080/marketplace',
+      href: 'http://localhost:5174/admin/marketplace',
       kind: 'link',
       matchPath: '/marketplace',
     },
     {
       id: 'mp-app-center',
       label: '应用中心',
-      href: 'http://localhost:8080/app-center',
+      href: 'http://localhost:5174/admin/frontend-obs',
       kind: 'link',
       matchPath: '/app-center',
     },
