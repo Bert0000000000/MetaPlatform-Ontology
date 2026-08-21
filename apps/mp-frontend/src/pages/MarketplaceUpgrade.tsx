@@ -382,15 +382,8 @@ export default function MarketplaceUpgrade({
       <Banner
         type={isError ? 'danger' : 'warning'}
         icon={null}
-        closeIcon={false}
         title={<strong>维护通知 · mp-skill-marketplace v2.0 升级</strong>}
-        description={
-          <span>
-            当前正在将 preset 注册表迁移到 v2.0 schema (新增 <code>manifest_url</code> / <code>runtime_profile</code> /
-            <code>installs_count</code> 列), 同时重建 RLS 策略并刷新 2 个 Edge Functions。
-            升级期间 preset 市场只读, 仍可浏览历史清单。
-          </span>
-        }
+        description="preset 注册表迁移到 v2.0 schema (新增 manifest_url / runtime_profile / installs_count), 同时重建 RLS 策略并刷新 2 个 Edge Functions。升级期间 preset 市场只读, 仍可浏览历史清单。"
         style={{ marginBottom: 20 }}
       />
 
@@ -442,12 +435,10 @@ export default function MarketplaceUpgrade({
       {/* Stage Timeline + Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 16, marginBottom: 20 }}>
         <Card title="升级阶段" headerExtraContent={<Tag color="blue">5 阶段</Tag>}>
-          <Timeline mode="left">
+          <Timeline>
             {STAGES.map((s, i) => (
               <Timeline.Item
                 key={s.key}
-                dot={null}
-                time={stageDetails[i]}
                 type={stageStatuses[i] === 'error' ? 'error' : stageStatuses[i] === 'done' ? 'success' : stageStatuses[i] === 'running' ? 'ongoing' : 'default'}
               >
                 <StageStatusRow stage={s} index={i} status={stageStatuses[i]} detail={stageDetails[i]} />
