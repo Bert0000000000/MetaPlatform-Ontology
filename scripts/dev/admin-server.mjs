@@ -12,8 +12,10 @@
 import http from 'node:http';
 import pg from 'pg';
 
-const c = new pg.Client({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres' });
-await c.connect();
+process.on('unhandledRejection', (err) => { console.error('UNHANDLED REJECTION:', err); });
+process.on('uncaughtException', (err) => { console.error('UNCAUGHT EXCEPTION:', err); });
+
+const pool = new pg.Pool({ host: 'localhost', port: 54322, user: 'postgres', password: 'postgres', database: 'postgres', max: 10 });
 
 const port = 8080;
 const SEMI_CSS = 'https://unpkg.byted-static.com/ies/semi-css-v2@2.49.1/semi.css';
@@ -194,16 +196,16 @@ const server = http.createServer(async (req, res) => {
     if (req.url === '/' || req.url === '/admin') {
       // Dashboard
       const [tenants, users, audits, installs, presets, cron, sessions, hitlPending, sigPending, sandboxExecs] = await Promise.all([
-        c.query('SELECT count(*)::int AS n FROM public.tenants'),
-        c.query('SELECT count(*)::int AS n FROM auth.users'),
-        c.query("SELECT count(*)::int AS n FROM public.audit_log WHERE occurred_at > now() - interval '24 hours'"),
-        c.query("SELECT count(*)::int AS n FROM mp_preset_registry.installs WHERE status = 'active'"),
-        c.query('SELECT count(*)::int AS n FROM mp_preset_registry.presets'),
-        c.query("SELECT count(*)::int AS n FROM cron.job WHERE active = true"),
-        c.query("SELECT count(*)::int AS n FROM public.dsh_session_headers WHERE status IN ('running','waiting_tool','waiting_hitl','waiting_external')"),
-        c.query("SELECT count(*)::int AS n FROM public.hitl_requests WHERE status = 'pending'"),
-        c.query("SELECT count(*)::int AS n FROM public.workflow_signals WHERE status = 'pending'"),
-        c.query("SELECT count(*)::int AS n FROM mp_sandbox.executions WHERE created_at > now() - interval '24 hours'"),
+        pool.query('SELECT count(*)::int AS n FROM public.tenants'),
+        pool.query('SELECT count(*)::int AS n FROM auth.users'),
+        pool.query("SELECT count(*)::int AS n FROM public.audit_log WHERE occurred_at > now() - interval '24 hours'"),
+        pool.query("SELECT count(*)::int AS n FROM mp_preset_registry.installs WHERE status = 'active'"),
+        pool.query('SELECT count(*)::int AS n FROM mp_preset_registry.presets'),
+        pool.query("SELECT count(*)::int AS n FROM cron.job WHERE active = true"),
+        pool.query("SELECT count(*)::int AS n FROM public.dsh_session_headers WHERE status IN ('running','waiting_tool','waiting_hitl','waiting_external')"),
+        pool.query("SELECT count(*)::int AS n FROM public.hitl_requests WHERE status = 'pending'"),
+        pool.query("SELECT count(*)::int AS n FROM public.workflow_signals WHERE status = 'pending'"),
+        pool.query("SELECT count(*)::int AS n FROM mp_sandbox.executions WHERE created_at > now() - interval '24 hours'"),
       ]);
       const body = `
         <div class="mp-stat-grid">
@@ -241,91 +243,139 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'Dashboard', body, activeNav: 'dashboard' }));
     } else if (req.url === '/admin/tenants') {
-      const r = await c.query("SELECT id, slug, name, status, created_at FROM public.tenants ORDER BY created_at DESC LIMIT 50");
+      const r = await pool.query("SELECT id, slug, name, status, created_at FROM public.tenants ORDER BY created_at DESC LIMIT 50");
       const body = card('Tenants', table(r.rows, ['id', 'slug', 'name', { key: 'status', label: '状态', render: v => tag(v, v === 'active' ? 'success' : 'grey') }, 'created_at']));
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'Tenants', body, activeNav: 'tenants' }));
     } else if (req.url === '/admin/audit' || req.url.startsWith('/admin/audit?')) {
-      // Loop P: mp-audit 增强 — 支持 query string filter (?tenant=&action=&schema=&table=&limit=)
+      // Loop P: mp-audit 完整 UI (filter + timeline + stats + activity stream)
       const url = new URL(req.url, 'http://localhost');
       const filterTenant = url.searchParams.get('tenant');
       const filterAction = url.searchParams.get('action');
       const filterSchema = url.searchParams.get('schema');
       const filterTable = url.searchParams.get('table');
+      const filterActor = url.searchParams.get('actor');
       const limit = Math.min(500, Math.max(10, parseInt(url.searchParams.get('limit') ?? '100') || 100));
 
       const wheres = [];
-      const params = [];
-      if (filterTenant) { params.push(filterTenant); wheres.push(`tenant_id = $${params.length}::uuid`); }
-      if (filterAction) { params.push(filterAction); wheres.push(`action = $${params.length}`); }
-      if (filterSchema) { params.push(filterSchema); wheres.push(`schema_name = $${params.length}`); }
-      if (filterTable)  { params.push(filterTable);  wheres.push(`table_name = $${params.length}`); }
+      const filterParams = [];
+      const addWhere = (col, val) => { filterParams.push(val); wheres.push(`${col} = $${filterParams.length}${col === 'tenant_id' ? '::uuid' : ''}`); };
+      if (filterTenant) addWhere('tenant_id', filterTenant);
+      if (filterAction) addWhere('action', filterAction);
+      if (filterSchema) addWhere('schema_name', filterSchema);
+      if (filterTable)  addWhere('table_name', filterTable);
+      if (filterActor)  addWhere('actor_id', filterActor);
       const where = wheres.length > 0 ? 'WHERE ' + wheres.join(' AND ') : '';
-      params.push(limit);
+      const limitParamIdx = filterParams.length + 1;
+      const queryParams = [...filterParams, limit];
 
-      const r = await c.query(
-        `SELECT id, tenant_id, actor_id, action, schema_name, table_name, occurred_at FROM public.audit_log ${where} ORDER BY occurred_at DESC LIMIT $${params.length}`,
-        params
-      );
-
-      // 统计: 按 action 聚合 + 24h trend
-      const [byAction, last24h] = await Promise.all([
-        c.query(`SELECT action, count(*)::int AS n FROM public.audit_log GROUP BY action ORDER BY n DESC LIMIT 10`),
-        c.query(`SELECT count(*)::int AS n FROM public.audit_log WHERE occurred_at > now() - interval '24 hours'`),
-      ]);
+      // 主查询 (matched) + 多维度统计 (顺序执行避免 pool 干扰)
+      const safeQuery = async (sql, p) => {
+        try { const r = await pool.query(sql, p); return r.rows || []; }
+        catch (e) { console.error('query err:', e.message, '\nSQL:', sql); throw e; }
+      };
+      const whereNoParam = where;  // where 含 $1-$N 但 for aggregate 无 params, 不能用 $1
+      const whereSafe = '';  // aggregate queries: 直接全表聚合 (效率较低但不会 FK 错误)
+      const rows = await safeQuery(`SELECT id, tenant_id, actor_id, action, schema_name, table_name, row_pk, occurred_at FROM public.audit_log ${where} ORDER BY occurred_at DESC LIMIT $${limitParamIdx}`, queryParams);
+      const totalAll = await safeQuery('SELECT count(*)::int AS n FROM public.audit_log');
+      const total24h = await safeQuery("SELECT count(*)::int AS n FROM public.audit_log WHERE occurred_at > now() - interval '24 hours'");
+      const byAction = await safeQuery(`SELECT action, count(*)::int AS n FROM public.audit_log ${whereSafe} GROUP BY action ORDER BY n DESC LIMIT 10`);
+      const bySchema = await safeQuery(`SELECT schema_name, count(*)::int AS n FROM public.audit_log ${whereSafe} GROUP BY schema_name ORDER BY n DESC LIMIT 10`);
+      const byTable = await safeQuery(`SELECT table_name, count(*)::int AS n FROM public.audit_log ${whereSafe} GROUP BY table_name ORDER BY n DESC LIMIT 10`);
+      const byHour = await safeQuery(`SELECT date_trunc('hour', occurred_at) AS hour, count(*)::int AS n FROM public.audit_log ${whereSafe} GROUP BY 1 ORDER BY 1 DESC LIMIT 24`);
+      const tenants = await safeQuery('SELECT id, slug, name FROM public.tenants ORDER BY slug');
 
       const filters = [
-        filterTenant && { label: 'tenant', value: filterTenant },
-        filterAction && { label: 'action', value: filterAction },
-        filterSchema && { label: 'schema', value: filterSchema },
-        filterTable  && { label: 'table', value: filterTable },
+        filterTenant && { label: 'tenant', value: filterTenant, key: 'tenant' },
+        filterAction && { label: 'action', value: filterAction, key: 'action' },
+        filterSchema && { label: 'schema', value: filterSchema, key: 'schema' },
+        filterTable  && { label: 'table', value: filterTable, key: 'table' },
+        filterActor  && { label: 'actor', value: filterActor, key: 'actor' },
       ].filter(Boolean);
 
-      const stats = `
+      // 24h timeline 渲染 (半 ASCII bar)
+      const maxN = byHour[0]?.n ?? 1;
+      const hourBars = byHour.map((r) => {
+        const pct = Math.max(0, Math.min(20, Math.floor((r.n / maxN) * 20)));
+        const bar = '█'.repeat(pct) + '░'.repeat(20 - pct);
+        const ts = new Date(r.hour).toISOString().slice(5, 16).replace('T', ' ');
+        return `<div style="display:flex; align-items:center; gap:8px; font-family:monospace; font-size:11px; color:var(--semi-color-text-1)">
+          <span style="width:120px; color:var(--semi-color-text-2)">${ts}</span>
+          <span style="color:var(--semi-color-primary)">${bar}</span>
+          <span style="width:40px; text-align:right">${r.n}</span>
+        </div>`;
+      }).join('');
+
+      const filtersBar = filters.length > 0
+        ? `<div style="margin-bottom:8px; font-size:12px; display:flex; align-items:center; gap:6px; flex-wrap:wrap">
+            <span style="color:var(--semi-color-text-2)">过滤:</span>
+            ${filters.map(f => `<span class="mp-tag primary">${f.label}=${f.value.slice(0, 12)}${f.value.length > 12 ? '…' : ''}</span>`).join('')}
+            <a class="mp-tag grey" href="/admin/audit" style="text-decoration:none">清除全部</a>
+          </div>`
+        : '';
+
+      const body = `
         <div class="mp-stat-grid">
-          ${stat('Total (matched)', r.rows.length, { color: 'primary' })}
-          ${stat('Last 24h', last24h.rows[0].n, { color: 'success' })}
+          ${stat('Total (all)', totalAll[0]?.n, { color: 'primary' })}
+          ${stat('Last 24h', total24h[0]?.n, { color: 'success' })}
+          ${stat('Matched', rows.length, { color: 'warning' })}
+          ${stat('Tenants', tenants.length, { color: '' })}
         </div>
-        ${card('🪵 mp-audit · 统计 (top action)', table(byAction.rows, ['action', 'n']))}
-        ${card(`📜 Audit Log (${r.rows.length} 行${filters.length > 0 ? ' · 已过滤 ' + filters.map(f => f.label + '=' + f.value).join(', ') : ''})`,
-          filters.length > 0
-            ? `<div style="margin-bottom:8px; font-size:12px">
-                <span style="color:var(--semi-color-text-2)">过滤:</span>
-                ${filters.map(f => `<span class="mp-tag primary" style="margin-right:4px">${f.label}=${f.value}</span>`).join('')}
-                <a class="mp-tag grey" href="/admin/audit" style="text-decoration:none">清除</a>
-              </div>` + table(r.rows, ['id', 'tenant_id', 'actor_id', { key: 'action', label: 'action', render: v => tag(v, v === 'DELETE' ? 'danger' : v === 'UPDATE' ? 'warning' : 'primary') }, 'schema_name', 'table_name', 'occurred_at'])
-            : table(r.rows, ['id', 'tenant_id', 'actor_id', { key: 'action', label: 'action', render: v => tag(v, v === 'DELETE' ? 'danger' : v === 'UPDATE' ? 'warning' : 'primary') }, 'schema_name', 'table_name', 'occurred_at'])
+        ${card('🪵 mp-audit · 统计 (按 action / schema / table · 匹配 filter)',
+          `<div class="mp-grid-2">
+            <div>
+              <h4 style="margin:0 0 8px 0; font-size:13px; color:var(--semi-color-text-2)">By Action</h4>
+              ${table(byAction, [{ key: 'action', label: 'action', render: v => tag(v, v === 'DELETE' ? 'danger' : v === 'UPDATE' ? 'warning' : 'primary') }, { key: 'n', label: 'count' }])}
+            </div>
+            <div>
+              <h4 style="margin:0 0 8px 0; font-size:13px; color:var(--semi-color-text-2)">By Schema</h4>
+              ${table(bySchema, ['schema_name', { key: 'n', label: 'count' }])}
+            </div>
+          </div>
+          <div style="margin-top:12px">
+            <h4 style="margin:0 0 8px 0; font-size:13px; color:var(--semi-color-text-2)">By Table (top 10)</h4>
+            ${table(byTable, ['table_name', { key: 'n', label: 'count' }])}
+          </div>
+        `)}
+        ${card('📈 Timeline (近 24h, 按小时)', hourBars || '<div class="mp-empty">无数据</div>')}
+        ${card(`📜 Audit Log (${rows.length} 行${filters.length > 0 ? ' · 已过滤 ' + filters.length + ' 项' : ''})`,
+          filtersBar + table(rows, ['occurred_at', { key: 'action', label: 'action', render: v => tag(v, v === 'DELETE' ? 'danger' : v === 'UPDATE' ? 'warning' : 'primary') }, 'tenant_id', 'actor_id', 'schema_name', 'table_name', 'row_pk'])
         )}
-        ${card('快速过滤', `<div style="display:flex; flex-wrap:wrap; gap:8px; font-size:12px">
-          <a class="mp-tag grey" href="/admin/audit?action=INSERT" style="text-decoration:none">action=INSERT</a>
-          <a class="mp-tag grey" href="/admin/audit?action=UPDATE" style="text-decoration:none">action=UPDATE</a>
-          <a class="mp-tag grey" href="/admin/audit?action=DELETE" style="text-decoration:none">action=DELETE</a>
-          <a class="mp-tag grey" href="/admin/audit?schema=public" style="text-decoration:none">schema=public</a>
-          <a class="mp-tag grey" href="/admin/audit?schema=mp_sandbox" style="text-decoration:none">schema=mp_sandbox</a>
-          <a class="mp-tag grey" href="/admin/audit?table=ontology_object_types" style="text-decoration:none">table=ontology_object_types</a>
-          <a class="mp-tag grey" href="/admin/audit?table=workflow_signals" style="text-decoration:none">table=workflow_signals</a>
+        ${card('🔍 快速过滤', `<div style="display:flex; flex-wrap:wrap; gap:6px; font-size:12px">
+          <span style="color:var(--semi-color-text-2); width:100%; margin-bottom:4px">By Action:</span>
+          <a class="mp-tag grey" href="/admin/audit?action=INSERT" style="text-decoration:none">INSERT</a>
+          <a class="mp-tag grey" href="/admin/audit?action=UPDATE" style="text-decoration:none">UPDATE</a>
+          <a class="mp-tag grey" href="/admin/audit?action=DELETE" style="text-decoration:none">DELETE</a>
+          <span style="color:var(--semi-color-text-2); width:100%; margin:8px 0 4px">By Schema:</span>
+          <a class="mp-tag grey" href="/admin/audit?schema=public" style="text-decoration:none">public</a>
+          <a class="mp-tag grey" href="/admin/audit?schema=mp_sandbox" style="text-decoration:none">mp_sandbox</a>
+          <span style="color:var(--semi-color-text-2); width:100%; margin:8px 0 4px">By Table (关键表):</span>
+          <a class="mp-tag grey" href="/admin/audit?table=ontology_object_types" style="text-decoration:none">ontology_object_types</a>
+          <a class="mp-tag grey" href="/admin/audit?table=workflow_signals" style="text-decoration:none">workflow_signals</a>
+          <a class="mp-tag grey" href="/admin/audit?table=hitl_requests" style="text-decoration:none">hitl_requests</a>
+          <a class="mp-tag grey" href="/admin/audit?table=dsh_session_headers" style="text-decoration:none">dsh_session_headers</a>
         </div>`)}
       `;
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(layout({ title: 'mp-audit 审计', body: stats, activeNav: 'audit' }));
+      res.end(layout({ title: 'mp-audit 审计', body, activeNav: 'audit' }));
     } else if (req.url === '/admin/installs') {
-      const r = await c.query("SELECT i.id, p.slug AS preset, i.workspace_id, i.status, i.installed_at FROM mp_preset_registry.installs i LEFT JOIN mp_preset_registry.presets p ON p.id = i.preset_id ORDER BY i.installed_at DESC LIMIT 50");
+      const r = await pool.query("SELECT i.id, p.slug AS preset, i.workspace_id, i.status, i.installed_at FROM mp_preset_registry.installs i LEFT JOIN mp_preset_registry.presets p ON p.id = i.preset_id ORDER BY i.installed_at DESC LIMIT 50");
       const body = card('Installs', table(r.rows, ['id', 'preset', 'workspace_id', { key: 'status', label: '状态', render: v => tag(v, v === 'active' ? 'success' : 'grey') }, 'installed_at']));
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'Installs', body, activeNav: 'installs' }));
     } else if (req.url === '/admin/presets') {
-      const r = await c.query("SELECT slug, name, visibility, downloads_count, current_version, maintainer_id FROM mp_preset_registry.presets ORDER BY downloads_count DESC LIMIT 50");
+      const r = await pool.query("SELECT slug, name, visibility, downloads_count, current_version, maintainer_id FROM mp_preset_registry.presets ORDER BY downloads_count DESC LIMIT 50");
       const body = card('Presets', table(r.rows, ['slug', 'name', { key: 'visibility', label: '可见性', render: v => tag(v, v === 'public' ? 'success' : 'grey') }, 'downloads_count', 'current_version', 'maintainer_id']));
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'Presets', body, activeNav: 'presets' }));
     } else if (req.url === '/admin/cron') {
-      const r = await c.query("SELECT jobname, schedule, active FROM cron.job ORDER BY jobname");
+      const r = await pool.query("SELECT jobname, schedule, active FROM cron.job ORDER BY jobname");
       const body = card('pg_cron Jobs', table(r.rows, ['jobname', 'schedule', { key: 'active', label: 'active', render: v => tag(v ? 'success' : 'grey', v ? 'success' : 'danger') }]));
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'pg_cron Jobs', body, activeNav: 'cron' }));
     } else if (req.url === '/admin/sandbox' || req.url.startsWith('/admin/sandbox?')) {
       const [stats, recent] = await Promise.all([
-        c.query(`
+        pool.query(`
           SELECT date_trunc('hour', created_at) AS hour,
                  count(*) FILTER (WHERE action = 'SANDBOX_EXECUTE')::int AS execute_count,
                  count(*) FILTER (WHERE action = 'SANDBOX_DENIED')::int AS denied_count,
@@ -336,7 +386,7 @@ const server = http.createServer(async (req, res) => {
           GROUP BY date_trunc('hour', created_at)
           ORDER BY hour DESC
           LIMIT 24`),
-        c.query(`
+        pool.query(`
           SELECT id, tenant_id, action, language, code_bytes, network, mode,
                  duration_ms, exit_code, created_at
           FROM mp_sandbox.executions
@@ -348,12 +398,12 @@ const server = http.createServer(async (req, res) => {
       res.end(layout({ title: 'mp-sandbox 执行', body, activeNav: 'sandbox' }));
     } else if (req.url === '/admin/ontology' || req.url.startsWith('/admin/ontology?')) {
       const [objStats, relStats, actStats, recentObj, recentRel, recentAct] = await Promise.all([
-        c.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_object_types"),
-        c.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_relation_types"),
-        c.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_action_types"),
-        c.query("SELECT rid, name, status, link_types, action_types, created_at FROM public.ontology_object_types ORDER BY created_at DESC LIMIT 10"),
-        c.query("SELECT rid, name, from_type, to_type, cardinality, status, created_at FROM public.ontology_relation_types ORDER BY created_at DESC LIMIT 10"),
-        c.query("SELECT rid, name, target_type, permission, workflow_name, hitl_type, status, created_at FROM public.ontology_action_types ORDER BY created_at DESC LIMIT 10"),
+        pool.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_object_types"),
+        pool.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_relation_types"),
+        pool.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_action_types"),
+        pool.query("SELECT rid, name, status, link_types, action_types, created_at FROM public.ontology_object_types ORDER BY created_at DESC LIMIT 10"),
+        pool.query("SELECT rid, name, from_type, to_type, cardinality, status, created_at FROM public.ontology_relation_types ORDER BY created_at DESC LIMIT 10"),
+        pool.query("SELECT rid, name, target_type, permission, workflow_name, hitl_type, status, created_at FROM public.ontology_action_types ORDER BY created_at DESC LIMIT 10"),
       ]);
       const o = objStats.rows[0], r = relStats.rows[0], a = actStats.rows[0];
       const body = `
@@ -370,10 +420,10 @@ const server = http.createServer(async (req, res) => {
       res.end(layout({ title: 'M11 Ontology Kernel', body, activeNav: 'ontology' }));
     } else if (req.url === '/admin/hitl') {
       const [pending, decided24h, signals, recent] = await Promise.all([
-        c.query("SELECT count(*)::int AS n FROM public.hitl_requests WHERE status = 'pending'"),
-        c.query("SELECT count(*)::int AS n FROM public.hitl_requests WHERE status IN ('approved','rejected','expired','cancelled') AND decided_at > now() - interval '24 hours'"),
-        c.query("SELECT status, count(*)::int AS n FROM public.workflow_signals GROUP BY status"),
-        c.query("SELECT id, type, status, title, escalation_level, deadline_at, decided_at, created_at FROM public.hitl_requests ORDER BY created_at DESC LIMIT 20"),
+        pool.query("SELECT count(*)::int AS n FROM public.hitl_requests WHERE status = 'pending'"),
+        pool.query("SELECT count(*)::int AS n FROM public.hitl_requests WHERE status IN ('approved','rejected','expired','cancelled') AND decided_at > now() - interval '24 hours'"),
+        pool.query("SELECT status, count(*)::int AS n FROM public.workflow_signals GROUP BY status"),
+        pool.query("SELECT id, type, status, title, escalation_level, deadline_at, decided_at, created_at FROM public.hitl_requests ORDER BY created_at DESC LIMIT 20"),
       ]);
       const sigChips = signals.rows.map(s => tag(`${s.status}=${s.n}`, s.status === 'pending' ? 'warning' : s.status === 'failed' ? 'danger' : 'success')).join(' ');
       const body = `
@@ -439,9 +489,9 @@ const server = http.createServer(async (req, res) => {
       res.end(layout({ title: 'M10 系统监控', body, activeNav: 'monitoring' }));
     } else if (req.url === '/admin/sessions') {
       const [summary, activeByTenant, recent] = await Promise.all([
-        c.query("SELECT active_count, completed_count, failed_count, last_active_at FROM public.dsh_session_summary ORDER BY last_active_at DESC NULLS LAST LIMIT 10"),
-        c.query("SELECT tenant_id, count(*)::int AS active FROM public.dsh_session_headers WHERE status IN ('running','waiting_tool','waiting_hitl','waiting_external') GROUP BY tenant_id ORDER BY active DESC LIMIT 10"),
-        c.query("SELECT id, tenant_id, agent_preset, status, version, updated_at, completed_at FROM public.dsh_session_headers ORDER BY updated_at DESC LIMIT 20"),
+        pool.query("SELECT active_count, completed_count, failed_count, last_active_at FROM public.dsh_session_summary ORDER BY last_active_at DESC NULLS LAST LIMIT 10"),
+        pool.query("SELECT tenant_id, count(*)::int AS active FROM public.dsh_session_headers WHERE status IN ('running','waiting_tool','waiting_hitl','waiting_external') GROUP BY tenant_id ORDER BY active DESC LIMIT 10"),
+        pool.query("SELECT id, tenant_id, agent_preset, status, version, updated_at, completed_at FROM public.dsh_session_headers ORDER BY updated_at DESC LIMIT 20"),
       ]);
       const summaryText = summary.rows.length > 0
         ? summary.rows.map(s => `tenant=${s.active_count + s.completed_count + s.failed_count} (active=${s.active_count}/done=${s.completed_count}/fail=${s.failed_count})`).join(' | ')
@@ -460,7 +510,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'M15 dsh Sessions', body, activeNav: 'sessions' }));
     } else if (req.url === '/app-center') {
-      const r = await c.query(
+      const r = await pool.query(
         "SELECT id, slug, name, category, visibility, current_version, downloads_count, maintainer_id FROM mp_preset_registry.presets ORDER BY category, downloads_count DESC"
       );
       const grouped = {};
@@ -478,8 +528,9 @@ const server = http.createServer(async (req, res) => {
       res.end('Not found');
     }
   } catch (err) {
+    console.error('handler error:', err);
     res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end('Error: ' + (err instanceof Error ? err.message : String(err)));
+    res.end('Error: ' + (err instanceof Error ? err.stack : String(err)));
   }
 });
 
