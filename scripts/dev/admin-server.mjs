@@ -245,11 +245,69 @@ const server = http.createServer(async (req, res) => {
       const body = card('Tenants', table(r.rows, ['id', 'slug', 'name', { key: 'status', label: '状态', render: v => tag(v, v === 'active' ? 'success' : 'grey') }, 'created_at']));
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'Tenants', body, activeNav: 'tenants' }));
-    } else if (req.url === '/admin/audit') {
-      const r = await c.query("SELECT id, tenant_id, actor_id, action, schema_name, table_name, occurred_at FROM public.audit_log ORDER BY occurred_at DESC LIMIT 100");
-      const body = card('Audit Log (latest 100)', table(r.rows, ['id', 'tenant_id', 'actor_id', 'action', 'schema_name', 'table_name', 'occurred_at']));
+    } else if (req.url === '/admin/audit' || req.url.startsWith('/admin/audit?')) {
+      // Loop P: mp-audit 增强 — 支持 query string filter (?tenant=&action=&schema=&table=&limit=)
+      const url = new URL(req.url, 'http://localhost');
+      const filterTenant = url.searchParams.get('tenant');
+      const filterAction = url.searchParams.get('action');
+      const filterSchema = url.searchParams.get('schema');
+      const filterTable = url.searchParams.get('table');
+      const limit = Math.min(500, Math.max(10, parseInt(url.searchParams.get('limit') ?? '100') || 100));
+
+      const wheres = [];
+      const params = [];
+      if (filterTenant) { params.push(filterTenant); wheres.push(`tenant_id = $${params.length}::uuid`); }
+      if (filterAction) { params.push(filterAction); wheres.push(`action = $${params.length}`); }
+      if (filterSchema) { params.push(filterSchema); wheres.push(`schema_name = $${params.length}`); }
+      if (filterTable)  { params.push(filterTable);  wheres.push(`table_name = $${params.length}`); }
+      const where = wheres.length > 0 ? 'WHERE ' + wheres.join(' AND ') : '';
+      params.push(limit);
+
+      const r = await c.query(
+        `SELECT id, tenant_id, actor_id, action, schema_name, table_name, occurred_at FROM public.audit_log ${where} ORDER BY occurred_at DESC LIMIT $${params.length}`,
+        params
+      );
+
+      // 统计: 按 action 聚合 + 24h trend
+      const [byAction, last24h] = await Promise.all([
+        c.query(`SELECT action, count(*)::int AS n FROM public.audit_log GROUP BY action ORDER BY n DESC LIMIT 10`),
+        c.query(`SELECT count(*)::int AS n FROM public.audit_log WHERE occurred_at > now() - interval '24 hours'`),
+      ]);
+
+      const filters = [
+        filterTenant && { label: 'tenant', value: filterTenant },
+        filterAction && { label: 'action', value: filterAction },
+        filterSchema && { label: 'schema', value: filterSchema },
+        filterTable  && { label: 'table', value: filterTable },
+      ].filter(Boolean);
+
+      const stats = `
+        <div class="mp-stat-grid">
+          ${stat('Total (matched)', r.rows.length, { color: 'primary' })}
+          ${stat('Last 24h', last24h.rows[0].n, { color: 'success' })}
+        </div>
+        ${card('🪵 mp-audit · 统计 (top action)', table(byAction.rows, ['action', 'n']))}
+        ${card(`📜 Audit Log (${r.rows.length} 行${filters.length > 0 ? ' · 已过滤 ' + filters.map(f => f.label + '=' + f.value).join(', ') : ''})`,
+          filters.length > 0
+            ? `<div style="margin-bottom:8px; font-size:12px">
+                <span style="color:var(--semi-color-text-2)">过滤:</span>
+                ${filters.map(f => `<span class="mp-tag primary" style="margin-right:4px">${f.label}=${f.value}</span>`).join('')}
+                <a class="mp-tag grey" href="/admin/audit" style="text-decoration:none">清除</a>
+              </div>` + table(r.rows, ['id', 'tenant_id', 'actor_id', { key: 'action', label: 'action', render: v => tag(v, v === 'DELETE' ? 'danger' : v === 'UPDATE' ? 'warning' : 'primary') }, 'schema_name', 'table_name', 'occurred_at'])
+            : table(r.rows, ['id', 'tenant_id', 'actor_id', { key: 'action', label: 'action', render: v => tag(v, v === 'DELETE' ? 'danger' : v === 'UPDATE' ? 'warning' : 'primary') }, 'schema_name', 'table_name', 'occurred_at'])
+        )}
+        ${card('快速过滤', `<div style="display:flex; flex-wrap:wrap; gap:8px; font-size:12px">
+          <a class="mp-tag grey" href="/admin/audit?action=INSERT" style="text-decoration:none">action=INSERT</a>
+          <a class="mp-tag grey" href="/admin/audit?action=UPDATE" style="text-decoration:none">action=UPDATE</a>
+          <a class="mp-tag grey" href="/admin/audit?action=DELETE" style="text-decoration:none">action=DELETE</a>
+          <a class="mp-tag grey" href="/admin/audit?schema=public" style="text-decoration:none">schema=public</a>
+          <a class="mp-tag grey" href="/admin/audit?schema=mp_sandbox" style="text-decoration:none">schema=mp_sandbox</a>
+          <a class="mp-tag grey" href="/admin/audit?table=ontology_object_types" style="text-decoration:none">table=ontology_object_types</a>
+          <a class="mp-tag grey" href="/admin/audit?table=workflow_signals" style="text-decoration:none">table=workflow_signals</a>
+        </div>`)}
+      `;
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(layout({ title: 'Audit Log', body, activeNav: 'audit' }));
+      res.end(layout({ title: 'mp-audit 审计', body: stats, activeNav: 'audit' }));
     } else if (req.url === '/admin/installs') {
       const r = await c.query("SELECT i.id, p.slug AS preset, i.workspace_id, i.status, i.installed_at FROM mp_preset_registry.installs i LEFT JOIN mp_preset_registry.presets p ON p.id = i.preset_id ORDER BY i.installed_at DESC LIMIT 50");
       const body = card('Installs', table(r.rows, ['id', 'preset', 'workspace_id', { key: 'status', label: '状态', render: v => tag(v, v === 'active' ? 'success' : 'grey') }, 'installed_at']));
@@ -265,7 +323,7 @@ const server = http.createServer(async (req, res) => {
       const body = card('pg_cron Jobs', table(r.rows, ['jobname', 'schedule', { key: 'active', label: 'active', render: v => tag(v ? 'success' : 'grey', v ? 'success' : 'danger') }]));
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'pg_cron Jobs', body, activeNav: 'cron' }));
-    } else if (req.url === '/admin/sandbox') {
+    } else if (req.url === '/admin/sandbox' || req.url.startsWith('/admin/sandbox?')) {
       const [stats, recent] = await Promise.all([
         c.query(`
           SELECT date_trunc('hour', created_at) AS hour,
@@ -288,7 +346,7 @@ const server = http.createServer(async (req, res) => {
         + card('最近 50 次执行', table(recent.rows, ['created_at', 'tenant_id', { key: 'action', label: 'action', render: v => tag(v, v === 'SANDBOX_DENIED' ? 'danger' : v === 'SANDBOX_TIMEOUT' ? 'warning' : 'success') }, 'language', 'mode', 'code_bytes', 'network', 'duration_ms', 'exit_code']));
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'mp-sandbox 执行', body, activeNav: 'sandbox' }));
-    } else if (req.url === '/admin/ontology') {
+    } else if (req.url === '/admin/ontology' || req.url.startsWith('/admin/ontology?')) {
       const [objStats, relStats, actStats, recentObj, recentRel, recentAct] = await Promise.all([
         c.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_object_types"),
         c.query("SELECT count(*)::int AS total, count(*) FILTER (WHERE status = 'active')::int AS active FROM public.ontology_relation_types"),
