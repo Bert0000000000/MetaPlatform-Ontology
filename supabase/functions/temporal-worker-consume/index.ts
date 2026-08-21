@@ -1,36 +1,42 @@
 // supabase/functions/temporal-worker-consume/index.ts
-// PRD:  docs/active/prd/mp-ontology.md (M40 Workflow 引擎)
-// ADR:   docs/active/decisions/ADR-0052-temporal-workflow.md
-// Batch: MetaPlatform-MP-WORKFLOW-01 (Loop 1/3)
+// PRD: docs/active/specs/2026-08-19-mp-v6-architecture.md §6.3 (M40 Workflow)
+// ADR:  docs/active/decisions/ADR-0052-temporal.md
+// Batch: MetaPlatform-TEMPORAL-01 (Loop 2/3)
 //
-// POST /functions/v1/temporal-worker-consume
-//   body: { worker_id?: string, max_batch?: number }
-//   workflow_signals 消费 worker (本地 dev mock Temporal):
-//   1. SELECT workflow_signals WHERE status='pending' LIMIT max_batch
-//   2. 对每条: "调 Temporal signal" (本地: 模拟成功 + 落 audit_log)
-//   3. UPDATE status='sent' + sent_at
+// GET /functions/v1/temporal-worker-consume
+//   Mp-workflow worker: 消费 workflow_signals.status='pending', 启动 Temporal workflow
+//   本 PoC: mock Temporal start (生产: Temporal client.workflow.start)
+//   ack workflow_signals (status: pending → sent) + 写 audit_log
 //
-// 注: 本地 dev 无 Temporal cluster, mock 调用. 生产 (K8s) 调 mp-workflow-worker service
-//   通过 Temporal SDK 的 Client.signal() 发 signal. EF 仅做 queue dispatch + ack 维护.
+// 生产 (Loop 3/3):
+//   - Temporal client @temporalio/client.start
+//   - 实际调 Temporal cluster (K8s Service: mp-temporal:7233)
+//   - worker 心跳 → Realtime 推送
 //
-// Realtime 订阅: production worker 还可以通过 supabase_realtime 订阅
-//   workflow_signals INSERT/UPDATE, 低延迟响应. 本 spec 重点是 HTTP 批量消费.
+// 触发方式:
+//   - pg_cron 每 30s 调 (本地 dev: ./scripts/dev/temporal-worker-cron.sh)
+//   - Realtime 订阅 workflow_signals UPDATE (低延迟)
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.0";
 import { verifyAuth, AuthError, authErrorResponse } from "../_template-auth/index.ts";
 
-interface ConsumeRequest {
-  worker_id?: string;
-  max_batch?: number;
-}
-
-interface SignalRow {
+interface Signal {
   id: string;
+  hitl_request_id: string;
   workflow_id: string;
   signal_name: string;
   payload: Record<string, unknown>;
-  hitl_request_id: string;
+  status: string;
+  created_at: string;
+}
+
+interface ConsumeResult {
+  ok: boolean;
+  consumed: number;
+  succeeded: number;
+  failed: number;
+  results: Array<{ signal_id: string; workflow_id: string; status: 'sent' | 'failed'; error?: string }>;
 }
 
 function jsonResponse(body: unknown, status: number): Response {
@@ -40,81 +46,80 @@ function jsonResponse(body: unknown, status: number): Response {
   });
 }
 
-// 模拟 Temporal signal 调用 (生产: Temporal Client.signal(workflow_id, signal_name, payload))
-async function mockTemporalSignal(workflowId: string, signalName: string, payload: Record<string, unknown>): Promise<{ ok: boolean; error?: string }> {
-  // PoC: 假装成功, 1ms 延迟
-  await new Promise((r) => setTimeout(r, 1));
-  if (!workflowId.startsWith('OrderApproval') && !workflowId.startsWith('CustomerCreate') && !workflowId.startsWith('ContractSign') && !workflowId.startsWith('InvoiceIssue') && !workflowId.startsWith('Action')) {
-    return { ok: false, error: `unknown workflow type: ${workflowId.split(':')[0]}` };
+// 模拟 Temporal client (PoC: 返回 workflow_id 而不真起 Temporal)
+async function startTemporalWorkflow(workflow_id: string, signal_name: string, payload: Record<string, unknown>): Promise<{ ok: boolean; run_id?: string; error?: string }> {
+  // 业务规则: hitl_decision signals must have decision ('approved' | 'rejected')
+  if (signal_name === 'hitl_decision') {
+    if (!payload.decision || (payload.decision !== 'approved' && payload.decision !== 'rejected')) {
+      return { ok: false, error: 'invalid decision in payload' };
+    }
   }
-  return { ok: true };
+  // PoC: 100% 成功 (生产: 真实调 Temporal client)
+  await new Promise((r) => setTimeout(r, 10));  // mock latency
+  return { ok: true, run_id: 'run_' + Math.random().toString(36).slice(2, 10) };
 }
 
 serve(async (req) => {
-  if (req.method !== 'POST') {
-    return jsonResponse({ error: 'method_not_allowed', message: 'POST only' }, 405);
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return jsonResponse({ error: 'method_not_allowed', message: 'GET or POST only' }, 405);
   }
   try {
     const auth = await verifyAuth(req);
     if (auth.role !== 'admin' && auth.role !== 'owner') {
-      return jsonResponse({ error: 'forbidden', message: 'worker requires admin/owner role' }, 403);
+      return jsonResponse({ error: 'forbidden', message: 'only admin/owner can run worker' }, 403);
     }
 
-    let body: ConsumeRequest = {};
-    try { body = await req.json() as ConsumeRequest; } catch { /* empty body OK */ }
-
-    const maxBatch = Math.min(100, Math.max(1, body.max_batch ?? 10));
-    const workerId = body.worker_id ?? 'mp-workflow-worker-local';
+    const url = new URL(req.url, 'http://localhost');
+    const limit = Math.min(100, Math.max(1, parseInt(url.searchParams.get('limit') ?? '20') || 20));
 
     const sb = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    // 1. SELECT pending signals
-    const { data: pending, error: qErr } = await sb
+    // 1. 拉 pending signals (按 hitl_request_id 唯一, 避免重复)
+    const { data: signals, error: queryErr } = await sb
       .from('workflow_signals')
-      .select('id, workflow_id, signal_name, payload, hitl_request_id')
+      .select('id, hitl_request_id, workflow_id, signal_name, payload, status, created_at')
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
-      .limit(maxBatch);
-    if (qErr) {
-      return jsonResponse({ error: 'query_failed', message: qErr.message }, 500);
-    }
-    const signals = (pending ?? []) as SignalRow[];
-    if (signals.length === 0) {
-      return jsonResponse({ ok: true, worker_id: workerId, consumed: 0, sent: 0, failed: 0 }, 200);
+      .limit(limit);
+    if (queryErr) {
+      return jsonResponse({ error: 'query_failed', message: queryErr.message }, 500);
     }
 
-    // 2. 对每条: 调 Temporal (mock) + UPDATE status
-    const results = { sent: [] as string[], failed: [] as { id: string; error: string }[] };
-    for (const sig of signals) {
-      const r = await mockTemporalSignal(sig.workflow_id, sig.signal_name, sig.payload);
-      if (r.ok) {
+    const result: ConsumeResult = {
+      ok: true,
+      consumed: 0,
+      succeeded: 0,
+      failed: 0,
+      results: [],
+    };
+
+    for (const sig of (signals ?? []) as Signal[]) {
+      // 2. 启动 Temporal workflow (mock)
+      const temporal = await startTemporalWorkflow(sig.workflow_id, sig.signal_name, sig.payload);
+
+      // 3. 更新 signal status
+      if (temporal.ok) {
         await sb
           .from('workflow_signals')
           .update({ status: 'sent', sent_at: new Date().toISOString() })
           .eq('id', sig.id);
-        results.sent.push(sig.id);
+        result.succeeded++;
+        result.results.push({ signal_id: sig.id, workflow_id: sig.workflow_id, status: 'sent' });
       } else {
         await sb
           .from('workflow_signals')
-          .update({ status: 'failed', error: r.error ?? 'unknown' })
+          .update({ status: 'failed', error: temporal.error ?? 'unknown' })
           .eq('id', sig.id);
-        results.failed.push({ id: sig.id, error: r.error ?? 'unknown' });
+        result.failed++;
+        result.results.push({ signal_id: sig.id, workflow_id: sig.workflow_id, status: 'failed', error: temporal.error });
       }
+      result.consumed++;
     }
 
-    return jsonResponse({
-      ok: true,
-      worker_id: workerId,
-      consumed: signals.length,
-      sent: results.sent.length,
-      failed: results.failed.length,
-      sent_ids: results.sent,
-      failed_details: results.failed,
-      note: 'PoC: mock Temporal. 生产由 mp-workflow-worker (K8s Deployment) 调 Temporal SDK.',
-    }, 200);
+    return jsonResponse(result, 200);
   } catch (err) {
     if (err instanceof AuthError) return authErrorResponse(err);
     const message = err instanceof Error ? err.message : String(err);
