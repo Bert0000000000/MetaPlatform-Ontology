@@ -147,4 +147,16 @@ test.describe('admin-server smoke (port 8080) + Semi Design 19', () => {
     expect(html).toContain('/admin/monitoring');
     expect(html).toContain('系统监控');
   });
+
+  // Loop U: mp-runtime 监控
+  test('14. /admin/runtime shows mp-runtime EF + dsh session stats', async ({ page }) => {
+    const r = await page.request.get(`${ADMIN}/admin/runtime`);
+    expect(r.status()).toBe(200);
+    const html = await r.text();
+    expect(html).toContain('mp-runtime 业务运行时');
+    expect(html).toContain('dsh Session by Status');
+    expect(html).toContain('mp-runtime-trigger');
+    expect(html).toContain('mp-runtime-status');
+    expect(html).toContain('mp-runtime-cancel');
+  });
 });

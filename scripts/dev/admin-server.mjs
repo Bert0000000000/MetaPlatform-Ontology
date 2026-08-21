@@ -117,6 +117,7 @@ function layout(opts) {
       <a class="mp-nav-item ${activeNav === 'audit' ? 'active' : ''}" href="/admin/audit"><i class="semi-icons semi-icon-file mp-nav-icon"></i><span class="mp-nav-text">Audit Log</span></a>
       <a class="mp-nav-item ${activeNav === 'cron' ? 'active' : ''}" href="/admin/cron"><i class="semi-icons semi-icon-clock mp-nav-icon"></i><span class="mp-nav-text">Cron Jobs</span></a>
       <a class="mp-nav-item ${activeNav === 'monitoring' ? 'active' : ''}" href="/admin/monitoring"><i class="semi-icons semi-icon-pulse mp-nav-icon"></i><span class="mp-nav-text">系统监控</span></a>
+      <a class="mp-nav-item ${activeNav === 'runtime' ? 'active' : ''}" href="/admin/runtime"><i class="semi-icons semi-icon-server mp-nav-icon"></i><span class="mp-nav-text">mp-runtime</span></a>
     </nav>
   </aside>
   <main class="mp-main">
@@ -487,6 +488,33 @@ const server = http.createServer(async (req, res) => {
       }
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(layout({ title: 'M10 系统监控', body, activeNav: 'monitoring' }));
+    } else if (req.url === '/admin/runtime') {
+      // Loop U: mp-runtime 监控
+      const [tables, ef, recentSessions, sessionsByStatus] = await Promise.all([
+        pool.query("SELECT table_name FROM information_schema.tables WHERE table_schema IN ('mp_runtime', 'public') AND table_name LIKE 'mp_runtime%' ORDER BY table_name"),
+        pool.query("SELECT slug FROM mp_preset_registry.presets WHERE slug LIKE 'mp-runtime%' ORDER BY slug"),
+        pool.query("SELECT status, count(*)::int AS n, max(updated_at) AS last FROM public.dsh_session_headers GROUP BY status ORDER BY status"),
+        pool.query("SELECT count(*) FILTER (WHERE status = 'running')::int AS running, count(*) FILTER (WHERE status = 'waiting_tool')::int AS waiting_tool, count(*) FILTER (WHERE status = 'waiting_hitl')::int AS waiting_hitl, count(*) FILTER (WHERE status = 'waiting_external')::int AS waiting_external, count(*) FILTER (WHERE status = 'completed')::int AS completed, count(*) FILTER (WHERE status = 'failed')::int AS failed FROM public.dsh_session_headers"),
+      ]);
+      const body = `
+        <div class="mp-stat-grid">
+          ${stat('dsh Sessions 总', recentSessions.rows.reduce((s, r) => s + r.n, 0), { color: 'primary' })}
+          ${stat('Running', sessionsByStatus.rows[0]?.running, { color: 'success' })}
+          ${stat('Waiting External', sessionsByStatus.rows[0]?.waiting_external, { color: sessionsByStatus.rows[0]?.waiting_external > 0 ? 'warning' : '' })}
+          ${stat('Failed', sessionsByStatus.rows[0]?.failed, { color: sessionsByStatus.rows[0]?.failed > 0 ? 'danger' : 'success' })}
+        </div>
+        ${card('🚀 mp-runtime Functions (Edge Functions)', table(ef.rows.map((r) => ({ slug: `${r.slug}` })), ['slug']))}
+        ${card('📊 Runtime 数据表', table(tables.rows.map((r) => ({ table: r.table_name })), ['table']))}
+        ${card('📈 dsh Session by Status', table(recentSessions.rows, ['status', { key: 'n', label: 'count', render: (v) => tag(String(v), 'primary') }, 'last']))}
+        ${card('说明', `<div style="font-size:12px; color:var(--semi-color-text-2)">
+          mp-runtime 提供 3 个 EF: mp-runtime-trigger (创建 session) · mp-runtime-status (查 session) · mp-runtime-cancel (取消 session).
+          dsh Session 表 (M15 PostgreSQL backend) 记录所有 dsh 会话状态: running / waiting_tool / waiting_hitl / waiting_external / completed / failed.
+          pg_cron dsh-session-cleanup: 每日 02:00 清理 completed/failed/cancelled 超 30 天.
+          <br/><br/>EF 部署: supabase/functions/mp-runtime-* · 详情 <a href="/admin/sessions" style="color:var(--semi-color-primary)">sessions</a>
+        </div>`)}
+      `;
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(layout({ title: 'mp-runtime 业务运行时', body, activeNav: 'runtime' }));
     } else if (req.url === '/admin/sessions') {
       const [summary, activeByTenant, recent] = await Promise.all([
         pool.query("SELECT active_count, completed_count, failed_count, last_active_at FROM public.dsh_session_summary ORDER BY last_active_at DESC NULLS LAST LIMIT 10"),

@@ -30,7 +30,7 @@ export default defineConfig({
   projects: [
     {
       name: 'supabase-api',
-      testMatch: /e2e\/(supabase-auth|edge-functions|list-presets|publish-preset|install-preset|uninstall-preset|multimodal-rag|multimodal-rag-video|mp-runtime|mp-knowledge|mp-sandbox|admin-server|hitl-hub|ontology-kernel|ontology-crud|workflow-signals|hitl-escalation|ontology-generation|action-apply|dsh-session|mp-sandbox-execute|temporal-worker|mp-monitoring|temporal-worker-cron|monitoring-dashboards|mp-frontend-obs)\.spec\.ts/,
+      testMatch: /e2e\/(supabase-auth|edge-functions|list-presets|publish-preset|install-preset|uninstall-preset|multimodal-rag|multimodal-rag-video|mp-runtime|mp-knowledge|mp-sandbox|admin-server|hitl-hub|ontology-kernel|ontology-crud|workflow-signals|hitl-escalation|ontology-generation|action-apply|dsh-session|mp-sandbox-execute|temporal-worker|mp-monitoring|temporal-worker-cron|monitoring-dashboards|mp-frontend-obs|mp-otel)\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
     {
